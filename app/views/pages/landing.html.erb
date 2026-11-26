@@ -15,44 +15,30 @@
           <% else %>
             <a class="se-btn" href="<%= new_user_session_path %>"><%= svg_icon('login') %><span><%= t('sign_in') %></span></a>
           <% end %>
-          <a class="se-link" href="#how">How signing works<%= svg_icon('arrow_right') %></a>
+          <a class="se-link" href="#esign">About electronic signatures<%= svg_icon('arrow_right') %></a>
         </div>
       </div>
-    </section>
-    <figure class="se-skyline" aria-hidden="true">
-      <img src="/stevensed/skyline-1920.webp" srcset="/stevensed/skyline-1200.webp 1200w, /stevensed/skyline-1920.webp 1920w" sizes="100vw" width="1920" height="644" alt="" fetchpriority="high">
-    </figure>
-
-    <section id="how" class="se-section" aria-labelledby="se-how-title">
-      <div class="se-wrap se-how">
-        <h2 id="se-how-title" class="se-serif se-h2">How signing works</h2>
+      <aside id="how" class="se-panel se-rise se-rise-2" aria-labelledby="se-how-title">
+        <h2 id="se-how-title" class="se-serif">How signing works</h2>
         <ol class="se-steps">
           <li>
             <span class="se-icon" aria-hidden="true"><%= svg_icon('mail_opened') %></span>
-            <div>
-              <h3>Open the request</h3>
-              <p>The email names the agreement and who sent it. Each link is unique to you, so please do not forward it.</p>
-            </div>
+            <div><h3>Open the request</h3><p>The email names the agreement and who sent it. Each link is unique to you, so please do not forward it.</p></div>
           </li>
           <li>
             <span class="se-icon" aria-hidden="true"><%= svg_icon('writing_sign') %></span>
-            <div>
-              <h3>Review and sign</h3>
-              <p>Read the whole document, complete the marked fields and sign on a phone, tablet or computer.</p>
-            </div>
+            <div><h3>Review and sign</h3><p>Read the whole document, complete the marked fields and sign on a phone, tablet or computer.</p></div>
           </li>
           <li>
             <span class="se-icon" aria-hidden="true"><%= svg_icon('file_check') %></span>
-            <div>
-              <h3>Keep your copy</h3>
-              <p>Every signer receives the completed document. With a StevensED account you can also sign in to see agreements you have signed.</p>
-            </div>
+            <div><h3>Keep your copy</h3><p>Every signer receives the completed document. With a StevensED account you can also sign in to see agreements you have signed.</p></div>
           </li>
         </ol>
-      </div>
+        <img class="se-panel__skyline" src="/stevensed/skyline.svg" alt="" width="3500" height="1180" loading="lazy" decoding="async">
+      </aside>
     </section>
 
-    <section class="se-band se-section" aria-labelledby="se-consent-title">
+    <section id="esign" class="se-band se-section" aria-labelledby="se-consent-title">
       <div class="se-wrap se-consent">
         <div>
           <h2 id="se-consent-title" class="se-serif se-h2">Signing electronically</h2>
