@@ -306,7 +306,8 @@ module Submissions
                   text: "#{I18n.t('knowledge_based_authentication')}: #{I18n.t('passed')}#{kba_score}\n"
                 },
                 esign_consent_event && {
-                  text: "Electronic records consent (FRM-102): accepted #{esign_consent_event.event_timestamp.utc.iso8601}\n"
+                  text: 'Electronic records consent (FRM-102): accepted ' \
+                        "#{esign_consent_event.event_timestamp.utc.iso8601}\n"
                 },
                 completed_event.data['ip'] && { text: "IP: #{completed_event.data['ip']}\n" },
                 completed_event.data['sid'] && { text: "#{I18n.t('session_id')}: #{completed_event.data['sid']}\n" },

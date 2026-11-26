@@ -1316,19 +1316,21 @@ RSpec.describe 'Signing Form' do
       submission.update(template_fields: template.fields)
     end
 
-    it 'shows header complete button and hides download after filling required fields' do
+    it 'shows Finish disabled until the required fields are filled, with other actions in a menu' do
       visit submit_form_path(slug: submitter.slug)
 
-      expect(page).to have_button('Decline')
-      expect(page).to have_css('download-button[aria-label="Download"]', visible: true)
-      expect(page).not_to have_css('#complete_button_container button')
+      expect(page).to have_css('#se_finish_container button.btn-disabled', text: 'Finish')
+      expect(page).to have_css('.se-other-actions')
 
       fill_in 'First Name', with: 'John Doe'
       click_button 'next'
 
-      expect(page).to have_css('#complete_button_container button')
-      expect(page).to have_button('Decline')
-      expect(page).to have_css('download-button[aria-label="Download"]', visible: :hidden)
+      expect(page).to have_css('#se_finish_container button#complete_form_button', text: 'Finish')
+
+      find('.se-other-actions').click
+
+      expect(page).to have_button('Decline to sign')
+      expect(page).to have_css('download-button', text: 'Download')
     end
 
     it 'completes the form via header complete button skipping optional fields' do
@@ -1337,7 +1339,7 @@ RSpec.describe 'Signing Form' do
       fill_in 'First Name', with: 'John Doe'
       click_button 'next'
 
-      find('#complete_button_container button').click
+      find('#se_finish_container button#complete_form_button').click
 
       expect(page).to have_content('You have finished signing.')
 
