@@ -1,7 +1,7 @@
 <%= render 'shared/navbar_warning' %>
 <%= render 'shared/mobile_app_alert' if signed_in? && cookies[:mobile_app_alert].blank? && (browser_os == 'ios' || browser_os == 'android') %>
 <%# StevensED: institutional header, matching stevensed.org and the public pages. %>
-<header class="se-site-header se-app-header">
+<header class="se-site-header se-app-header <%= local_assigns[:header_class] %>">
 <nav class="se-wrap se-site-header__inner justify-between">
   <div class="flex items-center space-x-4">
     <a class="se-brand" href="<%= root_path %>" aria-label="StevensED Agreements home">

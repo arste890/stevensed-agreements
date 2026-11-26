@@ -1,3 +1,4 @@
+<% render 'stevensed/styles' unless turbo_native_app? %>
 <!DOCTYPE html>
 <html data-theme="docuseal" lang="<%= I18n.locale %>">
   <head>
@@ -13,8 +14,10 @@
       <%= javascript_pack_tag 'form', defer: true %>
     <% end %>
     <%= stylesheet_pack_tag 'form', media: 'all', data: { turbo_track: 'dynamic' } %>
+    <%= yield :head %>
   </head>
   <body>
+    <%= render 'stevensed/layout_header' %>
     <main>
       <%= yield %>
     </main>

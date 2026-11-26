@@ -1,7 +1,8 @@
 <%# StevensED: header matching stevensed.org (brand lockup, nav, accent action); links specific to Agreements. %>
 <% show_sign_in = local_assigns.fetch(:show_sign_in, true) %>
+<% content_for(:stevensed_header, 'rendered') %>
 <a class="se-skip" href="#main">Skip to main content</a>
-<header class="se-site-header">
+<header class="se-site-header <%= local_assigns[:header_class] %>">
   <div class="se-wrap se-site-header__inner">
     <a class="se-brand" href="<%= root_path %>" aria-label="StevensED Agreements home">
       <img class="se-brand__logo" src="/stevensed/book-mark.svg" alt="" width="65" height="48" decoding="async">

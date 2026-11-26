@@ -1,0 +1,10 @@
+<%# StevensED: institutional header for the plain and form layouts (document views, builder, signing pages). %>
+<%# Omitted when the page renders its own header, inside frames (embedding, Turbo frames) and in the native app. %>
+<% framed = request.headers['Sec-Fetch-Dest'] == 'iframe' || request.headers['Turbo-Frame'].present? %>
+<% unless content_for?(:stevensed_header) || framed || turbo_native_app? %>
+  <% if local_assigns[:app] && signed_in? %>
+    <%= render 'shared/navbar', header_class: 'se-site-header--static' %>
+  <% else %>
+    <%= render 'stevensed/header', show_sign_in: false, header_class: 'se-site-header--static' %>
+  <% end %>
+<% end %>
