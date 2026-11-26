@@ -9,24 +9,24 @@ module Stevensed
       @student_age = student_age
       @expected = expected
 
-      alert(submitter, 'stevensed_wrong_version', "Envelope voided: wrong version for the student's age " \
-                                                   "(envelope #{@submission.id})")
+      alert(submitter, 'stevensed_wrong_version',
+            "Envelope voided: wrong version for the student's age (envelope #{@submission.id})")
     end
 
     def paper_request_email(submitter)
       @submitter = submitter
       @submission = submitter.submission
 
-      alert(submitter, 'stevensed_paper_request', "Paper copies requested instead of electronic signing " \
-                                                  "(envelope #{@submission.id})")
+      alert(submitter, 'stevensed_paper_request',
+            "Paper copies requested instead of electronic signing (envelope #{@submission.id})")
     end
 
     def parent_consent_missing_email(submitter)
       @submitter = submitter
       @submission = submitter.submission
 
-      alert(submitter, 'stevensed_parent_consent_missing', "Parent consent needed before a minor student can sign " \
-                                                           "(envelope #{@submission.id})")
+      alert(submitter, 'stevensed_parent_consent_missing',
+            "Parent consent needed before a minor student can sign (envelope #{@submission.id})")
     end
 
     private

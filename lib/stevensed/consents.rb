@@ -132,7 +132,10 @@ module Stevensed
 
     def kinds_for(ctx, band = nil)
       case ctx.audience
-      when 'family' then band ? [band == 'adult' ? 'family_adult' : 'family_minor'] : FAMILY_KINDS
+      when 'family'
+        return FAMILY_KINDS unless band
+
+        [band == 'adult' ? 'family_adult' : 'family_minor']
       else [ctx.audience]
       end
     end
@@ -191,10 +194,13 @@ module Stevensed
     def current_template(account, kind, today: Time.current.in_time_zone(PolicySync::TIME_ZONE).to_date)
       key = CONSENT_FORMS.fetch(kind)
 
-      Template.where(account:, archived_at: nil).where('external_id LIKE ?', "#{key}\\_v%").to_a.select do |t|
+      candidates = Template.where(account:, archived_at: nil).where('external_id LIKE ?', "#{key}\\_v%").to_a
+      in_effect = candidates.select do |t|
         effective = t.preferences.to_h.dig(PolicySync::PREFERENCE_KEY, 'effective')
         effective.nil? || Date.parse(effective) <= today
-      end.max_by { |t| Gem::Version.new(t.external_id[PolicySync::FORM_EXTERNAL_ID, :version]) }
+      end
+
+      in_effect.max_by { |t| Gem::Version.new(t.external_id[PolicySync::FORM_EXTERNAL_ID, :version]) }
     end
 
     # Opens (or reuses) a consent envelope for the signer and returns its submitter; it redirects back when signed.
@@ -272,7 +278,7 @@ module Stevensed
 
     def accept!(submitter, request, consent: nil, band: nil, via_parent: false, source: nil)
       data = { 'student_age' => band, 'source' => source || (consent ? 'on_file' : 'in_envelope'),
-               'via_parent' => (via_parent || nil) }
+               'via_parent' => via_parent || nil }
       if consent
         data.merge!('consent_form' => consent.label, 'consent_signed_at' => consent.signed_at.utc.iso8601,
                     'consent_envelope' => consent.submission_id, 'consent_id' => consent.id)

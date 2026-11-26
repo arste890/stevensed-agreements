@@ -1,8 +1,5 @@
 <% document_name = submission.name.presence || submission.template&.name %>
-<%= render 'shared/email_details', rows: [
-      ['Envelope', submission.id.to_s],
-      ['Document', document_name],
-      ['Signer', [submitter.name, submitter.email].compact_blank.join(', ')],
-      *(local_assigns[:rows] || [])
-    ] %>
+<% signer = [submitter.name, submitter.email].compact_blank.join(', ') %>
+<% rows = [['Envelope', submission.id.to_s], ['Document', document_name], ['Signer', signer], *local_assigns[:rows].to_a] %>
+<%= render 'shared/email_details', rows: %>
 <%= render 'shared/email_button', url: submission_url(submission), label: 'View envelope' %>

@@ -1,6 +1,6 @@
 <% content_for(:preheader, 'An envelope was voided because it does not match the student\'s age.') %>
 <%= render 'shared/email_heading', eyebrow: 'Envelope voided', tone: :danger, title: 'Wrong version for the student\'s age' %>
 <p>The signer entered a student date of birth that does not match this envelope. The envelope has been voided and the signer has been told that StevensED will send the correct one.</p>
-<%= render 'stevensed/consent_mailer/details', submission: @submission, submitter: @submitter,
-                                                rows: [['Envelope is for', @expected], ['Student age entered', @student_age]] %>
+<% extra_rows = [['Envelope is for', @expected], ['Student age entered', @student_age]] %>
+<%= render 'stevensed/consent_mailer/details', submission: @submission, submitter: @submitter, rows: extra_rows %>
 <p>Please issue the correct version (Minor, Adult or Under 13) to the signer. The date of birth itself is not stored.</p>

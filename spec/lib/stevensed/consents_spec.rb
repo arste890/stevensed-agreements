@@ -9,6 +9,20 @@ describe Stevensed::Consents do
                                              env: { 'warden' => instance_double(Warden::Proxy, user: nil) })
   end
 
+  let(:frm102m) do
+    build_template(external_id: 'FRM-102-M_v4.1', roles: ['Parent'], fields: lambda { |u|
+      [field('10. Full legal name', 'text', u['Parent']),
+       field('10. Email address for records and notices', 'text', u['Parent']),
+       field('Parent — Printed name', 'text', u['Parent'])]
+    })
+  end
+
+  let(:frm103m) do
+    build_template(external_id: 'FRM-103-M_v7.1', roles: ['Parent', 'Parent 2', 'StevensED'], fields: lambda { |u|
+      [field('Parent — Printed name', 'text', u['Parent']), field('1. Student date of birth', 'date', u['Parent'])]
+    })
+  end
+
   def field(name, type, role_uuid)
     { 'uuid' => SecureRandom.uuid, 'name' => name, 'type' => type, 'required' => true, 'submitter_uuid' => role_uuid,
       'areas' => [] }
@@ -26,20 +40,6 @@ describe Stevensed::Consents do
     submission = create(:submission, template:, created_by_user: author)
     uuid = template.submitters.find { |s| s['name'] == role }['uuid']
     create(:submitter, submission:, uuid:, account:, email:, name: 'Pat', esign_consent:)
-  end
-
-  let(:frm102m) do
-    build_template(external_id: 'FRM-102-M_v4.1', roles: ['Parent'], fields: lambda { |u|
-      [field('10. Full legal name', 'text', u['Parent']),
-       field('10. Email address for records and notices', 'text', u['Parent']),
-       field('Parent — Printed name', 'text', u['Parent'])]
-    })
-  end
-
-  let(:frm103m) do
-    build_template(external_id: 'FRM-103-M_v7.1', roles: ['Parent', 'Parent 2', 'StevensED'], fields: lambda { |u|
-      [field('Parent — Printed name', 'text', u['Parent']), field('1. Student date of birth', 'date', u['Parent'])]
-    })
   end
 
   describe '.context and .band_matches?' do
