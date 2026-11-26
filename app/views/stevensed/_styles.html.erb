@@ -49,7 +49,7 @@
     @media (max-width: 560px) { .se-other-actions__label { display: none; } .se-other-actions { padding-inline: 0.6rem; } }
     /* ESIGN consent */
     html.se-gate-open { overflow: hidden; }
-    .se-gate { --navy: #2f3e68; --crimson: #c13f44; --cream: #f7f5f1; position: fixed; inset: 0; z-index: 70; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; place-items: center; padding: 1rem; background: #1f2948a6; backdrop-filter: blur(2px); font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; color: #3a4461; }
+    .se-gate { --navy: #2f3e68; --navy-deep: #26335a; --ink: #1f2948; --crimson: #c13f44; --cream: #f7f5f1; position: fixed; inset: 0; z-index: 70; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; place-items: center; padding: 1rem; background: #1f2948a6; backdrop-filter: blur(2px); font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; color: #3a4461; }
     .se-gate__card { width: 100%; max-width: 34rem; background: #f7f5f1; border-radius: 12px; border-top: 4px solid #c13f44; padding: 2rem 2rem 1.5rem; box-shadow: 0 20px 50px #1f294859; }
     .se-gate__eyebrow { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #c13f44; margin: 0 0 0.5rem; }
     .se-gate__title { font-family: 'Cormorant Garamond', ui-serif, Georgia, serif; font-size: 1.875rem; font-weight: 600; line-height: 1.15; color: #1f2948; margin: 0 0 0.35rem; }
@@ -64,6 +64,10 @@
     .se-gate .se-gate__continue:disabled { opacity: 0.45; cursor: not-allowed; }
     .se-gate__decline { background: none; border: 0; color: #2f3e68; font-weight: 600; text-decoration: underline; text-underline-offset: 0.2em; cursor: pointer; }
     .se-gate__form { margin: 0; }
+    .se-gate .se-gate__continue:hover:not(:disabled) { background: var(--navy-deep); color: #fff !important; }
+    .se-gate .se-gate__continue:disabled:hover { background: var(--navy); box-shadow: none; }
+    .se-gate__text a, .se-gate__note a { color: var(--navy); text-decoration: underline; text-underline-offset: 0.2em; }
+    .se-gate__text a:hover, .se-gate__note a:hover, .se-gate__link:hover { color: var(--navy-deep); text-decoration-thickness: 2px; }
     .se-gate__field { display: grid; gap: 0.4rem; font-weight: 600; color: #1f2948; }
     .se-gate__field input { height: 2.75rem; padding: 0 0.85rem; border: 1px solid #d8d0c1; border-radius: 8px; background: #fff; font: inherit; font-weight: 500; color: #1f2948; max-width: 16rem; }
     .se-gate__field input:focus-visible { outline: 3px solid #2f3e68; outline-offset: 2px; }

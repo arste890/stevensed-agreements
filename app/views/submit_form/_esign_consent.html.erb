@@ -12,7 +12,7 @@
     <% case state %>
     <% when :dob %>
       <form data-step="dob" class="se-gate__form">
-        <p class="se-gate__text">These documents are about a student. To make sure you have the right version, enter the student's date of birth. It is used for this check and, if the document asks for the student's date of birth, to fill it in; it is not kept anywhere else.</p>
+        <p class="se-gate__text">These documents are about a student. To make sure you have the right version, enter the student's date of birth. It is used for this check and, if the document asks for the student's date of birth, to fill it in; it is not kept anywhere else. Next, StevensED will ask for your consent to electronic records if it is not already on file (<a href="<%= disclosure_url %>" target="_blank" rel="noopener" data-new-tab>read it here<span class="sr-only"> (opens in a new tab)</span></a>).</p>
         <label class="se-gate__field">
           <span>Student's date of birth</span>
           <input type="date" name="dob" aria-label="Student's date of birth" required max="<%= Time.zone.today.iso8601 %>" min="1900-01-01" autocomplete="off">
@@ -28,6 +28,7 @@
           Before your first document, StevensED asks for your consent to receive records and sign electronically. This is a one-time step: you review and sign the
           <strong><%= consent_template&.name&.sub(/ \(from .*\)\z/, '') || 'Electronic Records and Signature Consent' %></strong>, and then return here.
           The name you enter on it will be used on your documents.
+          <a href="<%= disclosure_url %>" target="_blank" rel="noopener" data-new-tab>Read the consent first<span class="sr-only"> (opens in a new tab)</span></a>.
         </p>
         <p class="se-gate__error" data-role="error" hidden></p>
         <div class="se-gate__actions">
@@ -40,7 +41,7 @@
       <form data-step="checkbox" class="se-gate__form">
         <p class="se-gate__text">
           Before you continue, please read the
-          <a href="<%= disclosure_url %>" target="_blank" rel="noopener">Electronic Records and Signature Consent</a>.
+          <a href="<%= disclosure_url %>" target="_blank" rel="noopener" data-new-tab>Electronic Records and Signature Consent (FRM-102)<span class="sr-only"> (opens in a new tab)</span></a>.
           It explains your right to receive these documents on paper at no charge, how to withdraw your consent, and the hardware and software you need to open and keep electronic records.
         </p>
         <label class="se-gate__check">

@@ -21,6 +21,13 @@ export default class extends HTMLElement {
       link.addEventListener('click', () => this.post(link.dataset.stepLink, new FormData(), link))
     })
 
+    this.querySelectorAll('a[data-new-tab]').forEach((link) => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault()
+        window.open(link.href, '_blank', 'noopener')
+      })
+    })
+
     document.documentElement.classList.add('se-gate-open')
     this.querySelector('input:not([type="hidden"]), button')?.focus()
   }
