@@ -17,11 +17,14 @@ class ImportedRecordsController < ApplicationController
   end
 
   def show
-    dir = ROOT.join(params[:id].to_s.gsub(/\D/, ''))
-    file = dir.join(File.basename(params[:file].to_s))
+    record_dir = Dir.glob(ROOT.join('*')).find { |d| File.basename(d) == params[:id].to_s }
+    raise ActiveRecord::RecordNotFound unless record_dir
 
-    raise ActiveRecord::RecordNotFound unless file.extname == '.pdf' && file.file? && file.dirname == dir
+    allowed = JSON.parse(File.read(File.join(record_dir, 'metadata.json'))).fetch('files', {}).keys
+    allowed |= %w[audit-log.pdf]
+    name = allowed.find { |f| f == params[:file].to_s }
+    raise ActiveRecord::RecordNotFound unless name
 
-    send_file file, type: 'application/pdf', disposition: 'inline'
+    send_file File.join(record_dir, name), type: 'application/pdf', disposition: 'inline'
   end
 end
