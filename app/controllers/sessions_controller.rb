@@ -3,6 +3,8 @@
 class SessionsController < Devise::SessionsController
   before_action :configure_permitted_parameters
 
+  layout 'plain', only: %i[new create] # StevensED: branded sign-in page
+
   skip_before_action :verify_authenticity_token, if: -> { request.xhr? && request.format.json? }
 
   respond_to :json, only: :create

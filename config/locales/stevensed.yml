@@ -28,4 +28,7 @@ en:
     spreadsheet_invalid: The file could not be read. Upload a CSV or XLSX file.
     bulk_empty: The list has no rows to send.
     bulk_too_many: Send at most 2,000 rows at a time.
+    sign_in_lede: Use your StevensED account. Staff and families sign in the same way.
+    use_password_instead: Use an email and password instead
+    signing_request_note: Received a signing request? Open the link in the email. You do not need to sign in to sign a document.
   client: Client

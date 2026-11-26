@@ -66,6 +66,23 @@
     .se-prose h2 { font-family: 'Cormorant Garamond', ui-serif, Georgia, serif; font-weight: 600; color: var(--ink); font-size: 1.75rem; line-height: 1.2; margin: 2.5rem 0 0.75rem; }
     .se-prose p, .se-prose li { max-width: 68ch; }
     .se-prose ul { padding-left: 1.2rem; }
+    .se-signin { max-width: 28rem; margin-inline: auto; padding-block: 3rem 5rem; }
+    .se-signin h1 { font-size: clamp(2.4rem, 5vw, 3.2rem); line-height: 1.05; margin: 0; }
+    .se-signin-lede { margin: 0.9rem 0 2rem; color: var(--text); }
+    .se-signin-actions { display: grid; gap: 0.75rem; }
+    .se-btn-block { width: 100%; }
+    .se-contents { display: contents; }
+    .se-btn-quiet { background: transparent; color: var(--navy) !important; box-shadow: inset 0 0 0 1.5px var(--navy); }
+    .se-btn-quiet:hover { background: #2f3e6810; box-shadow: inset 0 0 0 1.5px var(--navy-deep); }
+    .se-local { margin-top: 1.75rem; }
+    .se-local summary { cursor: pointer; color: var(--navy); font-weight: 600; text-decoration: underline; text-decoration-color: #2f3e6855; text-underline-offset: 0.22em; list-style: none; width: fit-content; }
+    .se-local summary::-webkit-details-marker { display: none; }
+    .se-local summary:hover { text-decoration-color: var(--crimson); }
+    .se-local summary:focus-visible { outline: 3px solid var(--crimson); outline-offset: 3px; border-radius: 6px; }
+    .se-local[open] summary { margin-bottom: 1.25rem; }
+    .se-local-form .label { color: var(--ink); }
+    .se-local-form a { color: var(--navy); }
+    .se-signin-note { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.9375rem; }
     @media (min-width: 768px) {
       .se-wrap { padding-inline: 2.5rem; }
       .se-hero { grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 3rem; padding-block: 3.5rem 6rem; }
