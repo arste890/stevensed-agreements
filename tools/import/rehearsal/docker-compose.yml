@@ -1,0 +1,37 @@
+# StevensED: disposable rehearsal environment for the DocuSeal cloud import scripts.
+# Separate database (empty, on a container volume) and separate storage (REHEARSAL_DIR/data); no ports, and an
+# internal network with no route to the internet or to the live containers. See README.md.
+name: agreements-rehearsal
+
+services:
+  app:
+    image: ghcr.io/arste890/stevensed-agreements:${IMAGE_TAG:?set IMAGE_TAG}
+    container_name: agreements-rehearsal-app
+    command: ["sleep", "infinity"]
+    environment:
+      DATABASE_URL: postgresql://rehearsal:rehearsal@db:5432/docuseal_rehearsal
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE:?set SECRET_KEY_BASE}
+      HOST: rehearsal.invalid
+      RAILS_ENV: production
+    volumes:
+      - ${REHEARSAL_DIR:?set REHEARSAL_DIR}/data:/data
+    depends_on:
+      - db
+    mem_limit: 1g
+    networks:
+      - rehearsal
+
+  db:
+    image: postgres:18-alpine
+    container_name: agreements-rehearsal-db
+    environment:
+      POSTGRES_USER: rehearsal
+      POSTGRES_PASSWORD: rehearsal
+      POSTGRES_DB: docuseal_rehearsal
+    mem_limit: 256m
+    networks:
+      - rehearsal
+
+networks:
+  rehearsal:
+    internal: true
