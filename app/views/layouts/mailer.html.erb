@@ -1,4 +1,4 @@
-<%# StevensED: formal, branded email layout. Email-safe table markup with inline styles (600px, Outlook, Gmail, Apple Mail, dark mode). %>
+<%# StevensED: formal letterhead email layout. Email-safe table markup with inline styles (640px, Outlook, Gmail, Apple Mail, dark mode). %>
 <%# Keep this layout ASCII-only and free of href attributes before the body: specs read the first href and the first <b> of the message. %>
 <%# Anything between the "start text/html" and "end text/html" comments is left out of the plain-text part (see HtmlToPlainText). %>
 <% content = yield %>
@@ -16,7 +16,7 @@
     <title><%= Stevensed::PRODUCT_NAME %></title>
     <!--[if mso]>
     <noscript><xml><o:OfficeDocumentSettings><o:AllowPNG/><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript>
-    <style>table, td, p, a, span, h1 { font-family: Georgia, 'Times New Roman', serif !important; } .se-sans, .se-sans p, .se-sans a, .se-sans span { font-family: Arial, Helvetica, sans-serif !important; }</style>
+    <style>.se-serif, .se-serif p { font-family: Georgia, 'Times New Roman', serif !important; } .se-sans, .se-sans p, .se-sans a, .se-sans span, .se-sans td { font-family: Arial, Helvetica, sans-serif !important; }</style>
     <![endif]-->
     <style>
       @font-face { font-family: 'Cormorant Garamond'; font-style: normal; font-weight: 300 700; src: url('https://agreements.stevensed.org/stevensed/fonts/cormorant-garamond-latin-wght-normal.woff2') format('woff2'); }
@@ -28,98 +28,94 @@
       a[x-apple-data-detectors] { color: inherit !important; text-decoration: none !important; font-size: inherit !important; font-family: inherit !important; font-weight: inherit !important; line-height: inherit !important; }
       .se-content p { margin: 0 0 16px 0; }
       .se-content a { color: #2F3E68; text-decoration: underline; }
-      .se-content strong, .se-content b { color: #1F2948; }
-      @media only screen and (max-width: 620px) {
+      @media only screen and (max-width: 660px) {
         .se-container { width: 100% !important; }
-        .se-pad { padding-left: 24px !important; padding-right: 24px !important; }
-        .se-pad-top { padding-top: 28px !important; }
-        .se-h1 { font-size: 26px !important; line-height: 32px !important; }
+        .se-pad { padding-left: 22px !important; padding-right: 22px !important; }
+        .se-stack { display: block !important; width: 100% !important; text-align: left !important; }
+        .se-stack-gap { padding-top: 12px !important; }
         .se-button { width: 100% !important; }
         .se-button a { display: block !important; text-align: center !important; }
-        .se-gutter { padding-left: 12px !important; padding-right: 12px !important; }
+        .se-detail-label { width: 38% !important; }
       }
       @media (prefers-color-scheme: dark) {
         .se-bg { background-color: #141A2E !important; }
-        .se-card { background-color: #1C2440 !important; border-color: #2F3E68 !important; }
-        .se-header { background-color: #1C2440 !important; }
         .se-logo-light { display: none !important; max-height: 0 !important; overflow: hidden !important; }
-        .se-logo-dark { display: block !important; max-height: none !important; overflow: visible !important; width: 150px !important; height: auto !important; }
-        .se-title, .se-h1, .se-content strong, .se-content b, .se-strong { color: #F7F5F1 !important; }
-        .se-text, .se-content, .se-content p { color: #E9E3D8 !important; }
+        .se-logo-dark { display: block !important; max-height: none !important; overflow: visible !important; width: 210px !important; height: auto !important; }
+        .se-text, .se-content, .se-content p, .se-strong { color: #E9E3D8 !important; }
+        .se-title { color: #F7F5F1 !important; }
         .se-muted { color: #B7C0CC !important; }
-        .se-panel { background-color: #232C4B !important; border-color: #3A4670 !important; }
+        .se-rule-navy { border-color: #8C9AC4 !important; }
+        .se-rule { border-color: #3A4670 !important; }
+        .se-panel { background-color: #1C2440 !important; border-color: #3A4670 !important; }
+        .se-cell { border-color: #3A4670 !important; }
+        .se-label-cell { background-color: #1C2440 !important; }
         .se-content a, .se-link { color: #F2C4C6 !important; }
         .se-button td { background-color: #F7F5F1 !important; }
         .se-button a { background-color: #F7F5F1 !important; border-color: #F7F5F1 !important; color: #1F2948 !important; }
-        .se-rule { border-color: #3A4670 !important; }
-        .se-code { background-color: #232C4B !important; color: #F7F5F1 !important; border-color: #3A4670 !important; }
+        .se-code { background-color: #1C2440 !important; color: #F7F5F1 !important; border-color: #3A4670 !important; }
       }
     </style>
     <!-- end text/html -->
   </head>
-  <body dir="<%= TextUtils.rtl?(content) ? 'rtl' : 'auto' %>" class="se-bg" style="margin:0;padding:0;width:100%;background-color:#F7F5F1;">
+  <body dir="<%= TextUtils.rtl?(content) ? 'rtl' : 'auto' %>" class="se-bg" style="margin:0;padding:0;width:100%;background-color:#FFFFFF;">
     <!-- start text/html -->
     <% if content_for?(:preheader) %>
-      <div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;color:#F7F5F1;"><%= yield(:preheader) %>&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;</div>
+      <div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;color:#FFFFFF;"><%= yield(:preheader) %>&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;</div>
     <% end %>
     <!-- end text/html -->
-    <table role="presentation" class="se-bg" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;background-color:#F7F5F1;">
+    <table role="presentation" class="se-bg" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;background-color:#FFFFFF;">
       <tr>
-        <td class="se-gutter" align="center" style="padding:32px 16px 40px 16px;">
-          <!--[if mso]><table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" align="center"><tr><td><![endif]-->
-          <table role="presentation" class="se-container" width="600" cellpadding="0" cellspacing="0" border="0" align="center" style="width:600px;max-width:600px;">
+        <td align="center" style="padding:28px 0 36px 0;">
+          <!--[if mso]><table role="presentation" width="640" cellpadding="0" cellspacing="0" border="0" align="center"><tr><td><![endif]-->
+          <table role="presentation" class="se-container" width="640" cellpadding="0" cellspacing="0" border="0" align="center" style="width:640px;max-width:640px;">
+            <!-- start text/html -->
             <tr>
-              <td class="se-card" style="background-color:#FFFFFF;border:1px solid #D8D0C1;border-radius:6px;">
+              <td class="se-pad" style="padding:0 40px 18px 40px;">
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;">
-                  <!-- start text/html -->
                   <tr>
-                    <td class="se-header se-pad se-pad-top" align="center" style="padding:36px 48px 24px 48px;background-color:#FFFFFF;border-radius:6px 6px 0 0;">
-                      <img class="se-logo-light" src="https://agreements.stevensed.org<%= Stevensed::EMAIL_LOGO_PATH %>" width="150" height="103" alt="StevensED" style="display:block;width:150px;height:auto;margin:0 auto;border:0;">
+                    <td class="se-stack" valign="bottom" style="vertical-align:bottom;">
+                      <img class="se-logo-light" src="https://agreements.stevensed.org/stevensed/wordmark-email.png" width="210" height="68" alt="StevensED" style="display:block;width:210px;height:auto;border:0;">
                       <!--[if !mso]><!-->
-                      <img class="se-logo-dark" src="https://agreements.stevensed.org/stevensed/logo-white.png" width="150" height="103" alt="StevensED" style="display:none;max-height:0;overflow:hidden;width:150px;height:auto;margin:0 auto;border:0;">
+                      <img class="se-logo-dark" src="https://agreements.stevensed.org/stevensed/wordmark-email-reverse.png" width="210" height="68" alt="StevensED" style="display:none;max-height:0;overflow:hidden;width:210px;height:auto;border:0;">
                       <!--<![endif]-->
-                      <p class="se-title" style="margin:18px 0 0 0;font-family:'Cormorant Garamond', Georgia, 'Times New Roman', serif;font-size:24px;line-height:28px;font-weight:600;color:#2F3E68;letter-spacing:0.2px;"><%= Stevensed::PRODUCT_NAME %></p>
-                      <p class="se-muted se-sans" style="margin:6px 0 0 0;font-family:Inter, 'Helvetica Neue', Helvetica, Arial, sans-serif;font-size:11px;line-height:16px;font-weight:600;color:#59697A;letter-spacing:1.4px;text-transform:uppercase;"><%= Stevensed::OFFICE %></p>
+                    </td>
+                    <td class="se-stack se-stack-gap se-muted se-sans" valign="bottom" align="right" style="vertical-align:bottom;text-align:right;font-family:Inter, 'Helvetica Neue', Helvetica, Arial, sans-serif;font-size:11px;line-height:16px;color:#59697A;">
+                      <span class="se-title" style="font-family:'Cormorant Garamond', Georgia, 'Times New Roman', serif;font-size:17px;line-height:22px;font-weight:600;color:#2F3E68;"><%= Stevensed::PRODUCT_NAME %></span><br><%= Stevensed::OFFICE %><br>P.O. Box 900342, Sandy, UT 84090
                     </td>
                   </tr>
-                  <tr>
-                    <td class="se-pad" style="padding:0 48px;">
-                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;">
-                        <tr>
-                          <td height="3" style="height:3px;line-height:3px;font-size:3px;background-color:#C13F44;">&nbsp;</td>
-                        </tr>
-                      </table>
-                    </td>
-                  </tr>
-                  <!-- end text/html -->
-                  <tr>
-                    <td class="se-pad se-content se-text se-sans" style="padding:32px 48px 8px 48px;font-family:Inter, 'Helvetica Neue', Helvetica, Arial, sans-serif;font-size:15px;line-height:24px;color:#1F2948;">
-                      <%= content %>
-                    </td>
-                  </tr>
-                  <% if content_for?(:personal_link_notice) %>
-                    <tr>
-                      <td class="se-pad" style="padding:8px 48px 0 48px;">
-                        <%= yield(:personal_link_notice) %>
-                      </td>
-                    </tr>
-                  <% end %>
-                  <% if content_for?(:skip_signoff) %>
-                    <tr>
-                      <td style="padding:0 0 28px 0;font-size:0;line-height:0;">&nbsp;</td>
-                    </tr>
-                  <% else %>
-                    <tr>
-                      <td class="se-pad" style="padding:24px 48px 36px 48px;">
-                        <%= render 'shared/email_signoff' %>
-                      </td>
-                    </tr>
-                  <% end %>
                 </table>
               </td>
             </tr>
             <tr>
-              <td class="se-pad" style="padding:24px 48px 0 48px;">
+              <td class="se-pad" style="padding:0 40px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;">
+                  <tr><td class="se-rule-navy" height="3" style="height:3px;line-height:3px;font-size:3px;border-top:2px solid #2F3E68;">&nbsp;</td></tr>
+                  <tr><td height="1" style="height:1px;line-height:1px;font-size:1px;border-top:1px solid #C13F44;">&nbsp;</td></tr>
+                </table>
+              </td>
+            </tr>
+            <!-- end text/html -->
+            <% if content_for?(:meta) %>
+              <tr>
+                <td class="se-pad" style="padding:22px 40px 0 40px;">
+                  <%= yield(:meta) %>
+                </td>
+              </tr>
+            <% end %>
+            <tr>
+              <td class="se-pad se-content se-text se-serif" style="padding:22px 40px 4px 40px;font-family:Georgia, 'Times New Roman', serif;font-size:16px;line-height:26px;color:#1F2948;">
+                <%= content %>
+              </td>
+            </tr>
+            <% if content_for?(:personal_link_notice) %>
+              <tr>
+                <td class="se-pad" style="padding:6px 40px 0 40px;">
+                  <%= yield(:personal_link_notice) %>
+                </td>
+              </tr>
+            <% end %>
+            <tr>
+              <td class="se-pad" style="padding:30px 40px 0 40px;">
                 <%= render 'shared/mailer_attribution' %>
               </td>
             </tr>

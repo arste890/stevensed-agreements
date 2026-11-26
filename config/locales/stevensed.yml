@@ -46,13 +46,27 @@ en:
       user_invite_subject: 'Your %{product_name} account invitation'
       smtp_subject: '%{product_name}: email delivery confirmed'
       # Shared
+      user_invite_intro: You have been invited to join %{product_name}, the electronic agreements service of the StevensED %{office}.
+      copy_intro: Thank you. All parties have completed the agreement described below.
+      declined_intro: A recipient has declined to sign the agreement described below and has provided a reason.
+      completed_intro: All parties have completed the agreement described below.
+      view_intro: The %{office} has shared the document described below with you for your review.
+      invitation_intro_submit: The %{office} requests that you review and complete the document described below.
+      invitation_intro_sign: The %{office} requests your review and electronic signature on the agreement described below.
+      organization: Organization
+      signed_by: Signed by
+      declined_by: Declined by
+      view_only: Review only. No signature is required.
+      action: Action requested
+      recipient: Recipient
+      reference: Reference
+      date: Date
       greeting: Hello,
       dear_name: Dear %{name},
-      sincerely: Sincerely
       document: Document
       requested_by: Requested by
       shared_by: Shared by
-      respond_by: Please respond by
+      respond_by: Respond by
       account: Account
       completed_by: Completed by
       completed_on: Completed on
@@ -75,56 +89,48 @@ en:
       footer_notice: This message was sent by %{product_name}, the electronic agreements service of StevensED. Please do not share links contained in this message.
       # Invitation and reminder
       reminder_eyebrow: Reminder
-      invitation_title_sign: Your signature is requested
-      invitation_title_submit: Your response is requested
+      invitation_title_sign: 'Re: Request for electronic signature, %{name}'
+      invitation_title_submit: 'Re: Request to complete %{name}'
       invitation_preheader_sign: '"%{name}" is ready for your review and signature.'
       invitation_preheader_submit: '"%{name}" is ready for you to complete.'
-      invitation_intro_sign_html: The StevensED %{office} has sent you <strong>"%{name}"</strong> for your review and electronic signature through %{product_name}.
-      invitation_intro_submit_html: The StevensED %{office} has asked you to complete <strong>"%{name}"</strong> through %{product_name}.
       reminder_intro: Our records show that this request has not yet been completed. Please attend to it at your earliest convenience.
       esign_statement_html: You may read the entire document before signing. An electronic signature has the same legal effect as a handwritten signature. By signing, you agree to the <a href="%{consent_url}">Electronic Records and Signature Consent</a>.
       # Viewer invitation
-      view_title: A document has been shared with you
+      view_title: 'Re: Document shared for your review, %{name}'
       view_preheader: '"%{name}" has been shared with you for review.'
-      view_intro_html: The StevensED Office of Legal Operations and Institutional Compliance has shared <strong>"%{name}"</strong> with you through %{product_name}. No signature is required.
       # Completed (to staff)
       completed_eyebrow: Completed
-      completed_title: All parties have completed the document
+      completed_title: 'Re: Agreement completed, %{name}'
       completed_preheader: '"%{name}" has been completed by all parties.'
-      completed_intro_html: <strong>"%{name}"</strong> has been completed by %{submitters}.
       completed_attachments: The completed document and its audit log are attached to this email.
       # Declined (to staff)
       declined_eyebrow: Declined
-      declined_title: A recipient has declined to sign
+      declined_title: 'Re: Signature declined, %{name}'
       declined_preheader: '%{submitter} declined "%{name}".'
-      declined_intro_html: '%{submitter} has declined <strong>"%{name}"</strong> and provided the following reason:'
       declined_next_steps: Please review the submission to decide how to proceed.
       # Documents copy (to signer)
-      copy_title: Your copy of the completed document
+      copy_title: 'Re: Your copy of the completed agreement, %{name}'
       copy_preheader: Your copy of "%{name}" is ready.
-      copy_intro_html: Thank you. All parties have completed <strong>"%{name}"</strong>.
       copy_attached: A copy of the completed document is attached to this email for your records.
-      copy_link: You may also review and download your copy using the button below.
       copy_retain: We recommend that you keep a copy of this document with your records.
       # One-time code
-      otp_title: Your verification code
+      otp_title: 'Re: Verification code'
       otp_preheader: Use this code to confirm your email address.
       otp_intro_html: 'Use the following code to verify your email address and open <strong>"%{name}"</strong>:'
       otp_do_not_share: Enter the code on the page where it was requested. Do not share this code with anyone.
       otp_not_requested_html: If you did not request this code, please reply to this email or write to <a href="mailto:%{email}">%{email}</a>.
       # User invitation
-      user_invite_title: You have been invited to %{product_name}
+      user_invite_title: 'Re: Invitation to %{product_name}'
       user_invite_preheader: Set up your %{product_name} account.
-      user_invite_intro_html: You have been invited to join <strong>%{account_name}</strong> on %{product_name}, the electronic agreements service of the StevensED Office of Legal Operations and Institutional Compliance.
       user_invite_not_expected: If you were not expecting this invitation, you may disregard this email. No account will be created unless you complete the setup.
       # Password reset
-      reset_title: Password reset request
+      reset_title: 'Re: Password reset request'
       reset_preheader: Use the link in this email to choose a new password.
       reset_intro: We received a request to reset the password for your %{product_name} account. To choose a new password, use the button below.
       reset_unchanged: Your password will not change until you open the link above and set a new one.
       reset_not_requested_html: If you did not request a password reset, you may disregard this email. If you are concerned about the security of your account, please write to <a href="mailto:%{email}">%{email}</a>.
       # SMTP test
-      smtp_title: Email delivery confirmed
+      smtp_title: 'Re: Email delivery confirmed'
       smtp_preheader: '%{product_name} can send email with the configured settings.'
       smtp_intro: This message confirms that %{product_name} can send email using the SMTP settings that were just saved.
       smtp_no_action: No further action is required.

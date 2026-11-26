@@ -1,15 +1,16 @@
 <% document_name = @submitter.submission.name.presence || @submitter.submission.template&.name %>
 <% view_url = submit_form_url(slug: @submitter.slug, t: SubmissionEvents.build_tracking_param(@submitter, 'click_email'), host: @custom_domain || ENV.fetch('EMAIL_HOST', Docuseal.default_url_options[:host])) %>
 <% content_for(:preheader, t('stevensed.email.view_preheader', name: document_name)) %>
+<% content_for(:meta) { render 'shared/email_meta', submission: @submitter.submission, account: @current_account } %>
 <% content_for(:personal_link_notice) { render 'shared/email_personal_link_notice' } %>
 <% if @body.present? %>
   <% append_link = !@body.match?(ReplaceEmailVariables::SUBMITTER_LINK) && !@body.match?(ReplaceEmailVariables::SUBMITTER_ID) && !@body.match?(ReplaceEmailVariables::SUBMISSION_LINK) && !@body.match?(ReplaceEmailVariables::TEMPLATE_ID) && !@submitter.submission.source.in?(%w[api embed]) %>
   <%= render 'custom_body', body: @body, submitter: @submitter, link_url: (view_url if append_link), link_label: t('stevensed.email.view_document') %>
 <% else %>
-  <%= render 'shared/email_heading', title: t('stevensed.email.view_title') %>
+  <%= render 'shared/email_heading', title: t('stevensed.email.view_title', name: document_name) %>
   <%= render 'shared/email_greeting', name: @submitter.name %>
-  <p><%= t('stevensed.email.view_intro_html', name: document_name, product_name: Stevensed::PRODUCT_NAME) %></p>
-  <%= render 'shared/email_details', rows: [[t('stevensed.email.document'), document_name], [t('stevensed.email.shared_by'), @submitter.submission.created_by_user&.full_name.presence]] %>
+  <p><%= t('stevensed.email.view_intro', office: Stevensed::OFFICE) %></p>
+  <%= render 'shared/email_details', rows: [[t('stevensed.email.document'), document_name], [t('stevensed.email.shared_by'), [@submitter.submission.created_by_user&.full_name.presence, Stevensed::ORGANIZATION].compact.join(', ')], [t('stevensed.email.action'), t('stevensed.email.view_only')]] %>
   <%= render 'shared/email_button', url: view_url, label: t('stevensed.email.view_document') %>
   <p><%= t('stevensed.email.questions_html', email: Stevensed::CONTACT_EMAIL) %></p>
 <% end %>

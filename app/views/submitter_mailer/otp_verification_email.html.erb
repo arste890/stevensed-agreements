@@ -1,4 +1,5 @@
 <% content_for(:preheader, t('stevensed.email.otp_preheader')) %>
+<% content_for(:meta) { render 'shared/email_meta', submission: @submitter.submission, account: @current_account } %>
 <%= render 'shared/email_heading', title: t('stevensed.email.otp_title') %>
 <p><%= t('stevensed.email.otp_intro_html', name: @submitter.submission.name.presence || @submitter.submission.template&.name) %></p>
 <%= render 'shared/email_code', code: @otp_code %>
