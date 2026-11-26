@@ -141,11 +141,28 @@ module Templates
         return [handle_word_document(template, file, params), []]
       end
 
+      if Docuseal.advanced_formats? && File.extname(file.original_filename.to_s).downcase.in?(DOCUMENT_EXTENSIONS)
+        return [handle_office_document(template, file, params), []]
+      end
+
       raise InvalidFileType, "#{file.content_type}/#{dynamic}"
     end
 
     def handle_word_document(template, file, params)
       pdf = WordCraft.open_buffer(file, &:to_pdf)
+
+      pdf_file = ActionDispatch::Http::UploadedFile.new(
+        tempfile: StringIO.new(pdf),
+        filename: "#{File.basename(file.original_filename, '.*')}.pdf",
+        type: PDF_CONTENT_TYPE
+      )
+
+      handle_pdf_or_image(template, pdf_file, pdf, params)
+    end
+
+    # StevensED: converts spreadsheets and other office files to PDF with Gotenberg (LibreOffice).
+    def handle_office_document(template, file, params)
+      pdf = Stevensed::Gotenberg.office_to_pdf(file)
 
       pdf_file = ActionDispatch::Http::UploadedFile.new(
         tempfile: StringIO.new(pdf),

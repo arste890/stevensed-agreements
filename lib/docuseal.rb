@@ -62,7 +62,7 @@ module Docuseal
   end
 
   def advanced_formats?
-    multitenant?
+    multitenant? || ENV['GOTENBERG_URL'].present? # StevensED: Excel and other office formats via Gotenberg
   end
 
   def demo?
