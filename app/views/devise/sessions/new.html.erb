@@ -27,7 +27,7 @@
         </div>
       <% end %>
       <%= tag.details class: 'se-local', open: password_open do %>
-        <% if sso %>
+        <% if sso && params[:local].blank? %>
           <summary><%= t('stevensed.use_password_instead') %></summary>
         <% end %>
         <%= form_for(resource, as: resource_name, html: { class: 'space-y-5 se-local-form' }, data: { turbo: params[:redir].blank? }, url: session_path(resource_name)) do |f| %>

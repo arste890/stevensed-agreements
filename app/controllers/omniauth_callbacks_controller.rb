@@ -11,6 +11,10 @@ class OmniauthCallbacksController < ApplicationController
 
     sign_in(:user, user)
 
+    # StevensED: keep the ID token so sign-out can end the auth.stevensed.org session (RP-initiated logout).
+    id_token = request.env['omniauth.auth']&.credentials&.id_token
+    session[:stevensed_id_token] = id_token if id_token.present? && id_token.bytesize < 2500
+
     redirect_to user.role == User::CLIENT_ROLE ? my_agreements_path : root_path
   rescue Stevensed::Sso::Error => e
     redirect_to new_user_session_path(local: 1), alert: e.message

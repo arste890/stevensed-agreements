@@ -16,6 +16,19 @@ module Stevensed
       ENV['OIDC_CLIENT_ID'].present?
     end
 
+    # RP-initiated logout at the identity provider; returns to the public landing page.
+    def logout_url(id_token)
+      issuer = ENV.fetch('OIDC_ISSUER', 'https://auth.stevensed.org')
+      query = {
+        id_token_hint: id_token,
+        post_logout_redirect_uri: "https://#{Docuseal::HOST}/",
+        client_id: ENV.fetch('OIDC_CLIENT_ID', nil),
+        state: SecureRandom.hex(8)
+      }.compact.to_query
+
+      "#{issuer}/logout?#{query}"
+    end
+
     def saml_config
       account = Account.order(:id).first
       return unless account

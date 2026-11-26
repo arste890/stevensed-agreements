@@ -42,6 +42,17 @@ class SessionsController < Devise::SessionsController
     super
   end
 
+  # StevensED: after signing out here, also end the StevensED SSO session when the user signed in through it.
+  def destroy
+    id_token = session[:stevensed_id_token]
+
+    super do
+      if id_token.present? && Stevensed::Sso.oidc_enabled?
+        return redirect_to(Stevensed::Sso.logout_url(id_token), allow_other_host: true, status: :see_other)
+      end
+    end
+  end
+
   private
 
   def after_sign_in_path_for(...)
