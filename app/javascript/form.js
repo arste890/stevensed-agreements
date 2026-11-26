@@ -64,7 +64,7 @@ safeRegisterElement('submission-form', class extends HTMLElement {
       completedMessage: JSON.parse(this.dataset.completedMessage || '{}'),
       completedRedirectUrl: this.dataset.completedRedirectUrl,
       attachments: reactive(JSON.parse(this.dataset.attachments)),
-      fields: withDisplayFieldNames(JSON.parse(this.dataset.fields)), // StevensED: no section numbers in labels
+      fields: withDisplayFieldNames(JSON.parse(this.dataset.fields), { role: this.dataset.role }), // StevensED: no section numbers in labels
       completeButtonContainer: document.getElementById('complete_button_container'),
       completeButtonScrollContainer: document.getElementById('complete_button_container_scroll'),
       // StevensED: guided signing (Finish button, progress and guide tags in the institutional header)
