@@ -71,7 +71,7 @@ module Submissions
 
       result = HexaPDF::Document.new
 
-      submitter.submission.template_schema.each do |item|
+      (submitter.submission.template_schema.presence || submitter.submission.template.schema).each do |item|
         pdf = pdfs_index[item['attachment_uuid']]
 
         next unless pdf

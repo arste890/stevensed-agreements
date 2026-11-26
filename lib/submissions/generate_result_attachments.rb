@@ -97,7 +97,8 @@ module Submissions
       original_documents = submission.schema_documents.preload(:blob)
 
       result_attachments =
-        submission.template_schema.filter_map do |item|
+        # StevensED: fall back to the template's schema if the submission has none.
+        (submission.template_schema.presence || submission.template.schema).filter_map do |item|
           pdf = pdfs_index[item['attachment_uuid']]
 
           next if pdf.nil?
