@@ -12,6 +12,9 @@ Rails.application.routes.draw do
   root 'dashboard#index'
   get '/account_logo/:uuid', to: 'account_logos#show', as: :account_logo # StevensED
   get '/legal', to: 'legal_notices#show', as: :legal_notices # StevensED
+  match '/auth/:provider/callback', to: 'omniauth_callbacks#callback', via: %i[get post] # StevensED SSO
+  get '/auth/failure', to: 'omniauth_callbacks#failure' # StevensED SSO
+  get '/my_agreements', to: 'my_agreements#index', as: :my_agreements # StevensED client portal
 
   get 'up' => 'rails/health#show'
   get 'manifest' => 'pwa#manifest'
@@ -195,7 +198,7 @@ Rails.application.routes.draw do
       resource :reveal_access_token, only: %i[show create], controller: 'reveal_access_token'
     end
     resources :email, only: %i[index create destroy], controller: 'email_smtp_settings'
-    resources :sso, only: %i[index], controller: 'sso_settings'
+    resources :sso, only: %i[index create], controller: 'sso_settings' # StevensED: create
     resources :notifications, only: %i[index create], controller: 'notifications_settings'
     resource :esign, only: %i[show create new update destroy], controller: 'esign_settings'
     resources :users, only: %i[index]

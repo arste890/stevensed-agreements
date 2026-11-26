@@ -42,6 +42,8 @@ class ApplicationController < ActionController::Base
     rescue_from CanCan::AccessDenied do |e|
       Rollbar.warning(e) if defined?(Rollbar)
 
+      next redirect_to(my_agreements_path) if current_user&.role == User::CLIENT_ROLE # StevensED
+
       redirect_to root_path, alert: e.message
     end
   end

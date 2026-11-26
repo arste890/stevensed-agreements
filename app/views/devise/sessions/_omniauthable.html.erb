@@ -1,0 +1,16 @@
+<%# StevensED: single sign-on buttons. %>
+<% if Stevensed::Sso.oidc_enabled? || Stevensed::Sso.saml_enabled? %>
+  <div class="space-y-2 mt-4">
+    <div class="divider text-sm"><%= t('stevensed.or') %></div>
+    <% if Stevensed::Sso.oidc_enabled? %>
+      <%= button_to '/auth/stevensed', method: :post, data: { turbo: false }, class: 'base-button w-full' do %>
+        <%= t('stevensed.sign_in_with_stevensed') %>
+      <% end %>
+    <% end %>
+    <% if Stevensed::Sso.saml_enabled? %>
+      <%= button_to '/auth/saml', method: :post, data: { turbo: false }, class: 'white-button w-full' do %>
+        <%= t('stevensed.sign_in_with_saml') %>
+      <% end %>
+    <% end %>
+  </div>
+<% end %>

@@ -1,15 +1,30 @@
-<div class="alert">
-  <%= svg_icon('info_circle', class: 'w-6 h-6') %>
-  <div>
-    <p class="font-bold">
-      <%= t('single_sign_on_with_saml_2_0') %>
-    </p>
-    <p class="text-gray-700">
-      <%= t('unlock_with_docuseal_pro') %>
-      <br>
-      <a class="link font-medium" target="_blank" href="<%= Docuseal.multitenant? ? console_redirect_index_path(redir: "#{Docuseal::CONSOLE_URL}/plans") : "#{Docuseal::CLOUD_URL}/sign_up?#{{ redir: "#{Docuseal::CONSOLE_URL}/on_premises" }.to_query}" %>" data-turbo="false">
-        <%= t('learn_more') %>
-      </a>
-    </p>
+<%# StevensED: SSO settings (replaces the Pro placeholder). %>
+<% value = @encrypted_config.value || {} %>
+<div class="space-y-6">
+  <div class="card bg-base-200 p-5 space-y-2">
+    <p class="font-semibold">StevensED sign-in (OpenID Connect)</p>
+    <% if Stevensed::Sso.oidc_enabled? %>
+      <p><%= t('stevensed.oidc_enabled', issuer: ENV.fetch('OIDC_ISSUER', 'https://auth.stevensed.org')) %></p>
+    <% else %>
+      <p><%= t('stevensed.oidc_disabled') %></p>
+    <% end %>
+    <p class="text-sm text-base-content/70"><%= t('stevensed.oidc_redirect', url: "https://#{Docuseal::HOST}/auth/stevensed/callback") %></p>
   </div>
+  <%= form_with url: settings_sso_index_path, method: :post, scope: :saml, class: 'space-y-4' do |f| %>
+    <p class="font-semibold">SAML 2.0</p>
+    <p class="text-sm text-base-content/70"><%= t('stevensed.saml_sp_details', acs: "https://#{Docuseal::HOST}/auth/saml/callback", entity: value['sp_entity_id'].presence || "https://#{Docuseal::HOST}/auth/saml/metadata") %></p>
+    <div class="form-control">
+      <%= f.label :idp_sso_service_url, t('stevensed.saml_idp_url'), class: 'label' %>
+      <%= f.url_field :idp_sso_service_url, value: value['idp_sso_service_url'], class: 'base-input', placeholder: 'https://' %>
+    </div>
+    <div class="form-control">
+      <%= f.label :idp_cert, t('stevensed.saml_idp_cert'), class: 'label' %>
+      <%= f.text_area :idp_cert, value: value['idp_cert'], rows: 6, class: 'base-textarea font-mono text-xs', placeholder: '-----BEGIN CERTIFICATE-----' %>
+    </div>
+    <div class="form-control">
+      <%= f.label :sp_entity_id, t('stevensed.saml_sp_entity_id'), class: 'label' %>
+      <%= f.text_field :sp_entity_id, value: value['sp_entity_id'], class: 'base-input' %>
+    </div>
+    <%= f.button t('save'), class: 'base-button' %>
+  <% end %>
 </div>

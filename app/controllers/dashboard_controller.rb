@@ -6,6 +6,7 @@ class DashboardController < ApplicationController
   before_action :maybe_redirect_product_url
   before_action :maybe_render_landing
   before_action :maybe_redirect_mfa_setup
+  before_action -> { redirect_to my_agreements_path if current_user&.role == User::CLIENT_ROLE } # StevensED
 
   skip_authorization_check
 

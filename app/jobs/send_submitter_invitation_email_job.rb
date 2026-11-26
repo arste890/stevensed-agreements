@@ -19,20 +19,28 @@ class SendSubmitterInvitationEmailJob
       return
     end
 
+    reminder = params['reminder'] == true
+
+    return if reminder && (submitter.viewer? || submitter.email.blank?)
+
     mail =
       if submitter.viewer?
         SubmitterMailer.invitation_view_email(submitter)
       else
-        SubmitterMailer.invitation_email(submitter)
+        SubmitterMailer.invitation_email(submitter, reminder:)
       end
 
     Submitters::ValidateSending.call(submitter, mail)
 
     mail.deliver_now!
 
-    SubmissionEvent.create!(submitter:, event_type: 'send_email')
+    SubmissionEvent.create!(submitter:, event_type: reminder ? 'send_reminder_email' : 'send_email')
+
+    first_send = submitter.sent_at.nil?
 
     submitter.sent_at ||= Time.current
     submitter.save!
+
+    Stevensed::Reminders.schedule(submitter) if first_send && !reminder
   end
 end

@@ -6,9 +6,11 @@ class SubmitterMailer < ApplicationMailer
 
   NO_REPLY_REGEXP = /no-?reply@/i
 
-  def invitation_email(submitter)
+  def invitation_email(submitter, reminder: false)
     @current_account = submitter.submission.account
     @submitter = submitter
+
+    return reminder_email(submitter) if reminder && reminder_email_configured?(submitter)
 
     if submitter.preferences['email_message_uuid']
       @email_message = submitter.account.email_messages.find_by(uuid: submitter.preferences['email_message_uuid'])
@@ -35,12 +37,44 @@ class SubmitterMailer < ApplicationMailer
 
     I18n.with_locale(@current_account.locale) do
       subject = build_invite_subject(@subject, @email_config, submitter)
+      subject = "#{I18n.t('stevensed.reminder_prefix')} #{subject}" if reminder
 
       mail(
         to: @submitter.friendly_name,
         from: from_address_for_submitter(submitter),
         subject:,
         reply_to:
+      )
+    end
+  end
+
+  # StevensED: reminder uses the reminder template (template preferences, then account settings).
+  def reminder_email_configured?(submitter)
+    submitter.template&.preferences&.dig('invitation_reminder_email_body').present? ||
+      AccountConfig.exists?(account: submitter.account, key: AccountConfig::SUBMITTER_INVITATION_REMINDER_EMAIL_KEY)
+  end
+
+  def reminder_email(submitter)
+    @email_config = AccountConfigs.find_for_account(@current_account,
+                                                    AccountConfig::SUBMITTER_INVITATION_REMINDER_EMAIL_KEY)
+
+    @subject = submitter.template&.preferences&.dig('invitation_reminder_email_subject').presence
+    @body = submitter.template&.preferences&.dig('invitation_reminder_email_body').presence ||
+            fetch_config_email_body(@email_config, submitter)
+
+    assign_message_metadata('submitter_invitation', submitter)
+
+    reply_to = build_submitter_reply_to(submitter, email_config: @email_config)
+
+    maybe_set_custom_domain(submitter)
+
+    I18n.with_locale(@current_account.locale) do
+      mail(
+        to: submitter.friendly_name,
+        from: from_address_for_submitter(submitter),
+        subject: build_invite_subject(@subject, @email_config, submitter),
+        reply_to:,
+        template_name: 'invitation_email'
       )
     end
   end

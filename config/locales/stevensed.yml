@@ -4,3 +4,24 @@ en:
     legal_notices: Legal notices
     logo_invalid: The logo must be a PNG, JPEG or WebP image of 2 MB or less.
     logo_hint: PNG, JPEG or WebP, 2 MB or less. Shown on signing pages and in the dashboard.
+    reminder_prefix: 'Reminder:'
+    sso_failed: Single sign-on did not complete. Try again or contact legal@stevensed.org.
+    sign_in_with_stevensed: Sign in with StevensED
+    sign_in_with_saml: Sign in with single sign-on
+    or: or
+    my_agreements: My agreements
+    my_agreements_intro: Agreements sent to %{email}. Open one to view or download the signed copy.
+    no_agreements: There are no agreements for your email address yet.
+    signed_on: Signed %{date}
+    awaiting_your_signature: Awaiting your signature
+    questions_contact_html: Questions about an agreement? Contact <a class="underline" href="mailto:%{email}">%{email}</a>.
+    roles_hint: Admin manages everything. Editor creates templates and sends documents. Viewer can only view. Client sees only their own agreements.
+    saml_https_required: The identity provider sign-in URL must start with https://.
+    oidc_enabled: Enabled with %{issuer}. Roles come from the identity provider.
+    oidc_disabled: Not configured. Set OIDC_CLIENT_ID and OIDC_CLIENT_SECRET on the server.
+    oidc_redirect: 'Redirect URI to register: %{url}'
+    saml_sp_details: 'Assertion consumer service URL: %{acs}. Entity ID: %{entity}. Name ID format: email address. Send a "role" attribute.'
+    saml_idp_url: Identity provider sign-in URL
+    saml_idp_cert: Identity provider certificate (PEM)
+    saml_sp_entity_id: Service provider entity ID (optional)
+  client: Client

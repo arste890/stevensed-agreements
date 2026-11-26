@@ -1,0 +1,23 @@
+<% content_for(:html_title, "#{t('stevensed.my_agreements')} | #{Docuseal.product_name}") %>
+<div class="max-w-3xl mx-auto px-2 space-y-6">
+  <h1 class="text-3xl md:text-4xl font-bold"><%= t('stevensed.my_agreements') %></h1>
+  <p class="text-base-content/80"><%= t('stevensed.my_agreements_intro', email: current_user.email) %></p>
+  <% if @submitters.blank? %>
+    <div class="card bg-base-200 p-6 text-center"><%= t('stevensed.no_agreements') %></div>
+  <% else %>
+    <div class="space-y-3">
+      <% @submitters.each do |submitter| %>
+        <% name = submitter.submission.name.presence || submitter.submission.template&.name %>
+        <a href="<%= submit_form_path(slug: submitter.slug) %>" class="flex items-center justify-between bg-base-200 hover:bg-base-300 rounded-2xl px-5 py-4">
+          <span class="font-semibold"><%= name %></span>
+          <% if submitter.completed_at? %>
+            <span class="badge badge-outline"><%= t('stevensed.signed_on', date: l(submitter.completed_at.in_time_zone(current_account.timezone).to_date, format: :long)) %></span>
+          <% else %>
+            <span class="badge badge-accent text-white"><%= t('stevensed.awaiting_your_signature') %></span>
+          <% end %>
+        </a>
+      <% end %>
+    </div>
+  <% end %>
+  <p class="text-sm text-base-content/70"><%= t('stevensed.questions_contact_html', email: Stevensed::CONTACT_EMAIL) %></p>
+</div>

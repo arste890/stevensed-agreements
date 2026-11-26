@@ -46,6 +46,14 @@ gem 'turbo-rails'
 gem 'twitter_cldr', require: false
 gem 'tzinfo-data'
 gem 'wordcraft', require: false, group: :ce
+
+# StevensED: single sign-on (OpenID Connect with auth.stevensed.org; SAML 2.0)
+gem 'omniauth', '~> 2.1'
+gem 'omniauth_openid_connect', '~> 0.8'
+gem 'omniauth-rails_csrf_protection', '~> 1.0'
+gem 'omniauth-saml', '~> 2.2'
+# StevensED: bulk send from Excel
+gem 'roo', '~> 2.10', require: false
 gem 'xlsxtream', require: false
 
 group :development, :test do

@@ -48,7 +48,10 @@
 #
 class User < ApplicationRecord
   ROLES = [
-    ADMIN_ROLE = 'admin'
+    ADMIN_ROLE = 'admin',
+    EDITOR_ROLE = 'editor', # StevensED
+    VIEWER_ROLE = 'viewer', # StevensED
+    CLIENT_ROLE = 'client' # StevensED: signs in to see own agreements only
   ].freeze
 
   EMAIL_REGEXP = /[^@;,<>\s]+@[^@;,<>\s]+/
