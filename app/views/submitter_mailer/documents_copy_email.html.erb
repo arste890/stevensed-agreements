@@ -15,6 +15,9 @@
     <p><%= t('stevensed.email.copy_attached') %></p>
   <% end %>
   <%= render 'shared/email_button', url: copy_url, label: t('stevensed.email.download_copy') %>
+  <% if @sig %>
+    <p><%= t('stevensed.email.copy_link_expires') %></p>
+  <% end %>
   <p><%= t('stevensed.email.copy_retain') %></p>
   <p><%= t('stevensed.email.questions_html', email: Stevensed::CONTACT_EMAIL) %></p>
 <% end %>

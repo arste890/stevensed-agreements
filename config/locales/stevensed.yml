@@ -46,13 +46,13 @@ en:
       user_invite_subject: 'Your %{product_name} account invitation'
       smtp_subject: '%{product_name}: email delivery confirmed'
       # Shared
-      user_invite_intro: You have been invited to join %{product_name}, the electronic agreements service of the StevensED %{office}.
-      copy_intro: Thank you. All parties have completed the agreement described below.
-      declined_intro: A recipient has declined to sign the agreement described below and has provided a reason.
-      completed_intro: All parties have completed the agreement described below.
-      view_intro: The %{office} has shared the document described below with you for your review.
-      invitation_intro_submit: The %{office} requests that you review and complete the document described below.
-      invitation_intro_sign: The %{office} requests your review and electronic signature on the agreement described below.
+      user_invite_intro: You have been invited to join %{product_name}, the electronic agreements service of StevensED.
+      copy_intro: Thank you. All parties have completed the agreement below.
+      declined_intro: A recipient has declined to sign the agreement below and provided the following reason.
+      completed_intro: All parties have completed the agreement below.
+      view_intro: You have been asked to review the document below. No signature is required.
+      invitation_intro_submit: You have been asked to review and complete the document below.
+      invitation_intro_sign: You have been asked to review and sign the agreement below.
       organization: Organization
       signed_by: Signed by
       declined_by: Declined by
@@ -79,22 +79,25 @@ en:
       set_up_account: Set up your account
       change_password: Choose a new password
       button_fallback: 'If the button does not work, copy this address into your browser:'
-      questions_html: Questions about this request may be directed to the Office by replying to this email or writing to <a href="mailto:%{email}">%{email}</a>.
+      questions_html: If you have questions about this request, please reply to this email or write to <a href="mailto:%{email}">%{email}</a>.
       personal_link_title: This link is personal to you.
-      personal_link_body: Please do not forward this email. Anyone who has the link can open the document and act on your behalf.
-      personal_link_body_account: Please do not forward this email. Anyone who has the link can use it to access your account.
+      personal_link_body: Please do not forward this email. Anyone with the link may be able to view the document and act in your name.
+      personal_link_body_account: Please do not forward this email. Anyone with the link may be able to access your account.
+      confidentiality_title: Confidentiality notice.
+      confidentiality_body: This message and any attachments are intended solely for the named recipient and may contain confidential information. If you received this message in error, please notify %{email}, delete it, and do not copy, forward, or disclose its contents.
+      copy_link_expires: For your security, the download link expires 80 minutes after this email was sent. To request a new link, please reply to this email.
       footer_privacy: Privacy
       footer_terms: Terms
       footer_esign_consent: Electronic Records and Signature Consent
-      footer_notice: This message was sent by %{product_name}, the electronic agreements service of StevensED. Please do not share links contained in this message.
+      footer_notice: This message was sent through %{product_name}, the electronic agreements service of StevensED LLC.
       # Invitation and reminder
       reminder_eyebrow: Reminder
       invitation_title_sign: 'Re: Request for electronic signature, %{name}'
       invitation_title_submit: 'Re: Request to complete %{name}'
       invitation_preheader_sign: '"%{name}" is ready for your review and signature.'
       invitation_preheader_submit: '"%{name}" is ready for you to complete.'
-      reminder_intro: Our records show that this request has not yet been completed. Please attend to it at your earliest convenience.
-      esign_statement_html: You may read the entire document before signing. An electronic signature has the same legal effect as a handwritten signature. By signing, you agree to the <a href="%{consent_url}">Electronic Records and Signature Consent</a>.
+      reminder_intro: Our records indicate that this request remains outstanding. Please complete it at your earliest convenience.
+      esign_statement_html: Please read the entire document before you sign. By signing electronically, you consent to the use of electronic records and signatures as described in the <a href="%{consent_url}">Electronic Records and Signature Consent</a>, and you agree that your electronic signature is the legal equivalent of your handwritten signature.
       # Viewer invitation
       view_title: 'Re: Document shared for your review, %{name}'
       view_preheader: '"%{name}" has been shared with you for review.'
@@ -102,7 +105,7 @@ en:
       completed_eyebrow: Completed
       completed_title: 'Re: Agreement completed, %{name}'
       completed_preheader: '"%{name}" has been completed by all parties.'
-      completed_attachments: The completed document and its audit log are attached to this email.
+      completed_attachments: The completed documents are attached to this email where file size permits. All files remain available on the submission page.
       # Declined (to staff)
       declined_eyebrow: Declined
       declined_title: 'Re: Signature declined, %{name}'
@@ -111,18 +114,18 @@ en:
       # Documents copy (to signer)
       copy_title: 'Re: Your copy of the completed agreement, %{name}'
       copy_preheader: Your copy of "%{name}" is ready.
-      copy_attached: A copy of the completed document is attached to this email for your records.
-      copy_retain: We recommend that you keep a copy of this document with your records.
+      copy_attached: A copy of the completed agreement is attached to this email.
+      copy_retain: Please keep a copy of this agreement for your records.
       # One-time code
       otp_title: 'Re: Verification code'
-      otp_preheader: Use this code to confirm your email address.
+      otp_preheader: Use this code to verify your email address.
       otp_intro_html: 'Use the following code to verify your email address and open <strong>"%{name}"</strong>:'
       otp_do_not_share: Enter the code on the page where it was requested. Do not share this code with anyone.
-      otp_not_requested_html: If you did not request this code, please reply to this email or write to <a href="mailto:%{email}">%{email}</a>.
+      otp_not_requested_html: If you did not request this code, do not use it, and please notify <a href="mailto:%{email}">%{email}</a>.
       # User invitation
       user_invite_title: 'Re: Invitation to %{product_name}'
       user_invite_preheader: Set up your %{product_name} account.
-      user_invite_not_expected: If you were not expecting this invitation, you may disregard this email. No account will be created unless you complete the setup.
+      user_invite_not_expected_html: If you were not expecting this invitation, please notify <a href="mailto:%{email}">%{email}</a> before using the link.
       # Password reset
       reset_title: 'Re: Password reset request'
       reset_preheader: Use the link in this email to choose a new password.
