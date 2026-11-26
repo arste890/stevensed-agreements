@@ -2,7 +2,7 @@
 <%= render 'stevensed/styles' %>
 <div class="se">
   <%= render 'stevensed/header' %>
-  <main class="se-wrap">
+  <div id="main" class="se-wrap">
     <article class="se-prose">
       <h1 class="se-serif"><%= t('stevensed.legal_notices') %></h1>
       <h2><%= Docuseal.product_name %></h2>
@@ -15,6 +15,6 @@
       <h2>Fonts and images</h2>
       <p>Cormorant Garamond and Inter are used under the SIL Open Font License (<a href="/stevensed/fonts/OFL-Cormorant-Garamond.txt">Cormorant Garamond</a>, <a href="/stevensed/fonts/OFL-Inter.txt">Inter</a>). StevensED logos and photography belong to StevensED LLC.</p>
     </article>
-  </main>
+  </div>
   <%= render 'stevensed/footer' %>
 </div>

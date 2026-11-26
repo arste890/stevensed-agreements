@@ -1,4 +1,24 @@
-<header class="se-wrap se-header">
-  <a href="<%= root_path %>" aria-label="StevensED Agreements home"><img src="<%= Stevensed::LOGO_PATH %>" alt="StevensED" width="64" height="44"></a>
-  <a class="se-contact" href="mailto:<%= Stevensed::CONTACT_EMAIL %>"><%= svg_icon('mail') %><span><%= Stevensed::CONTACT_EMAIL %></span></a>
+<%# StevensED: header matching stevensed.org (brand lockup, nav, accent action); links specific to Agreements. %>
+<% show_sign_in = local_assigns.fetch(:show_sign_in, true) %>
+<a class="se-skip" href="#main">Skip to main content</a>
+<header class="se-site-header">
+  <div class="se-wrap se-site-header__inner">
+    <a class="se-brand" href="<%= root_path %>" aria-label="StevensED Agreements home">
+      <img class="se-brand__logo" src="/stevensed/logo-mark-trim.png" alt="" width="65" height="48" decoding="async">
+      <span><span class="se-brand__name">StevensED</span><span class="se-brand__tag">Agreements</span></span>
+    </a>
+    <nav class="se-nav" aria-label="Primary">
+      <a href="<%= root_path %>#how">How signing works</a>
+      <a href="https://policies.stevensed.org/#/doc/e-signature-consent">E-signature consent</a>
+      <a href="https://policies.stevensed.org" rel="noopener">Policy Library &#8599;</a>
+      <a href="https://stevensed.org" rel="noopener">stevensed.org &#8599;</a>
+    </nav>
+    <% if show_sign_in %>
+      <% if Stevensed::Sso.oidc_enabled? %>
+        <%= button_to t('sign_in'), '/auth/stevensed', method: :post, data: { turbo: false }, class: 'se-btn se-btn--accent se-btn--sm', form_class: 'se-header-action' %>
+      <% else %>
+        <a class="se-btn se-btn--accent se-btn--sm se-header-action" href="<%= new_user_session_path %>"><%= t('sign_in') %></a>
+      <% end %>
+    <% end %>
+  </div>
 </header>

@@ -2,7 +2,7 @@
 <%= render 'stevensed/styles' %>
 <div class="se">
   <%= render 'stevensed/header' %>
-  <main class="se-wrap">
+  <div id="main" class="se-wrap">
     <article class="se-prose">
       <h1 class="se-serif">Accessibility</h1>
       <p>StevensED intends StevensED Agreements, including its signing pages, to be usable by everyone, and works toward conformance with the Web Content Accessibility Guidelines (WCAG) 2.2, Level AA.</p>
@@ -18,6 +18,6 @@
       <p>If you cannot use this service, or need a document in another format, contact <a href="mailto:<%= Stevensed::CONTACT_EMAIL %>"><%= Stevensed::CONTACT_EMAIL %></a>. Under the Electronic Records and Signature Consent (<a href="https://policies.stevensed.org/#/doc/e-signature-consent">FRM-102</a>), you may request a free paper copy of any record and may withdraw consent to electronic records at any time.</p>
       <p><em>Last reviewed: <%= Date.new(2026, 11, 26).strftime('%B %-d, %Y') %>.</em></p>
     </article>
-  </main>
+  </div>
   <%= render 'stevensed/footer' %>
 </div>

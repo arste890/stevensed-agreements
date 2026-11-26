@@ -7,8 +7,8 @@
 <% if auto_sso %><% content_for :head do %><script src="/stevensed/sso-redirect.js" defer></script><% end %><% end %>
 <%= render 'stevensed/styles' %>
 <div class="se">
-  <%= render 'stevensed/header' %>
-  <main class="se-wrap">
+  <%= render 'stevensed/header', show_sign_in: false %>
+  <div id="main" class="se-wrap">
     <div class="se-signin">
       <h1 class="se-serif"><%= t('sign_in') %></h1>
       <% if sso %>
@@ -51,6 +51,6 @@
       <% end %>
       <p class="se-signin-note"><%= t('stevensed.signing_request_note') %></p>
     </div>
-  </main>
+  </div>
   <%= render 'stevensed/footer' %>
 </div>
