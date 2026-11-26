@@ -21,7 +21,7 @@ module Stevensed
     def post(path, field, filename, data)
       uri = URI.join(ENV.fetch('GOTENBERG_URL'), path)
       boundary = "stevensed#{SecureRandom.hex(12)}"
-      body = +"--#{boundary}\r\n"
+      body = "--#{boundary}\r\n"
       body << "Content-Disposition: form-data; name=\"#{field}\"; filename=\"#{filename.tr('"', '')}\"\r\n"
       body << "Content-Type: application/octet-stream\r\n\r\n"
       body << data.to_s.b << "\r\n--#{boundary}--\r\n"
