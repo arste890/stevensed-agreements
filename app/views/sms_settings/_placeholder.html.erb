@@ -1,3 +1,4 @@
+<%# StevensED: SMS sending is not offered; the upstream upgrade link is removed. %>
 <div class="alert">
   <%= svg_icon('info_circle', class: 'w-6 h-6') %>
   <div>
@@ -5,11 +6,7 @@
       <%= t('send_signature_requests_via_sms') %>
     </p>
     <p class="text-gray-700">
-      <%= t('unlock_with_docuseal_pro') %>
-      <br>
-      <a class="link font-medium" target="_blank" href="<%= Docuseal.multitenant? ? console_redirect_index_path(redir: "#{Docuseal::CONSOLE_URL}/plans") : "#{Docuseal::CLOUD_URL}/sign_up?#{{ redir: "#{Docuseal::CONSOLE_URL}/on_premises" }.to_query}" %>" data-turbo="false">
-        <%= t('learn_more') %>
-      </a>
+      <%= t('stevensed.sms_not_available') %>
     </p>
   </div>
 </div>

@@ -65,8 +65,10 @@ module TemplateVersions
                                  .preload(attachments_attachments: :blob)
                                  .index_by(&:uuid)
 
-    dynamic_docs.map do |attrs|
+    dynamic_docs.filter_map do |attrs|
       document = dynamic_docs_index[attrs['uuid']]
+
+      next if document.nil? # StevensED: a dynamic document removed since this version was saved
 
       attachments_data = document.attachments_attachments.as_json(only: %i[uuid], methods: %i[url metadata filename])
 

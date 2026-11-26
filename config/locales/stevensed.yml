@@ -9,6 +9,9 @@ en:
     not_verified: Not verified
     original_envelope: 'Original envelope %{id}'
     legal_notices: Legal notices
+    sms_not_available: Not available in StevensED Agreements. Signature requests are sent by email.
+    embedding_settings_hint: Instructions for embedding the signing form and the template builder, and the list of allowed sites, are in Settings.
+    open_embedding_settings: Open embedding settings
     logo_invalid: The logo must be a PNG, JPEG or WebP image of 2 MB or less.
     logo_hint: PNG, JPEG or WebP, 2 MB or less. Shown on signing pages and in the dashboard.
     reminder_prefix: 'Reminder:'

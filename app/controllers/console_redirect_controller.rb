@@ -5,6 +5,9 @@ class ConsoleRedirectController < ApplicationController
   skip_authorization_check
 
   def index
+    # StevensED: there is no upstream console; do not hand a sign-in token to console.docuseal.com.
+    raise ActionController::RoutingError, 'Not Found' unless Docuseal.multitenant? || Stevensed::SHOW_UPSTREAM_LINKS
+
     if request.path == '/upgrade'
       params[:redir] = Docuseal.multitenant? ? "#{Docuseal::CONSOLE_URL}/plans" : "#{Docuseal::CONSOLE_URL}/on_premises"
     end
