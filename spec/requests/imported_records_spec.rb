@@ -14,7 +14,7 @@ describe 'Imported records' do
       template: { name: 'FRM-108 Parental Consent for Online Services (Student Under 13) v4.6' },
       completed_at: '2026-11-22T17:04:11Z',
       submitters: [
-        { role: 'StevensED', name: nil, email: 'legal@stevensed.org' },
+        { role: 'StevensED', name: nil, email: 'records@stevensed.org' },
         { role: 'Parent', name: 'Janey Archibald', email: 'janey@example.com' }
       ],
       files: {
@@ -39,7 +39,7 @@ describe 'Imported records' do
     expect(response).to have_http_status(:ok)
     expect(body.index('Signed document')).to be < body.index('Audit log')
     expect(body.index('Audit log')).to be < body.index('Combined PDF')
-    expect(body.index('janey@example.com')).to be < body.index('legal@stevensed.org')
+    expect(body.index('janey@example.com')).to be < body.index('records@stevensed.org')
     expect(body).to include('Completed November 22, 2026')
     expect(body).to include('Verified against the DocuSeal audit log, original envelope 13478070')
   end

@@ -7,7 +7,9 @@ module Stevensed
     Summary = Struct.new(:common_name, :subject, :issuer, :not_before, :not_after, :key_algorithm, :fingerprint,
                          keyword_init: true)
 
-    EC_CURVES = { 'secp256r1' => 'P-256', 'prime256v1' => 'P-256', 'secp384r1' => 'P-384', 'secp521r1' => 'P-521' }.freeze
+    EC_CURVES = {
+      'secp256r1' => 'P-256', 'prime256v1' => 'P-256', 'secp384r1' => 'P-384', 'secp521r1' => 'P-521'
+    }.freeze
 
     module_function
 
