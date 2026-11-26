@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class SubmitFormController < ApplicationController
+  include StevensedEmbeddable # StevensED: may be shown in an iframe on allowed origins
+
   layout 'form'
 
   around_action :with_browser_locale, only: %i[show completed success delegated]

@@ -1,0 +1,43 @@
+<%= render 'shared/turbo_modal', title: t('stevensed.html_templates.title') do %>
+  <%= form_tag templates_html_path, method: :post, data: { turbo_frame: :_top }, html: { autocomplete: :off }, class: 'space-y-3 mt-4' do %>
+    <% if @error_message %>
+      <div class="alert alert-error text-sm" role="alert"><%= @error_message %></div>
+    <% end %>
+    <p class="text-sm"><%= t('stevensed.html_templates.intro') %></p>
+    <div class="form-control">
+      <%= label_tag :name, t('name'), class: 'label text-sm font-medium' %>
+      <%= text_field_tag :name, params[:name], autocomplete: 'off', placeholder: t('document_name'), class: 'base-input', dir: 'auto' %>
+    </div>
+    <div class="form-control">
+      <%= label_tag :html, 'HTML', class: 'label text-sm font-medium' %>
+      <%= text_area_tag :html, params[:html], required: true, rows: 10, spellcheck: false, class: 'base-textarea font-mono text-sm', placeholder: t('stevensed.html_templates.html_placeholder') %>
+    </div>
+    <details class="text-sm">
+      <summary class="cursor-pointer font-medium"><%= t('stevensed.html_templates.header_and_footer') %></summary>
+      <div class="space-y-3 mt-3">
+        <div class="form-control">
+          <%= label_tag :html_header, t('stevensed.html_templates.header'), class: 'label text-sm font-medium' %>
+          <%= text_area_tag :html_header, params[:html_header], rows: 3, spellcheck: false, class: 'base-textarea font-mono text-sm' %>
+        </div>
+        <div class="form-control">
+          <%= label_tag :html_footer, t('stevensed.html_templates.footer'), class: 'label text-sm font-medium' %>
+          <%= text_area_tag :html_footer, params[:html_footer], rows: 3, spellcheck: false, class: 'base-textarea font-mono text-sm' %>
+        </div>
+      </div>
+    </details>
+    <div class="flex gap-3">
+      <div class="form-control w-1/2">
+        <%= label_tag :size, t('stevensed.html_templates.paper_size'), class: 'label text-sm font-medium' %>
+        <%= select_tag :size, options_for_select([%w[Letter letter], %w[Legal legal], %w[A4 a4], %w[A5 a5]], params[:size].presence || 'letter'), class: 'base-select' %>
+      </div>
+      <div class="form-control w-1/2">
+        <%= label_tag :folder_name, t('folder_name'), class: 'label text-sm font-medium' %>
+        <%= text_field_tag :folder_name, params[:folder_name].presence || TemplateFolder::DEFAULT_NAME, autocomplete: 'off', class: 'base-input' %>
+      </div>
+    </div>
+    <p class="text-xs"><%= t('stevensed.html_templates.tags_hint') %></p>
+    <div class="form-control">
+      <%= button_tag button_title(title: t('create'), disabled_with: t('stevensed.html_templates.converting')), class: 'base-button' %>
+    </div>
+  <% end %>
+<% end %>

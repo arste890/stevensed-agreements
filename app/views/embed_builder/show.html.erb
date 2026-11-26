@@ -1,0 +1,6 @@
+<% content_for(:stevensed_embed_state, 'builder') %>
+<% account_configs = current_account.account_configs.where(key: [AccountConfig::TEMPLATE_CUSTOM_FIELDS_KEY, AccountConfig::TEMPLATE_DATE_FORMATS_KEY, AccountConfig::TEMPLATE_BUILDER_AUTOSAVE_KEY]).to_a %>
+<% custom_fields = account_configs.find { |e| e.key == AccountConfig::TEMPLATE_CUSTOM_FIELDS_KEY }&.value || [] %>
+<% date_formats = account_configs.find { |e| e.key == AccountConfig::TEMPLATE_DATE_FORMATS_KEY }&.value || [] %>
+<% autosave = account_configs.find { |e| e.key == AccountConfig::TEMPLATE_BUILDER_AUTOSAVE_KEY }&.value != false %>
+<template-builder class="grid" data-embedded="true" data-with-logo="false" data-with-send-button="false" data-with-sign-yourself-button="false" data-with-revisions-menu="false" data-accept-file-types="image/*, application/pdf, application/zip, application/json, <%= Templates::CreateAttachments.document_extensions.join(', ') %>" data-template="<%= @template_data.to_json %>" data-custom-fields="<%= custom_fields.to_json %>" data-date-formats="<%= date_formats.to_json %>" data-autosave="<%= autosave %>" data-with-fields-detection="true" data-with-conditions="true" data-with-formula="true" data-locale="<%= I18n.locale %>"></template-builder>

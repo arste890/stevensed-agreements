@@ -1,39 +1,30 @@
 # frozen_string_literal: true
 
+# StevensED: serves the embed scripts for the signing form (/js/form.js), the template builder
+# (/js/builder.js) and the bridge loaded inside embedded pages (/js/frame.js).
 class EmbedScriptsController < ActionController::Metal
-  DUMMY_SCRIPT = <<~JAVASCRIPT.freeze
-    const DummyBuilder = class extends HTMLElement {
-      connectedCallback() {
-        this.innerHTML = `
-          <div style="text-align: center; padding: 20px; font-family: Arial, sans-serif;">
-            <h2>Upgrade to Pro</h2>
-            <p>Unlock embedded components by upgrading to Pro</p>
-            <div style="margin-top: 40px;">
-              <a href="#{Docuseal::CONSOLE_URL}/on_premises" target="_blank" style="padding: 15px 25px; background-color: #222; color: white; text-decoration: none; border-radius: 5px; font-size: 16px; cursor: pointer;">
-                Learn More
-              </a>
-            </div>
-          </div>
-        `;
-      }
-    };
+  SCRIPTS_PATH = Rails.root.join('app/javascript/embed')
 
-    const DummyForm = class extends DummyBuilder {};
-
-    if (!window.customElements.get('docuseal-builder')) {
-      window.customElements.define('docuseal-builder', DummyBuilder);
-    }
-
-    if (!window.customElements.get('docuseal-form')) {
-      window.customElements.define('docuseal-form', DummyForm);
-    }
-  JAVASCRIPT
+  SCRIPTS = %w[form builder frame].index_with do |name|
+    SCRIPTS_PATH.join("#{name}.js").read.freeze
+  end.freeze
 
   def show
-    headers['Content-Type'] = 'application/javascript'
+    script = SCRIPTS[params[:filename].to_s.delete_suffix('.js')]
 
-    self.response_body = DUMMY_SCRIPT
+    headers['X-Content-Type-Options'] = 'nosniff'
 
-    self.status = 200
+    if script
+      headers['Content-Type'] = 'application/javascript; charset=utf-8'
+      headers['Cache-Control'] = 'public, max-age=300'
+
+      self.response_body = script
+      self.status = 200
+    else
+      headers['Content-Type'] = 'text/plain; charset=utf-8'
+
+      self.response_body = 'Not found'
+      self.status = 404
+    end
   end
 end

@@ -372,8 +372,8 @@
               data-placement="bar"
             >
               <button
-                class="base-button !rounded-r-none !pr-2"
-                :class="{ disabled: isSaving }"
+                class="base-button"
+                :class="{ disabled: isSaving, '!rounded-r-none !pr-2': !embedded }"
                 v-bind="isSaving ? { disabled: true } : {}"
                 @click.prevent="onSaveClick"
               >
@@ -392,6 +392,7 @@
               </button>
             </native-action>
             <div
+              v-if="!embedded"
               class="dropdown dropdown-end"
               :class="{ 'dropdown-open': isDownloading || isPreviewLoading }"
             >
@@ -1249,6 +1250,11 @@ export default {
       type: Boolean,
       required: false,
       default: true
+    },
+    embedded: {
+      type: Boolean,
+      required: false,
+      default: false
     },
     nativePlatform: {
       type: String,
@@ -3832,7 +3838,14 @@ export default {
             this.captureRevision()
           }
 
-          window.Turbo.visit(`/templates/${this.template.id}`)
+          if (this.embedded) {
+            // StevensED: the embed bridge (/js/frame.js) forwards this to the host page.
+            window.dispatchEvent(new CustomEvent('stevensed:builder-saved', {
+              detail: { template_id: this.template.id, name: this.template.name, fields_count: this.template.fields.length }
+            }))
+          } else {
+            window.Turbo.visit(`/templates/${this.template.id}`)
+          }
         }).finally(() => {
           this.isSaving = false
         })

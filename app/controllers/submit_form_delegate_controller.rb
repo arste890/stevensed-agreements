@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class SubmitFormDelegateController < ApplicationController
+  include StevensedEmbeddable # StevensED: may be shown in an iframe on allowed origins
+
   skip_before_action :authenticate_user!
   skip_authorization_check
 

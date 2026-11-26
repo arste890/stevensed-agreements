@@ -1,0 +1,6 @@
+<div class="mockup-code overflow-hidden">
+  <span class="top-0 right-0 absolute">
+    <%= render 'shared/clipboard_copy', icon: 'copy', text:, class: 'btn btn-ghost text-white', icon_class: 'w-6 h-6 text-white', copy_title: t('copy'), copied_title: t('copied') %>
+  </span>
+  <pre class="px-5 overflow-x-auto"><code><%== HighlightCode.call(text, lexer, theme: 'base16.dark') %></code></pre>
+</div>

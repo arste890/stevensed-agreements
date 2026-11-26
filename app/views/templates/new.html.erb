@@ -1,5 +1,11 @@
 <%= render 'shared/turbo_modal', title: @base_template ? t('clone_template') : t('new_document_template') do %>
   <div style="<%= 'padding-inline: 18px' if turbo_native_app? %>">
     <%= render 'templates/file_form' %>
+    <% if !@base_template && !turbo_native_app? %>
+      <%# StevensED: create a template from HTML with field tags %>
+      <div class="text-center text-sm mt-3">
+        <%= link_to t('stevensed.html_templates.create_from_html'), new_templates_html_path(folder_name: params[:folder_name].presence), class: 'link', data: { turbo_frame: :modal } %>
+      </div>
+    <% end %>
   </div>
 <% end %>

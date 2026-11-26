@@ -80,6 +80,12 @@
             </li>
           <% end %>
         <% end %>
+        <% if !Docuseal.multitenant? && can?(:manage, AccountConfig) %>
+          <li>
+            <%# StevensED: embedding instructions %>
+            <%= link_to t('embedding'), settings_embedding_index_path, class: 'text-base hover:bg-base-300', data: nav_link_data %>
+          </li>
+        <% end %>
         <% if Docuseal.demo? || !Docuseal.multitenant? || (current_user != true_user && !current_account.testing?) %>
           <% if can?(:read, WebhookUrl) %>
             <li>

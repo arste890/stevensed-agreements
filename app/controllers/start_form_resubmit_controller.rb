@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class StartFormResubmitController < ApplicationController
+  include StevensedEmbeddable # StevensED: may be shown in an iframe on allowed origins
+
   layout 'form'
 
   skip_before_action :authenticate_user!
