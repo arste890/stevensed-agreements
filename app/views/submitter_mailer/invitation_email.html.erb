@@ -9,13 +9,14 @@
   <% append_link = !@body.match?(ReplaceEmailVariables::SUBMITTER_LINK) && !@body.match?(ReplaceEmailVariables::SUBMITTER_ID) && !@body.match?(ReplaceEmailVariables::SUBMISSION_LINK) && !@body.match?(ReplaceEmailVariables::TEMPLATE_ID) && !@submitter.submission.source.in?(%w[api embed]) %>
   <%= render 'custom_body', body: @body, submitter: @submitter, link_url: (submit_url if append_link), link_label: action_label %>
 <% else %>
-  <%= render 'shared/email_heading', eyebrow: (t('stevensed.email.reminder_eyebrow') if @reminder), title: t(signing ? 'stevensed.email.invitation_title_sign' : 'stevensed.email.invitation_title_submit', name: document_name) %>
+  <%= render 'shared/email_heading', eyebrow: (t('stevensed.email.reminder_eyebrow') if @reminder), title: ReplaceEmailVariables.call(@email_parts.parts['heading'], submitter: @submitter) %>
   <%= render 'shared/email_greeting', name: @submitter.name %>
-  <p><%= t("stevensed.email.#{@reminder ? 'reminder' : 'invitation'}_intro_#{signing ? 'sign' : 'submit'}") %></p>
+  <%= render 'email_text', text: @email_parts.parts['intro'], submitter: @submitter %>
   <%= render 'shared/email_details', rows: [[t('stevensed.email.document'), document_name], [t('stevensed.email.requested_by'), render('shared/email_requester', submission: @submitter.submission)], [t('stevensed.email.recipient'), @submitter.name.presence || @submitter.email]] %>
   <%= render 'shared/email_button', url: submit_url, label: action_label %>
   <% if signing %>
     <p><%= t('stevensed.email.esign_statement_html', consent_url: 'https://policies.stevensed.org/#/doc/e-signature-consent') %></p>
   <% end %>
+  <%= render 'email_text', text: @email_parts.parts['closing'], submitter: @submitter %>
   <p><%= t('stevensed.email.questions_html', email: Stevensed::CONTACT_EMAIL) %></p>
 <% end %>

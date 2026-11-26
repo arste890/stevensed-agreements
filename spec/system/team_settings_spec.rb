@@ -34,7 +34,7 @@ RSpec.describe 'Team Settings' do
     end
 
     it 'creates a new user' do
-      click_link 'New User'
+      click_link 'New user'
 
       within '#modal' do
         fill_in 'First name', with: 'Joseph'
@@ -56,7 +56,7 @@ RSpec.describe 'Team Settings' do
     end
 
     it "doesn't create a new user if a user already exists" do
-      click_link 'New User'
+      click_link 'New user'
 
       within '#modal' do
         fill_in 'First name', with: 'Michael'
@@ -76,7 +76,7 @@ RSpec.describe 'Team Settings' do
       user = create(:user, account: second_account)
       visit settings_users_path
 
-      click_link 'New User'
+      click_link 'New user'
 
       within '#modal' do
         fill_in 'First name', with: 'Michael'
@@ -93,7 +93,7 @@ RSpec.describe 'Team Settings' do
     end
 
     it 'does not allow to create a new user with an invalid email' do
-      click_link 'New User'
+      click_link 'New user'
 
       within '#modal' do
         fill_in 'First name', with: 'Joseph'
@@ -171,7 +171,7 @@ RSpec.describe 'Team Settings' do
         expect(page).to have_no_content(other_user.email)
       end
 
-      expect(page).to have_link('View Archived', href: settings_archived_users_path)
+      expect(page).to have_link('View archived', href: settings_archived_users_path)
     end
 
     it 'shows only archived users' do
@@ -197,8 +197,8 @@ RSpec.describe 'Team Settings' do
         expect(page).to have_no_content(other_user.email)
       end
 
-      expect(page).to have_content('Archived Users')
-      expect(page).to have_link('View Active', href: settings_users_path)
+      expect(page).to have_content('Archived users')
+      expect(page).to have_link('View active', href: settings_users_path)
     end
   end
 end

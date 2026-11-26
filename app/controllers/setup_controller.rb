@@ -40,7 +40,7 @@ class SetupController < ApplicationController
 
       sign_in(@user)
 
-      redirect_to newsletter_path
+      redirect_to root_path # StevensED: no upstream developer newsletter sign-up after setup
     else
       render :index, status: :unprocessable_content
     end

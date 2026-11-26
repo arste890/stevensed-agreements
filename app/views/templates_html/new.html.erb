@@ -28,7 +28,7 @@
     <div class="flex gap-3">
       <div class="form-control w-1/2">
         <%= label_tag :size, t('stevensed.html_templates.paper_size'), class: 'label text-sm font-medium' %>
-        <%= select_tag :size, options_for_select([%w[Letter letter], %w[Legal legal], %w[A4 a4], %w[A5 a5]], params[:size].presence || 'letter'), class: 'base-select' %>
+        <%= select_tag :size, options_for_select([%w[Letter letter], %w[Legal legal], %w[A4 a4], %w[A5 a5]], params[:size].presence || Stevensed.page_size(current_account).to_s.downcase), class: 'base-select' %>
       </div>
       <div class="form-control w-1/2">
         <%= label_tag :folder_name, t('folder_name'), class: 'label text-sm font-medium' %>

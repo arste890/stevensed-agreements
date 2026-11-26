@@ -80,6 +80,61 @@
     .se-builder-header :is(.btn, .white-button, .base-button) { height: 2.5rem; min-height: 2.5rem; padding-inline: 1rem; font-size: 0.9375rem; text-transform: none; letter-spacing: 0; font-weight: 600; }
     @media (max-width: 900px) { .se-page-zone ~ * .se-brand__text, .se-site-header__inner:has(.se-page-zone) .se-brand__text { display: none; } }
     .se-app-main { min-height: calc(100dvh - 26rem); }
+    /* Settings pages (every page that renders shared/settings_nav): one content column with one left edge and width,
+       controls in sentence case and sized to their label. Radius scale: surfaces 12px, fields 8px, buttons pill. */
+    main:has(#account_settings_menu) { --btn-text-case: none; --rounded-box: 0.75rem; --se-edge: #ddd5c6; --se-field-edge: #7b8597; }
+    main > div > div:has(> #account_settings_menu) + div { flex: 1 1 100%; min-width: 0; width: 100%; max-width: 48rem; margin-left: 0; margin-right: 0; }
+    main > div > div:has(> #account_settings_menu) + div + div:empty { display: none; }
+    main > div > div:has(> #account_settings_menu) + div > h1 + p { max-width: 75ch; margin-top: -0.25rem; margin-bottom: 1.75rem; color: #3a4461; }
+    main > div > div:has(> #account_settings_menu) + div :is(h2.text-2xl, h2.text-3xl, p.text-2xl.font-bold) { font-size: 1.5rem; line-height: 1.3; font-weight: 700; letter-spacing: -0.01em; }
+    main > div > div:has(> #account_settings_menu) + div :is(.base-button, .white-button) { width: auto; height: 2.75rem; min-height: 2.75rem; padding-inline: 1.25rem; gap: 0.5rem; font-size: 0.9375rem; font-weight: 600; letter-spacing: 0; }
+    main > div > div:has(> #account_settings_menu) + div .white-button { border-width: 1px; border-color: #2f3e68; color: #2f3e68; }
+    main > div > div:has(> #account_settings_menu) + div .white-button:hover { background: #f1eee7; border-color: #26335a; color: #26335a; }
+    main > div > div:has(> #account_settings_menu) + div .form-control > :is(.base-button, .white-button) { align-self: flex-start; }
+    main > div > div:has(> #account_settings_menu) + div :is(.input, .select, .textarea, .file-input, .base-input, .base-select, .base-textarea) { border-radius: 0.5rem; border-color: var(--se-field-edge); }
+    main > div > div:has(> #account_settings_menu) + div :is(.input, .select):not([class*="-sm"]):not([class*="-xs"]) { height: 2.75rem; min-height: 2.75rem; }
+    main > div > div:has(> #account_settings_menu) + div :is(.input, .select, .textarea, .base-input, .base-select, .base-textarea):focus { outline: 2px solid #2f3e68; outline-offset: 2px; }
+    main > div > div:has(> #account_settings_menu) + div :is(.card, .collapse).bg-base-200,
+    main > div > div:has(> #account_settings_menu) + div .bg-base-200:is(.rounded-xl, .rounded-2xl, .rounded-3xl) { background-color: #fff; border: 1px solid var(--se-edge); border-radius: 0.75rem; }
+    main > div > div:has(> #account_settings_menu) + div .collapse-title { font-size: 1rem; font-weight: 600; text-transform: none; }
+    @media (min-width: 768px) {
+      main > div:has(> div > #account_settings_menu) { display: flex; flex-wrap: nowrap; align-items: flex-start; column-gap: 3rem; }
+      main > div:has(> div > #account_settings_menu) > * { margin: 0; }
+      main > div > div:has(> #account_settings_menu) + div { flex: 1 1 0%; }
+      main > div > div:has(> #account_settings_menu) + div .table :is(th, td) { padding-inline: 0.875rem; }
+    }
+    @media (max-width: 767px) {
+      main > div > div:has(> #account_settings_menu) + div .table-stack tr { background: #fff; border: 1px solid var(--se-edge); border-radius: 0.75rem; }
+    }
+    /* Settings: lists of records and certificates (white panel, rows divided by a hairline) */
+    .se-rows { list-style: none; margin: 0; padding: 0; background: #fff; border: 1px solid #ddd5c6; border-radius: 0.75rem; }
+    .se-row { padding: 1.25rem 1.5rem; }
+    .se-row + .se-row { border-top: 1px solid #e6dfd2; }
+    .se-row__title { margin: 0; font-size: 1.0625rem; font-weight: 600; line-height: 1.4; color: #1f2948; text-wrap: pretty; overflow-wrap: anywhere; }
+    .se-row__meta { margin: 0.2rem 0 0; font-size: 0.875rem; color: #4f5d70; font-variant-numeric: tabular-nums; }
+    .se-row__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-top: 1rem; }
+    .se-row__actions svg { width: 1.125rem; height: 1.125rem; flex: none; }
+    .se-pairs { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 0.3rem 1.25rem; margin: 0.875rem 0 0; font-size: 0.9375rem; line-height: 1.5; }
+    .se-pairs dt { color: #4f5d70; }
+    .se-pairs dd { margin: 0; color: #1f2948; overflow-wrap: anywhere; }
+    .se-pairs dd .se-quiet { color: #4f5d70; }
+    .se-pairs code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.8125rem; line-height: 1.6; color: #1f2948; overflow-wrap: normal; word-break: normal; }
+    .se-note { display: flex; align-items: flex-start; gap: 0.5rem; margin: 0.875rem 0 0; font-size: 0.875rem; line-height: 1.5; color: #3a4461; }
+    .se-note svg { width: 1.125rem; height: 1.125rem; flex: none; margin-top: 0.05rem; color: #2e6b47; }
+    .se-note--warn, .se-note--warn svg { color: #9a2d33; }
+    .se-note--key svg { color: #2f3e68; }
+    .se-status { display: inline-flex; align-items: center; height: 1.625rem; padding-inline: 0.65rem; border-radius: 999px; font-size: 0.8125rem; font-weight: 600; line-height: 1; white-space: nowrap; }
+    .se-status--active { background: #e3efe7; color: #1f5135; }
+    .se-status--retired { background: #efebe3; color: #4f5d70; }
+    .se-section-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem 1rem; margin: 2.75rem 0 0.75rem; }
+    .se-section-head h2 { margin: 0; }
+    .se-section-head .se-status { margin-right: auto; }
+    .se-section-head--first { margin-top: 0; }
+    .se-note--lead { margin: 0 0 1rem; }
+    .se-section-lede { margin: 0 0 1rem; max-width: 75ch; color: #3a4461; }
+    .se-dropzone { background: #fff; border: 1px dashed #7b8597; border-radius: 0.75rem; transition: background-color .2s; }
+    .se-dropzone:hover { background: #fbfaf7; }
+    @media (max-width: 639px) { .se-row { padding: 1rem 1.125rem; } .se-pairs { grid-template-columns: minmax(0, 1fr); gap: 0 0; } .se-pairs dd + dt { margin-top: 0.5rem; } }
     .se-site-footer .se-footer-grid > div:first-child p { font-size: 0.9375rem; }
     .se ::selection { background: #2f3e6826; color: var(--ink); }
     .se a { color: inherit; text-underline-offset: 0.22em; text-decoration-thickness: 1px; }

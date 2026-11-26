@@ -10,9 +10,9 @@ RSpec.describe 'Notifications Settings' do
   it 'shows the notifications settings page' do
     visit settings_notifications_path
 
-    expect(page).to have_content('Email Notifications')
+    expect(page).to have_content('Email notifications')
     expect(page).to have_content('Receive notification emails on completed submission')
-    expect(page).to have_content('Sign Request Email Reminders')
+    expect(page).to have_content('Sign request email reminders')
 
     expect(page).to have_field('account_config[value]')
     expect(page).to have_field('user_config[value]')

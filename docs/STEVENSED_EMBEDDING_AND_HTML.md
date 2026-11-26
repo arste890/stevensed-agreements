@@ -175,7 +175,7 @@ curl --location 'https://agreements.stevensed.org/api/templates/html' \
 | `html` | Required. The document HTML, up to 2 MB. |
 | `html_header`, `html_footer` | Optional HTML repeated at the top and bottom of every page. The page margins grow to one inch to make room. Field tags are not supported here. |
 | `name` | Template name. Defaults to the HTML `<title>`, then "HTML template". |
-| `size` | `Letter` (default), `Legal`, `A4` or `A5`. Margins are half an inch. |
+| `size` | `Letter`, `Legal`, `A4` or `A5`. Without a size, the form is Letter for accounts in a US time zone and A4 otherwise. Margins are half an inch. |
 | `folder_name` | Folder for the template. |
 | `external_id` | External id, for example to address the template in a builder token. |
 

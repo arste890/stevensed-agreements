@@ -65,46 +65,29 @@ class AccountConfig < ApplicationRecord
   POLICY_LINKS_KEY = 'policy_links'
   ENABLE_MCP_KEY = 'enable_mcp'
 
+  # StevensED: variables offered by the email template editor, matching what ReplaceEmailVariables replaces for
+  # each email. The signing link is not offered: the branded frame always adds the action button.
   EMAIL_VARIABLES = {
-    SUBMITTER_INVITATION_EMAIL_KEY => %w[template.name submitter.link account.name].freeze,
-    SUBMITTER_VIEW_INVITATION_EMAIL_KEY => %w[template.name submitter.link account.name].freeze,
-    SUBMITTER_COMPLETED_EMAIL_KEY => %w[template.name submission.submitters submission.link].freeze,
-    SUBMITTER_INVITATION_REMINDER_EMAIL_KEY => %w[template.name submitter.link account.name].freeze,
-    SUBMITTER_DOCUMENTS_COPY_EMAIL_KEY => %w[template.name documents.link account.name].freeze
+    SUBMITTER_INVITATION_EMAIL_KEY => %w[document.name submitter.name submitter.first_name requester.name
+                                         requester.office submission.expire_at account.name].freeze,
+    SUBMITTER_VIEW_INVITATION_EMAIL_KEY => %w[document.name submitter.name submitter.first_name requester.name
+                                              requester.office account.name].freeze,
+    SUBMITTER_COMPLETED_EMAIL_KEY => %w[document.name submission.submitters requester.name requester.office
+                                        account.name].freeze,
+    SUBMITTER_INVITATION_REMINDER_EMAIL_KEY => %w[document.name submitter.name submitter.first_name requester.name
+                                                  requester.office submission.expire_at account.name].freeze,
+    SUBMITTER_DOCUMENTS_COPY_EMAIL_KEY => %w[document.name submitter.name submitter.first_name submission.submitters
+                                             requester.name requester.office account.name].freeze
   }.freeze
 
-  DEFAULT_VALUES = {
-    SUBMITTER_INVITATION_EMAIL_KEY => lambda {
-      {
-        'subject' => I18n.t(:you_are_invited_to_sign_a_document),
-        'body' => I18n.t(:submitter_invitation_email_sign_body)
-      }
-    },
-    SUBMITTER_VIEW_INVITATION_EMAIL_KEY => lambda {
-      {
-        'subject' => I18n.t(:you_are_invited_to_view_a_document),
-        'body' => I18n.t(:submitter_invitation_email_view_body)
-      }
-    },
-    SUBMITTER_INVITATION_REMINDER_EMAIL_KEY => lambda {
-      {
-        'subject' => I18n.t(:you_are_invited_to_sign_a_document),
-        'body' => I18n.t(:submitter_invitation_email_sign_body)
-      }
-    },
-    SUBMITTER_COMPLETED_EMAIL_KEY => lambda {
-      {
-        'subject' => I18n.t(:template_name_has_been_completed_by_submitters),
-        'body' => I18n.t(:submitter_completed_email_body)
-      }
-    },
-    SUBMITTER_DOCUMENTS_COPY_EMAIL_KEY => lambda {
-      {
-        'subject' => I18n.t(:your_document_copy),
-        'body' => I18n.t(:submitter_documents_copy_email_body)
-      }
-    }
-  }.freeze
+  # StevensED: an unsaved email shows the StevensED text (stevensed.email.*), not the DocuSeal defaults.
+  DEFAULT_VALUES = [
+    SUBMITTER_INVITATION_EMAIL_KEY,
+    SUBMITTER_VIEW_INVITATION_EMAIL_KEY,
+    SUBMITTER_INVITATION_REMINDER_EMAIL_KEY,
+    SUBMITTER_COMPLETED_EMAIL_KEY,
+    SUBMITTER_DOCUMENTS_COPY_EMAIL_KEY
+  ].index_with { |key| -> { Stevensed::EmailParts.all_defaults(key) } }.freeze
 
   belongs_to :account
 

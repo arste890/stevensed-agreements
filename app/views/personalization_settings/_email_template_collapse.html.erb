@@ -1,0 +1,11 @@
+<%# StevensED: collapsible section for one email template. Locals: key. %>
+<div class="collapse collapse-plus bg-base-200 overflow-visible">
+  <input type="checkbox" aria-label="<%= t("stevensed.email_templates.names.#{key}") %>">
+  <div class="collapse-title text-xl font-medium">
+    <div><%= t("stevensed.email_templates.names.#{key}") %></div>
+    <p class="text-sm font-normal text-base-content/70 mt-1"><%= t("stevensed.email_templates.descriptions.#{key}") %></p>
+  </div>
+  <div class="collapse-content">
+    <%= yield %>
+  </div>
+</div>

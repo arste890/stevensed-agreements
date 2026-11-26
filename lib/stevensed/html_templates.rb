@@ -32,7 +32,8 @@ module Stevensed
       'checkbox' => [18, 18]
     }.freeze
 
-    # Paper sizes in inches (width, height).
+    # Paper sizes in inches (width, height). Without a size, forms follow the account: Letter in a US time
+    # zone, A4 otherwise (Stevensed.page_size).
     PAPER_SIZES = {
       'letter' => [8.5, 11],
       'legal' => [8.5, 14],
@@ -59,7 +60,7 @@ module Stevensed
       fields = extract_fields(document)
       tagged_html = document.to_html
 
-      options = conversion_options(size, html_header, html_footer)
+      options = conversion_options(size.presence || Stevensed.page_size(account).to_s, html_header, html_footer)
 
       marked_pdf = Stevensed::Gotenberg.html_to_pdf(render(tagged_html, fields, markers: true), **options)
       final_pdf = Stevensed::Gotenberg.html_to_pdf(render(tagged_html, fields, markers: false), **options)

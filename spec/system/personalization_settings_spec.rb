@@ -10,8 +10,8 @@ RSpec.describe 'Personalization Settings', :js do
   end
 
   it 'shows the notifications settings page' do
-    expect(page).to have_content('Email Templates')
-    expect(page).to have_content('Company Logo')
-    expect(page).to have_content('Submission Form')
+    expect(page).to have_content('Email templates')
+    expect(page).to have_content('Company logo')
+    expect(page).to have_content('Submission form')
   end
 end
