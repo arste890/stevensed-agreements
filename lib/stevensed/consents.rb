@@ -7,8 +7,9 @@ module Stevensed
   #   - families (parents, guardians, payers, cosigners, adult students): FRM-102-M (student under 18) or FRM-102-A;
   #   - StevensED faculty and staff, or anyone signing in the StevensED role: FRM-505;
   #   - everyone else (job candidates, contractors, vendors): FRM-601.
-  # Family envelopes also ask for the student's date of birth on every envelope. The date is used only to check that
-  # the envelope is the right version (Minor, Adult, Under 13); only the resulting age band is kept. A mismatch voids
+  # Family envelopes also ask for the student's date of birth on every envelope. The date checks that the envelope is
+  # the right version (Minor, Adult, Under 13) and fills the document's own date-of-birth field if it has one; apart
+  # from that, only the resulting age band is kept. A mismatch voids
   # the envelope and alerts the Office of Legal Operations so the right envelope can be issued. A minor student
   # signing their own acknowledgment relies on a parent's FRM-102-M on file. Consent is voluntary: a signer may ask for
   # paper instead, which alerts the office. The legal name on the consent becomes the signer's name on later documents.
