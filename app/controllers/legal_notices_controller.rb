@@ -8,4 +8,8 @@ class LegalNoticesController < ApplicationController
   def show
     render layout: 'plain'
   end
+
+  def accessibility
+    render layout: 'plain'
+  end
 end

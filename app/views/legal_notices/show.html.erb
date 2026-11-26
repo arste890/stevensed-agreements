@@ -1,16 +1,20 @@
 <% content_for(:html_title, "#{t('stevensed.legal_notices')} | #{Docuseal.product_name}") %>
-<div class="max-w-2xl mx-auto px-4 py-10 space-y-6">
-  <a href="<%= root_path %>" class="inline-block"><img src="<%= Stevensed::LOGO_PATH %>" alt="StevensED" class="h-16 w-auto"></a>
-  <h1 class="text-3xl font-bold"><%= t('stevensed.legal_notices') %></h1>
-  <section class="space-y-2">
-    <h2 class="text-xl font-semibold"><%= Docuseal.product_name %></h2>
-    <p><%= Docuseal.product_name %> is operated by StevensED LLC, <%= Stevensed::OFFICE %>. Questions about agreements or this service: <a class="link" href="mailto:<%= Stevensed::CONTACT_EMAIL %>"><%= Stevensed::CONTACT_EMAIL %></a>. <a class="link" href="<%= Stevensed::PRIVACY_URL %>">Privacy Notice</a> · <a class="link" href="<%= Stevensed::TERMS_URL %>">Terms</a>.</p>
-  </section>
-  <section class="space-y-2">
-    <h2 class="text-xl font-semibold">Software</h2>
-    <p>This service is built on DocuSeal, open source document signing software, © 2023-2026 DocuSeal LLC (<a class="link" href="https://www.docuseal.com">docuseal.com</a>). It is modified by StevensED LLC. The original and modified software are licensed under the GNU Affero General Public License, version 3, with additional terms under its Section 7(b).</p>
-    <p>The program is distributed without any warranty, to the extent permitted by law; see sections 15 and 16 of the licence.</p>
-    <p>Corresponding source code for the version running here (<%= Docuseal.version.presence || 'current' %>): <a class="link" href="<%= Stevensed::SOURCE_URL %>"><%= Stevensed::SOURCE_URL %></a>. Upstream: <a class="link" href="<%= Stevensed::UPSTREAM_URL %>"><%= Stevensed::UPSTREAM_URL %></a>.</p>
-    <p>Licence: <a class="link" href="https://www.gnu.org/licenses/agpl-3.0.html">GNU AGPLv3</a>. Additional terms: <a class="link" href="<%= Stevensed::SOURCE_URL %>/blob/stevensed/main/LICENSE_ADDITIONAL_TERMS">LICENSE_ADDITIONAL_TERMS</a>. Powered by <a class="link" href="https://www.docuseal.com">DocuSeal</a>.</p>
-  </section>
+<%= render 'stevensed/styles' %>
+<div class="se">
+  <%= render 'stevensed/header' %>
+  <main class="se-wrap">
+    <article class="se-prose">
+      <h1 class="se-serif"><%= t('stevensed.legal_notices') %></h1>
+      <h2><%= Docuseal.product_name %></h2>
+      <p><%= Docuseal.product_name %> is operated by StevensED LLC, <%= Stevensed::OFFICE %>. Questions about agreements or this service: <a href="mailto:<%= Stevensed::CONTACT_EMAIL %>"><%= Stevensed::CONTACT_EMAIL %></a>.</p>
+      <h2>Software</h2>
+      <p>This service is built on DocuSeal, open source document signing software, copyright 2023-2026 DocuSeal LLC (<a href="https://www.docuseal.com">docuseal.com</a>), and is modified by StevensED LLC. The original and modified software are licensed under the GNU Affero General Public License, version 3, with additional terms under its Section 7(b). Powered by <a href="https://www.docuseal.com">DocuSeal</a>.</p>
+      <p>The program is distributed without any warranty, to the extent permitted by law; see sections 15 and 16 of the licence.</p>
+      <p>Corresponding source code for the version running here (<%= Docuseal.version.presence || 'current' %>): <a href="<%= Stevensed::SOURCE_URL %>"><%= Stevensed::SOURCE_URL %></a>. Upstream: <a href="<%= Stevensed::UPSTREAM_URL %>"><%= Stevensed::UPSTREAM_URL %></a>.</p>
+      <p>Licence: <a href="https://www.gnu.org/licenses/agpl-3.0.html">GNU AGPLv3</a>. Additional terms: <a href="<%= Stevensed::SOURCE_URL %>/blob/stevensed/main/LICENSE_ADDITIONAL_TERMS">LICENSE_ADDITIONAL_TERMS</a>.</p>
+      <h2>Fonts and images</h2>
+      <p>Cormorant Garamond and Inter are used under the SIL Open Font License (<a href="/stevensed/fonts/OFL-Cormorant-Garamond.txt">Cormorant Garamond</a>, <a href="/stevensed/fonts/OFL-Inter.txt">Inter</a>). StevensED logos and photography belong to StevensED LLC.</p>
+    </article>
+  </main>
+  <%= render 'stevensed/footer' %>
 </div>

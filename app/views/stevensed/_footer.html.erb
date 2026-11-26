@@ -1,0 +1,37 @@
+<% policies = 'https://policies.stevensed.org/#/doc' %>
+<footer class="se-footer">
+  <div class="se-wrap">
+    <div class="se-footer-grid">
+      <div>
+        <img src="<%= Stevensed::LOGO_PATH %>" alt="StevensED" width="58" height="40">
+        <p>StevensED Agreements is operated by StevensED LLC, Office of Legal Operations and Institutional Compliance. Questions: <a href="mailto:<%= Stevensed::CONTACT_EMAIL %>"><%= Stevensed::CONTACT_EMAIL %></a></p>
+      </div>
+      <nav aria-labelledby="se-footer-legal">
+        <h2 id="se-footer-legal">Legal</h2>
+        <ul>
+          <li><a href="https://stevensed.org/privacy/">Privacy</a></li>
+          <li><a href="https://stevensed.org/cookies/">Cookies</a></li>
+          <li><a href="https://stevensed.org/terms/">Terms</a></li>
+          <li><a href="https://stevensed.org/disclaimer/">Disclaimer</a></li>
+          <li><a href="https://stevensed.org/acceptable-use/">Acceptable Use</a></li>
+          <li><a href="<%= stevensed_accessibility_path %>">Accessibility</a></li>
+          <li><a href="<%= legal_notices_path %>">Legal notices</a></li>
+        </ul>
+      </nav>
+      <nav aria-labelledby="se-footer-policies">
+        <h2 id="se-footer-policies">Policies</h2>
+        <ul>
+          <li><a href="<%= policies %>/e-signature-consent">Electronic Records and Signature Consent</a></li>
+          <li><a href="<%= policies %>/student-records-privacy">Student Records and Privacy</a></li>
+          <li><a href="<%= policies %>/data-protection">Data Protection and Security</a></li>
+          <li><a href="<%= policies %>/records-retention">Records Retention</a></li>
+          <li><a href="https://policies.stevensed.org">Policy Library</a></li>
+        </ul>
+      </nav>
+    </div>
+    <div class="se-copy">
+      <span>Copyright &copy; <%= Time.current.year %> StevensED LLC. All rights reserved.</span>
+      <a href="https://stevensed.org">stevensed.org</a>
+    </div>
+  </div>
+</footer>

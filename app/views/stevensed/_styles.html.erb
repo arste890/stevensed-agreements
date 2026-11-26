@@ -1,0 +1,92 @@
+<%# StevensED public pages: brand type and tokens (stevensed.org, policies.stevensed.org). Fonts: OFL, self-hosted. %>
+<% content_for :head do %>
+  <link rel="preload" href="/stevensed/fonts/cormorant-garamond-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/stevensed/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <style>
+    @font-face { font-family: 'Cormorant Garamond'; src: url('/stevensed/fonts/cormorant-garamond-latin-wght-normal.woff2') format('woff2'); font-weight: 300 700; font-display: swap; }
+    @font-face { font-family: 'Inter'; src: url('/stevensed/fonts/inter-latin-wght-normal.woff2') format('woff2'); font-weight: 100 900; font-display: swap; }
+    .se { --navy: #2f3e68; --navy-deep: #26335a; --ink: #1f2948; --text: #3a4461; --muted: #59697a; --crimson: #c13f44; --cream: #f7f5f1; --parchment: #e9e3d8; --rule: #d8d0c1;
+      background: var(--cream); color: var(--text); font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; font-size: 1.0625rem; line-height: 1.65; min-height: 100dvh; display: flex; flex-direction: column;
+      -webkit-font-smoothing: antialiased; font-feature-settings: 'cv11', 'ss01'; caret-color: var(--crimson); }
+    .se ::selection { background: #2f3e6826; color: var(--ink); }
+    .se a { color: inherit; text-underline-offset: 0.22em; text-decoration-thickness: 1px; }
+    .se a:focus-visible, .se .se-btn:focus-visible { outline: 3px solid var(--crimson); outline-offset: 3px; border-radius: 6px; }
+    .se-wrap { width: 100%; max-width: 76rem; margin-inline: auto; padding-inline: 1.5rem; }
+    .se-serif { font-family: 'Cormorant Garamond', ui-serif, Georgia, serif; color: var(--ink); font-weight: 600; letter-spacing: -0.012em; text-wrap: balance; }
+    .se-header { height: 4.5rem; display: flex; align-items: center; justify-content: space-between; }
+    .se-header img { height: 2.75rem; width: auto; display: block; }
+    .se-contact { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.9375rem; color: var(--muted); text-decoration: none; }
+    .se-contact:hover { color: var(--ink); text-decoration: underline; }
+    .se-contact svg { width: 1.125rem; height: 1.125rem; }
+    .se-hero { display: grid; grid-template-columns: 1fr; gap: 2.5rem; padding-block: 2.5rem 4.5rem; align-items: center; }
+    .se-hero h1 { font-size: clamp(2.6rem, 6.2vw, 4.4rem); line-height: 1.04; margin: 0; }
+    .se-lede { margin: 1.5rem 0 0; max-width: 34rem; font-size: 1.1875rem; color: var(--text); }
+    .se-actions { margin-top: 2.25rem; display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.75rem; }
+    .se-btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.6rem; height: 3.25rem; padding-inline: 1.9rem; border-radius: 999px; background: var(--navy); color: #f7f5f1 !important; font-weight: 600; text-decoration: none; white-space: nowrap;
+      box-shadow: 0 10px 24px -14px #1f294899; transition: background-color .25s cubic-bezier(.16,1,.3,1), transform .2s cubic-bezier(.16,1,.3,1), box-shadow .25s; }
+    .se-btn:hover { background: var(--navy-deep); box-shadow: 0 14px 28px -14px #1f2948b3; }
+    .se-btn:active { transform: translateY(1px); }
+    .se-btn svg { width: 1.2rem; height: 1.2rem; }
+    .se-link { display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 600; color: var(--navy) !important; text-decoration: underline; text-decoration-color: #2f3e6855; }
+    .se-link:hover { text-decoration-color: var(--crimson); }
+    .se-link svg { width: 1.05rem; height: 1.05rem; }
+    .se-figure { margin: 0; position: relative; }
+    .se-figure img { display: block; width: 100%; aspect-ratio: 3 / 2; object-fit: cover; border-radius: 16px; box-shadow: 0 30px 60px -36px #1f294880; }
+    .se-figure::before { content: ''; position: absolute; left: -0.9rem; top: 1.4rem; bottom: 1.4rem; width: 2px; background: var(--crimson); border-radius: 2px; }
+    .se-section { padding-block: 4.5rem; }
+    .se-how { display: grid; grid-template-columns: 1fr; gap: 2rem 4rem; }
+    .se-h2 { font-size: clamp(2rem, 3.6vw, 2.75rem); line-height: 1.1; margin: 0; }
+    .se-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 2.25rem; }
+    .se-steps li { display: grid; grid-template-columns: 3rem 1fr; gap: 1.1rem; align-items: start; }
+    .se-steps .se-icon { width: 3rem; height: 3rem; border-radius: 999px; background: var(--parchment); color: var(--navy); display: grid; place-items: center; }
+    .se-steps .se-icon svg { width: 1.4rem; height: 1.4rem; }
+    .se-steps h3 { margin: 0.2rem 0 0.35rem; font-size: 1.0625rem; font-weight: 600; color: var(--ink); }
+    .se-steps p { margin: 0; max-width: 36rem; }
+    .se-band { background: var(--parchment); }
+    .se-consent { display: grid; grid-template-columns: 1fr; gap: 2.5rem 4rem; }
+    .se-consent p { margin: 1.25rem 0 0; max-width: 38rem; }
+    .se-docs { display: grid; grid-template-columns: 1fr; gap: 0.75rem; align-content: start; }
+    .se-doc { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.05rem 1.25rem; border-radius: 12px; background: #f7f5f1cc; text-decoration: none !important;
+      transition: background-color .25s cubic-bezier(.16,1,.3,1), transform .25s cubic-bezier(.16,1,.3,1); }
+    .se-doc:hover { background: var(--cream); transform: translateX(2px); }
+    .se-doc strong { display: block; color: var(--ink); font-weight: 600; font-size: 1rem; line-height: 1.35; }
+    .se-doc span { display: block; color: var(--muted); font-size: 0.875rem; font-variant-numeric: tabular-nums; }
+    .se-doc svg { width: 1.15rem; height: 1.15rem; color: var(--navy); flex: none; }
+    .se-footer { margin-top: auto; border-top: 1px solid var(--rule); padding-block: 3rem 2.25rem; font-size: 0.9375rem; }
+    .se-footer-grid { display: grid; grid-template-columns: 1fr; gap: 2.25rem; }
+    .se-footer img { height: 2.5rem; width: auto; }
+    .se-footer p { margin: 0.9rem 0 0; color: var(--muted); max-width: 26rem; }
+    .se-footer h2 { font-size: 0.9375rem; font-weight: 600; color: var(--ink); margin: 0 0 0.75rem; }
+    .se-footer ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
+    .se-footer ul a { color: var(--muted); text-decoration: none; }
+    .se-footer ul a:hover { color: var(--ink); text-decoration: underline; }
+    .se-copy { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.875rem; display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; justify-content: space-between; }
+    .se-prose { max-width: 44rem; padding-block: 2.5rem 4.5rem; }
+    .se-prose h1 { font-size: clamp(2.4rem, 5vw, 3.4rem); line-height: 1.06; margin: 0 0 1.5rem; }
+    .se-prose h2 { font-family: 'Cormorant Garamond', ui-serif, Georgia, serif; font-weight: 600; color: var(--ink); font-size: 1.75rem; line-height: 1.2; margin: 2.5rem 0 0.75rem; }
+    .se-prose p, .se-prose li { max-width: 68ch; }
+    .se-prose ul { padding-left: 1.2rem; }
+    @media (min-width: 768px) {
+      .se-wrap { padding-inline: 2.5rem; }
+      .se-hero { grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 3rem; padding-block: 3.5rem 6rem; }
+      .se-hero > div:first-child { grid-column: 1 / span 7; }
+      .se-figure { grid-column: 8 / span 5; }
+      .se-figure img { aspect-ratio: 4 / 5; }
+      .se-how { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+      .se-how > :first-child { grid-column: 1 / span 4; }
+      .se-steps { grid-column: 6 / span 7; }
+      .se-consent { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+      .se-consent > :first-child { grid-column: 1 / span 6; }
+      .se-docs { grid-column: 8 / span 5; }
+      .se-footer-grid { grid-template-columns: 2fr 1fr 1.3fr; gap: 3rem; }
+      .se-section { padding-block: 6rem; }
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      .se-rise { animation: se-rise .8s cubic-bezier(.16,1,.3,1) both; }
+      .se-rise-2 { animation-delay: .08s; } .se-rise-3 { animation-delay: .16s; }
+      .se-figure img { animation: se-reveal 1.1s cubic-bezier(.16,1,.3,1) .1s both; }
+      @keyframes se-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+      @keyframes se-reveal { from { clip-path: inset(0 0 100% 0 round 16px); } to { clip-path: inset(0 0 0 0 round 16px); } }
+    }
+  </style>
+<% end %>

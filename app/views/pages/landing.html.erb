@@ -1,11 +1,72 @@
-<%# StevensED landing page for visitors who are not signed in. %>
-<div class="max-w-xl mx-auto px-4 py-16 text-center space-y-8">
-  <img src="<%= Stevensed::LOGO_PATH %>" alt="StevensED" class="h-28 w-auto mx-auto">
-  <div class="space-y-3">
-    <h1 class="text-4xl font-bold"><%= Docuseal.product_name %></h1>
-    <p class="text-lg text-base-content/80">Review and sign agreements with StevensED. If you received a signing request, open the link in the email; no account is needed.</p>
-  </div>
-  <a href="<%= new_user_session_path %>" class="btn btn-neutral text-white px-10"><%= t('sign_in') %></a>
-  <p class="text-sm text-base-content/70"><%= Stevensed::OFFICE %> · <a class="underline" href="mailto:<%= Stevensed::CONTACT_EMAIL %>"><%= Stevensed::CONTACT_EMAIL %></a></p>
+<%# StevensED Agreements: public landing page (signed-out visitors). See PRODUCT.md. %>
+<% content_for(:html_title, "#{Docuseal.product_name} | StevensED") %>
+<% content_for(:html_description, 'Review and sign StevensED agreements. Signing requests arrive by email; no account is needed.') %>
+<%= render 'stevensed/styles' %>
+<div class="se">
+  <%= render 'stevensed/header' %>
+  <main>
+    <section class="se-wrap se-hero" aria-labelledby="se-title">
+      <div>
+        <h1 id="se-title" class="se-serif se-rise">Your StevensED agreements, in one place</h1>
+        <p class="se-lede se-rise se-rise-2">Signing requests come by email from <%= Stevensed::CONTACT_EMAIL %>. Open the link to review and sign. No account is needed.</p>
+        <div class="se-actions se-rise se-rise-3">
+          <a class="se-btn" href="<%= new_user_session_path %>"><%= svg_icon('login') %><span><%= t('sign_in') %></span></a>
+          <a class="se-link" href="#how">How signing works<%= svg_icon('arrow_right') %></a>
+        </div>
+      </div>
+      <figure class="se-figure">
+        <img src="/stevensed/books-1200.webp" srcset="/stevensed/books-800.webp 800w, /stevensed/books-1200.webp 1200w" sizes="(min-width: 768px) 40vw, 100vw" width="1200" height="800" alt="Open books in soft daylight" fetchpriority="high">
+      </figure>
+    </section>
+
+    <section id="how" class="se-section" aria-labelledby="se-how-title">
+      <div class="se-wrap se-how">
+        <h2 id="se-how-title" class="se-serif se-h2">How signing works</h2>
+        <ol class="se-steps">
+          <li>
+            <span class="se-icon" aria-hidden="true"><%= svg_icon('mail_opened') %></span>
+            <div>
+              <h3>Open the request</h3>
+              <p>The email names the agreement and who sent it. Each link is unique to you, so please do not forward it.</p>
+            </div>
+          </li>
+          <li>
+            <span class="se-icon" aria-hidden="true"><%= svg_icon('writing_sign') %></span>
+            <div>
+              <h3>Review and sign</h3>
+              <p>Read the whole document, complete the marked fields and sign on a phone, tablet or computer.</p>
+            </div>
+          </li>
+          <li>
+            <span class="se-icon" aria-hidden="true"><%= svg_icon('file_check') %></span>
+            <div>
+              <h3>Keep your copy</h3>
+              <p>Every signer receives the completed document. With a StevensED account you can also sign in to see agreements you have signed.</p>
+            </div>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="se-band se-section" aria-labelledby="se-consent-title">
+      <div class="se-wrap se-consent">
+        <div>
+          <h2 id="se-consent-title" class="se-serif se-h2">Signing electronically</h2>
+          <p>An electronic signature on a StevensED document has the same effect as a handwritten signature under the Utah Uniform Electronic Transactions Act and the federal ESIGN Act. Each signature is recorded with an audit trail, and you may request a free paper copy of any record at any time.</p>
+        </div>
+        <div class="se-docs">
+          <% [['e-signature-consent', 'Electronic Records and Signature Consent', 'FRM-102'],
+              ['student-records-privacy', 'Student Records and Privacy Policy', 'STU-006'],
+              ['data-protection', 'Data Protection and Security Policy', 'INF-006'],
+              ['records-retention', 'Records Retention Policy', 'INF-002']].each do |slug, title, id| %>
+            <a class="se-doc" href="https://policies.stevensed.org/#/doc/<%= slug %>">
+              <span><strong><%= title %></strong><span><%= id %></span></span>
+              <%= svg_icon('arrow_up_right') %>
+            </a>
+          <% end %>
+        </div>
+      </div>
+    </section>
+  </main>
+  <%= render 'stevensed/footer' %>
 </div>
-<%= render 'shared/attribution' %>

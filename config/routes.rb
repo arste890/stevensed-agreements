@@ -12,6 +12,7 @@ Rails.application.routes.draw do
   root 'dashboard#index'
   get '/account_logo/:uuid', to: 'account_logos#show', as: :account_logo # StevensED
   get '/legal', to: 'legal_notices#show', as: :legal_notices # StevensED
+  get '/accessibility', to: 'legal_notices#accessibility', as: :stevensed_accessibility # StevensED
   match '/auth/:provider/callback', to: 'omniauth_callbacks#callback', via: %i[get post] # StevensED SSO
   get '/auth/failure', to: 'omniauth_callbacks#failure' # StevensED SSO
   get '/my_agreements', to: 'my_agreements#index', as: :my_agreements # StevensED client portal

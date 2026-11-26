@@ -1,0 +1,23 @@
+<% content_for(:html_title, "Accessibility | #{Docuseal.product_name}") %>
+<%= render 'stevensed/styles' %>
+<div class="se">
+  <%= render 'stevensed/header' %>
+  <main class="se-wrap">
+    <article class="se-prose">
+      <h1 class="se-serif">Accessibility</h1>
+      <p>StevensED intends StevensED Agreements, including its signing pages, to be usable by everyone, and works toward conformance with the Web Content Accessibility Guidelines (WCAG) 2.2, Level AA.</p>
+      <h2>What we do</h2>
+      <ul>
+        <li>Signing pages are built to work with a keyboard, screen readers and browser zoom, on phones, tablets and computers.</li>
+        <li>Text and controls are designed to meet WCAG contrast requirements, and pages respect reduced-motion settings.</li>
+        <li>Signed documents can be downloaded as PDF files.</li>
+      </ul>
+      <h2>Known limitations</h2>
+      <p>Documents prepared outside this service, such as scanned PDFs, may not be fully accessible. Drawing a signature can be difficult for some users; a typed signature may be used instead where the document allows it.</p>
+      <h2>Alternatives and help</h2>
+      <p>If you cannot use this service, or need a document in another format, contact <a href="mailto:<%= Stevensed::CONTACT_EMAIL %>"><%= Stevensed::CONTACT_EMAIL %></a>. Under the Electronic Records and Signature Consent (<a href="https://policies.stevensed.org/#/doc/e-signature-consent">FRM-102</a>), you may request a free paper copy of any record and may withdraw consent to electronic records at any time.</p>
+      <p><em>Last reviewed: <%= Date.new(2026, 11, 26).strftime('%B %-d, %Y') %>.</em></p>
+    </article>
+  </main>
+  <%= render 'stevensed/footer' %>
+</div>
