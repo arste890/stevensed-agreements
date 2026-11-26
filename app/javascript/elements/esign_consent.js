@@ -11,12 +11,12 @@ export default class extends HTMLElement {
 
     this.button.addEventListener('click', () => this.submit())
 
-    document.documentElement.classList.add('se-consent-open')
+    document.documentElement.classList.add('se-gate-open')
     this.checkbox.focus()
   }
 
   disconnectedCallback () {
-    document.documentElement.classList.remove('se-consent-open')
+    document.documentElement.classList.remove('se-gate-open')
   }
 
   async submit () {

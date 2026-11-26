@@ -1,28 +1,28 @@
 <%# StevensED: consent to electronic records and signatures (ESIGN Act; FRM-102) before signing. %>
 <% requester = Stevensed::Requesters.for_submission(submitter.submission) %>
-<esign-consent data-url="<%= submit_form_esign_consent_index_path(submitter.slug) %>" class="se-consent" role="dialog" aria-modal="true" aria-labelledby="se_consent_title">
-  <div class="se-consent__card">
-    <p class="se-consent__eyebrow"><%= Stevensed::Requesters.label(requester) %></p>
-    <h2 id="se_consent_title" class="se-consent__title">Please review and sign these documents</h2>
-    <p class="se-consent__doc"><%= submitter.submission.name || submitter.submission.template&.name %></p>
-    <p class="se-consent__text">
+<esign-consent data-url="<%= submit_form_esign_consent_index_path(submitter.slug) %>" class="se-gate" role="dialog" aria-modal="true" aria-labelledby="se_consent_title">
+  <div class="se-gate__card">
+    <p class="se-gate__eyebrow"><%= Stevensed::Requesters.label(requester) %></p>
+    <h2 id="se_consent_title" class="se-gate__title">Please review and sign these documents</h2>
+    <p class="se-gate__doc"><%= submitter.submission.name || submitter.submission.template&.name %></p>
+    <p class="se-gate__text">
       Before you continue, please read the
       <a href="https://policies.stevensed.org/#/doc/e-signature-consent" target="_blank" rel="noopener">Electronic Records and Signature Consent (FRM-102)</a>.
       It explains your right to receive these documents on paper at no charge, how to withdraw your consent, and the hardware and software you need to open and keep electronic records.
     </p>
-    <label class="se-consent__check">
+    <label class="se-gate__check">
       <input type="checkbox" name="agree" value="1">
       <span>I agree to use electronic records and signatures.</span>
     </label>
-    <p class="se-consent__error" data-role="error" hidden>Your consent could not be recorded. Check your connection and try again.</p>
-    <div class="se-consent__actions">
-      <button type="button" class="se-btn se-consent__continue" data-role="continue" disabled>Continue</button>
+    <p class="se-gate__error" data-role="error" hidden>Your consent could not be recorded. Check your connection and try again.</p>
+    <div class="se-gate__actions">
+      <button type="button" class="se-btn se-gate__continue" data-role="continue" disabled>Continue</button>
       <% if decline_modal_id %>
         <modal-button data-target="<%= decline_modal_id %>">
-          <button type="button" class="se-consent__decline"><%= t('decline_to_sign', default: 'Decline to sign') %></button>
+          <button type="button" class="se-gate__decline"><%= t('decline_to_sign', default: 'Decline to sign') %></button>
         </modal-button>
       <% end %>
     </div>
-    <p class="se-consent__note">To request paper copies, write to <a href="mailto:<%= Stevensed::CONTACT_EMAIL %>"><%= Stevensed::CONTACT_EMAIL %></a>.</p>
+    <p class="se-gate__note">To request paper copies, write to <a href="mailto:<%= Stevensed::CONTACT_EMAIL %>"><%= Stevensed::CONTACT_EMAIL %></a>.</p>
   </div>
 </esign-consent>

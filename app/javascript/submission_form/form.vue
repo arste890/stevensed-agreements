@@ -1130,6 +1130,40 @@ export default {
     }
   },
   computed: {
+    requiredFieldsCount () {
+      return this.stepFields.flat().filter((f) => f.required).length
+    },
+    filledRequiredFieldsCount () {
+      return this.stepFields.flat().filter((f) => f.required && !isEmpty(this.values[f.uuid])).length
+    },
+    guideStep () {
+      if (!this.guidedSigning || this.isCompleted || this.isInvite || !this.stepFields.length) return null
+
+      return this.emptyValueRequiredStep || null
+    },
+    guideTarget () {
+      const field = this.guideStep?.[0]
+      const area = field?.areas?.[0]
+
+      if (!area) return null
+
+      let label = this.t('guide_next')
+
+      if (!this.isFormStarted && this.filledRequiredFieldsCount === 0) {
+        label = this.t('guide_start')
+      } else if (field.type === 'signature') {
+        label = this.t('guide_sign')
+      } else if (field.type === 'initials') {
+        label = this.t('guide_initial')
+      }
+
+      return {
+        key: `${field.uuid}-${area.attachment_uuid}-${area.page}`,
+        selector: `#page-${area.attachment_uuid}-${area.page}`,
+        top: `${area.y * 100}%`,
+        label
+      }
+    },
     isMobile () {
       const isMobileSafariIos = 'ontouchstart' in window && navigator.maxTouchPoints > 0 && /AppleWebKit/i.test(navigator.userAgent)
 
