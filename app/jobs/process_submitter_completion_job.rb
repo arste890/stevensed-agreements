@@ -30,7 +30,8 @@ class ProcessSubmitterCompletionJob
     Submissions::EnsureResultGenerated.call(submitter)
 
     if is_last
-      if submission.account.account_configs.exists?(key: AccountConfig::COMBINE_PDF_RESULT_KEY, value: true)
+      # StevensED: combined (documents and audit log) is the default download.
+      if Stevensed::Downloads.default_kind(submission.reload) == 'combined'
         Submissions::EnsureCombinedGenerated.call(submitter)
       end
 

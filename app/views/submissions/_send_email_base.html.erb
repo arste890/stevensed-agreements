@@ -9,6 +9,16 @@
     <%= select_tag :send_as, grouped_options_for_select(Stevensed::Requesters.options(current_user), Stevensed::Requesters.default_value(current_user)), id: send_as_id, class: 'base-select' %>
   </div>
 <% end %>
+<% unless local_assigns[:submitter] %>
+  <%# StevensED: per-send choice; defaults to the template, then the account setting. %>
+  <div class="form-control mb-2">
+    <label class="flex items-center cursor-pointer">
+      <%= hidden_field_tag :allow_delegate, '0', id: nil %>
+      <%= check_box_tag :allow_delegate, '1', Stevensed::Delegation.send_default(template, current_account), id: "allow_delegate_#{SecureRandom.hex(3)}", class: 'base-checkbox' %>
+      <span class="label">Allow recipients to assign to someone else</span>
+    </label>
+  </div>
+<% end %>
 <div class="form-control">
   <div class="flex justify-between items-center">
     <%= f.label :send_email, for: uuid = SecureRandom.uuid, class: 'flex items-center cursor-pointer' do %>

@@ -235,13 +235,14 @@
             <%= f.hidden_field :key %>
             <div class="flex items-center justify-between gap-4 py-2.5">
               <div class="flex items-center space-x-1">
-                <span class="text-left"><%= t('combine_completed_documents_and_audit_log') %></span>
-                <span class="tooltip tooltip-top hidden md:flex cursor-pointer" data-tip="<%= t('combine_signed_documents_and_the_audit_log_into_a_single_pdf_file_for_easier_recordkeeping_and_compliance') %>">
+                <%# StevensED: sets the default download; documents only, audit log only and combined are always offered. %>
+                <span class="text-left">Download documents and audit log combined by default</span>
+                <span class="tooltip tooltip-top hidden md:flex cursor-pointer" data-tip="Signers and staff can always choose documents only, audit log only, or combined (one PDF). The completion email attaches the default.">
                   <%= svg_icon('info_circle', class: 'w-4 h-4 shrink-0') %>
                 </span>
               </div>
               <submit-form data-on="change" class="flex">
-                <%= f.check_box :value, class: 'toggle', checked: account_config.value %>
+                <%= f.check_box :value, class: 'toggle', checked: account_config.value != false %>
               </submit-form>
             </div>
           <% end %>

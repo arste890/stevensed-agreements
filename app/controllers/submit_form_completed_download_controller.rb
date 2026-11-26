@@ -40,11 +40,8 @@ class SubmitFormCompletedDownloadController < ApplicationController
       end
     end
 
-    if params[:combined] == 'true'
-      respond_with_combined(last_submitter)
-    else
-      render json: Submitters.build_document_urls(last_submitter)
-    end
+    # StevensED: documents, audit log or combined (default); "combined=true" kept for older links.
+    respond_with_kind(last_submitter)
   end
 
   private
@@ -53,14 +50,14 @@ class SubmitFormCompletedDownloadController < ApplicationController
     params[:submit_form_slug] || params[:submitter_slug]
   end
 
-  def respond_with_combined(submitter)
-    url = Submitters.build_combined_url(submitter)
+  def respond_with_kind(submitter)
+    requested = params[:kind].presence || ('combined' if params[:combined] == 'true')
+    kind = Stevensed::Downloads.resolve(submitter.submission, requested)
+    urls = kind ? Stevensed::Downloads.urls(submitter, kind) : []
 
-    if url
-      render json: [url]
-    else
-      head :not_found
-    end
+    return head :not_found if urls.empty?
+
+    render json: urls
   end
 
   def completed_submitter?(submitter)

@@ -6,7 +6,9 @@
 <% font_scale = 1040.0 / PdfUtils::US_LETTER_W %>
 <% configs = AccountConfig.where(account_id: @submission.account_id, key: [AccountConfig::COMBINE_PDF_RESULT_KEY, AccountConfig::WITH_SIGNATURE_ID, AccountConfig::WITH_SUBMITTER_TIMEZONE_KEY, AccountConfig::WITH_SIGNATURE_ID_REASON_KEY, AccountConfig::WITH_TIMESTAMP_SECONDS_KEY, AccountConfig::WITH_SIGNATURE_ID_COMPLETED_AT_KEY]) %>
 <% with_signature_id = configs.find { |e| e.key == AccountConfig::WITH_SIGNATURE_ID }&.value == true %>
-<% is_combined_enabled = configs.find { |e| e.key == AccountConfig::COMBINE_PDF_RESULT_KEY }&.value == true && !@submission.template_fields&.any? { |f| f['type'] == 'verification' } %>
+<%# StevensED: downloads offer documents, audit log or combined; combined is the default (Stevensed::Downloads). %>
+<% is_combined_enabled = Stevensed::Downloads.default_kind(@submission) == 'combined' %>
+<% extra_download_kinds = Stevensed::Downloads.kinds(@submission) - [Stevensed::Downloads.default_kind(@submission)] %>
 <% with_submitter_timezone = configs.find { |e| e.key == AccountConfig::WITH_SUBMITTER_TIMEZONE_KEY }&.value == true %>
 <% with_timestamp_seconds = configs.find { |e| e.key == AccountConfig::WITH_TIMESTAMP_SECONDS_KEY }&.value == true %>
 <% with_signature_id_reason = configs.find { |e| e.key == AccountConfig::WITH_SIGNATURE_ID_REASON_KEY }&.value != false %>
@@ -47,7 +49,7 @@
           <% end %>
         <% end %>
         <% if @submission.submitters.to_a.any?(&:completed_at?) %>
-          <% show_combined_download = @submission.completed_at? && !is_combined_enabled %>
+          <% show_combined_download = extra_download_kinds.any? %>
           <% show_unarchive = signed_in? && can?(:destroy, @submission) && @submission.archived_at? && @submission.completed_at? %>
           <% show_event_log_download = signed_in? && can?(:manage, :event_log_download) && can?(:read, @submission) %>
           <% show_download_dropdown = show_combined_download || show_event_log_download || show_unarchive %>
@@ -75,13 +77,13 @@
                     </label>
                   <% end %>
                   <ul class="z-10 dropdown-content p-2 mt-2 shadow menu text-base bg-base-100 rounded-box text-right">
-                    <% if show_combined_download %>
-                      <native-action data-label="<%= t('download_combined_pdf') %>" data-icon="download">
+                    <% extra_download_kinds.each do |kind| %>
+                      <native-action data-label="<%= Stevensed::Downloads.label(kind) %>" data-icon="download">
                         <li>
-                          <download-button role="button" tabindex="0" data-src="<%= local_assigns[:is_preview] ? (@sig_submitter ? submit_form_documents_path(@sig_submitter.slug, { sig: params[:sig], combined: true }.compact) : submissions_preview_download_index_path(@submission.slug, combined: true)) : submission_download_index_path(@submission, combined: true) %>" class="flex items-center">
+                          <download-button role="button" tabindex="0" data-src="<%= local_assigns[:is_preview] ? (@sig_submitter ? submit_form_documents_path(@sig_submitter.slug, { sig: params[:sig], kind: }.compact) : submissions_preview_download_index_path(@submission.slug, kind:)) : submission_download_index_path(@submission, kind:) %>" class="flex items-center">
                             <span class="flex items-center justify-center space-x-2" data-target="download-button.defaultButton">
                               <%= svg_icon('download', class: 'w-6 h-6 flex-shrink-0') %>
-                              <span class="whitespace-nowrap"><%= t('download_combined_pdf') %></span>
+                              <span class="whitespace-nowrap"><%= Stevensed::Downloads.label(kind) %></span>
                             </span>
                             <span class="flex items-center justify-center space-x-2 hidden" data-target="download-button.loadingButton">
                               <%= svg_icon('loader', class: 'w-6 h-6 animate-spin') %>

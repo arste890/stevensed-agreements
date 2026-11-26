@@ -96,12 +96,9 @@ module Submitters
     submitters.where(arel)
   end
 
-  def select_attachments_for_download(submitter)
-    if AccountConfig.exists?(account_id: submitter.account_id,
-                             key: AccountConfig::COMBINE_PDF_RESULT_KEY,
-                             value: true) &&
-       submitter.submission.completed_at? &&
-       submitter.submission.template_fields.none? { |f| f['type'] == 'verification' }
+  # StevensED: combined (documents and audit log) by default once complete; kind: 'documents' for documents only.
+  def select_attachments_for_download(submitter, kind: nil)
+    if kind != 'documents' && Stevensed::Downloads.default_kind(submitter.submission) == 'combined'
       return [submitter.submission.combined_document_attachment || Submissions::EnsureCombinedGenerated.call(submitter)]
     end
 
@@ -156,6 +153,8 @@ module Submitters
     preferences['reply_to'] = params['reply_to'] if params.key?('reply_to')
     preferences['go_to_last'] = params['go_to_last'] if params.key?('go_to_last')
     preferences['completed_redirect_url'] = params['completed_redirect_url'] if params.key?('completed_redirect_url')
+    # StevensED: per-send choice whether recipients may assign the document to someone else
+    preferences['allow_delegate'] = params['allow_delegate'].in?(TRUE_VALUES) if params.key?('allow_delegate')
 
     preferences
   end
@@ -297,11 +296,11 @@ module Submitters
     true
   end
 
-  def build_document_urls(submitter, ttl: FILES_TTL)
+  def build_document_urls(submitter, ttl: FILES_TTL, kind: nil)
     filename_format = AccountConfig.find_or_initialize_by(account_id: submitter.account_id,
                                                           key: AccountConfig::DOCUMENT_FILENAME_FORMAT_KEY)&.value
 
-    select_attachments_for_download(submitter).map do |attachment|
+    select_attachments_for_download(submitter, kind:).map do |attachment|
       ActiveStorage::Blob.proxy_path(
         attachment.blob,
         expires_at: ttl.from_now.to_i,

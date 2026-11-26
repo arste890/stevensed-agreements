@@ -91,6 +91,13 @@
                 <%= ff.check_box :require_email_2fa, { checked: ff.object.require_email_2fa == true, class: 'toggle' }, 'true', 'false' %>
               </submit-form>
             </div>
+            <%# StevensED: per-template default for delegation; the Send dialog can still change it for each send. %>
+            <div class="flex items-center justify-between py-2.5 px-1 mb-2 gap-4">
+              <label for="template_preferences_allow_delegate">Allow recipients to assign to someone else</label>
+              <submit-form data-on="change" class="flex">
+                <%= select_tag 'template[preferences][allow_delegate]', options_for_select([['Use account setting', ''], ['Allow', 'true'], ["Don't allow", 'false']], @template.preferences['allow_delegate'].to_s), id: 'template_preferences_allow_delegate', class: 'base-select select-sm' %>
+              </submit-form>
+            </div>
           <% end %>
           <div class="form-control pt-2">
             <%= f.button button_title(title: t('save'), disabled_with: t('saving')), class: 'base-button' %>

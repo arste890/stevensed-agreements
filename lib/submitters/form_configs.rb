@@ -33,7 +33,10 @@ module Submitters
       prefill_signature = find_safe_value(configs, AccountConfig::FORM_PREFILL_SIGNATURE_KEY) != false
       reuse_signature = find_safe_value(configs, AccountConfig::REUSE_SIGNATURE_KEY) != false
       with_decline = find_safe_value(configs, AccountConfig::ALLOW_TO_DECLINE_KEY) != false
-      with_delegate = find_safe_value(configs, AccountConfig::ALLOW_TO_DELEGATE_KEY) == true
+      # StevensED: per-send and per-template choice, falling back to the account setting.
+      with_delegate = Stevensed::Delegation.allowed?(
+        submitter, account_default: find_safe_value(configs, AccountConfig::ALLOW_TO_DELEGATE_KEY) == true
+      )
       with_partial_download = find_safe_value(configs, AccountConfig::ALLOW_TO_PARTIAL_DOWNLOAD_KEY) != false
       with_signature_id = find_safe_value(configs, AccountConfig::WITH_SIGNATURE_ID) == true
       require_signing_reason = find_safe_value(configs, AccountConfig::REQUIRE_SIGNING_REASON_KEY) == true

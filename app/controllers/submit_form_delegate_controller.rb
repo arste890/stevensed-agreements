@@ -20,7 +20,7 @@ class SubmitFormDelegateController < ApplicationController
                                                                                                 request,
                                                                                                 with_order: true)
 
-    @submitter.account.account_configs.find_by!(key: AccountConfig::ALLOW_TO_DELEGATE_KEY, value: true)
+    raise ActiveRecord::RecordNotFound unless Stevensed::Delegation.allowed?(@submitter) # StevensED: per document
 
     email = Submissions.normalize_email(params[:email])
 

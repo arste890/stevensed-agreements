@@ -74,6 +74,22 @@
           {{ t('download') }}
         </span>
       </button>
+      <div
+        v-if="!isWebView && withDownloadButton"
+        class="flex flex-wrap justify-center gap-x-4 gap-y-1 text-sm completed-form-download-kinds"
+      >
+        <span class="opacity-70">{{ t('or_download') }}</span>
+        <button
+          v-for="kind in ['documents', 'audit', 'combined']"
+          :key="kind"
+          type="button"
+          class="link link-hover font-medium"
+          :disabled="isDownloading"
+          @click.prevent="download(kind)"
+        >
+          {{ t(`download_kind_${kind}`) }}
+        </button>
+      </div>
       <a
         v-if="isDemo"
         target="_blank"
@@ -234,16 +250,18 @@ export default {
         this.isSendingCopy = false
       })
     },
-    download () {
+    download (kind = null) {
       this.isDownloading = true
+
+      const src = this.baseUrl + `/s/${this.submitterSlug}/documents` + (typeof kind === 'string' ? `?kind=${kind}` : '')
 
       if (this.isNativeApp) {
         document.addEventListener('native:download-end', () => { this.isDownloading = false }, { once: true })
 
-        return window.webkit.messageHandlers.download.postMessage({ src: this.baseUrl + `/s/${this.submitterSlug}/documents` })
+        return window.webkit.messageHandlers.download.postMessage({ src })
       }
 
-      fetch(this.baseUrl + `/s/${this.submitterSlug}/documents`, {
+      fetch(src, {
         method: 'GET',
         ...this.fetchOptions
       }).then(async (response) => {
@@ -257,9 +275,13 @@ export default {
           } else {
             this.downloadUrls(urls)
           }
+        } else if (response.status === 404 && typeof kind === 'string' && kind !== 'documents') {
+          alert(this.t('available_once_everyone_has_signed'))
         } else {
           alert(this.t('failed_to_download_files'))
         }
+      }).finally(() => {
+        this.isDownloading = false
       })
     },
     downloadUrls (urls) {

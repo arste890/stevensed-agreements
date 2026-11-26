@@ -10,16 +10,13 @@ class SubmissionsDownloadController < ApplicationController
 
     Submissions::EnsureResultGenerated.call(last_submitter)
 
-    if params[:combined] == 'true'
-      url = Submitters.build_combined_url(last_submitter)
+    # StevensED: documents, audit log or combined (default); "combined=true" kept for older links.
+    requested = params[:kind].presence || ('combined' if params[:combined] == 'true')
+    kind = Stevensed::Downloads.resolve(@submission, requested)
+    urls = kind ? Stevensed::Downloads.urls(last_submitter, kind) : []
 
-      if url
-        render json: [url]
-      else
-        head :not_found
-      end
-    else
-      render json: Submitters.build_document_urls(last_submitter)
-    end
+    return head :not_found if urls.empty?
+
+    render json: urls
   end
 end

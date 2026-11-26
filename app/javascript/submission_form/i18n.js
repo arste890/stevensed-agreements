@@ -1,4 +1,9 @@
 const en = {
+  or_download: 'Or download:',
+  download_kind_documents: 'Documents only',
+  download_kind_audit: 'Audit log only',
+  download_kind_combined: 'Combined (documents and audit log)',
+  available_once_everyone_has_signed: 'This is available once everyone has signed.',
   finish: 'Finish',
   guide_start: 'Start',
   guide_next: 'Next',
