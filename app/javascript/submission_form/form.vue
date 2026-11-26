@@ -1145,7 +1145,7 @@ export default {
       const field = this.guideStep?.[0]
       const area = field?.areas?.[0]
 
-      if (!area) return null
+      if (!area || !document.getElementById(`page-${area.attachment_uuid}-${area.page}`)) return null
 
       let label = this.t('guide_next')
 

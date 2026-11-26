@@ -15,9 +15,9 @@ describe Stevensed::PolicySync do
   let(:field_map) do
     { 'name' => 'Test', 'fields' => [
       { 'name' => 'Full legal name', 'type' => 'text', 'role' => 'Parent', 'required' => true,
-        'areas' => [{ 'page' => 0, 'x' => 61.2, 'y' => 79.2, 'w' => 306, 'h' => 19.8 }] },
+        'areas' => [{ 'page' => 1, 'x' => 61.2, 'y' => 79.2, 'w' => 306, 'h' => 19.8 }] },
       { 'name' => 'Parent signature', 'type' => 'signature', 'role' => 'Parent', 'required' => true,
-        'areas' => [{ 'page' => 0, 'x' => 61.2, 'y' => 158.4, 'w' => 200, 'h' => 40 }] }
+        'areas' => [{ 'page' => 1, 'x' => 61.2, 'y' => 158.4, 'w' => 200, 'h' => 40 }] }
     ] }
   end
 
@@ -64,6 +64,7 @@ describe Stevensed::PolicySync do
                                 '(from December 1, 2026)')
     expect(template.submitters.pluck('name')).to eq(['Parent'])
     expect(template.documents.count).to eq(1)
+    expect(field['areas'].first['page']).to eq(0)
     expect(field['areas'].first.slice('x', 'y', 'w', 'h').transform_values { |v| v.round(6) })
       .to eq('x' => 0.1, 'y' => 0.1, 'w' => 0.5, 'h' => 0.025)
     expect(template.preferences.dig(described_class::PREFERENCE_KEY, 'version')).to eq('4.1')

@@ -190,10 +190,14 @@ module Stevensed
       { 'uuid' => SecureRandom.uuid, 'value' => src.is_a?(Hash) ? src['value'] : src }
     end
 
+    # Policy Library field maps number pages from 1 (as the DocuSeal API does); templates count from 0.
     def area(src, attachment_uuid, sizes)
-      width, height = sizes.fetch(src.fetch('page')) { [612.0, 792.0] }
+      page = src.fetch('page').to_i - 1
+      raise "Field on page #{page + 1} of a #{sizes.size}-page PDF" if page.negative? || page >= sizes.size
 
-      { 'attachment_uuid' => attachment_uuid, 'page' => src.fetch('page'),
+      width, height = sizes.fetch(page)
+
+      { 'attachment_uuid' => attachment_uuid, 'page' => page,
         'x' => src.fetch('x').to_f / width, 'y' => src.fetch('y').to_f / height,
         'w' => src.fetch('w').to_f / width, 'h' => src.fetch('h').to_f / height }
     end
