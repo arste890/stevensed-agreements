@@ -12,7 +12,7 @@
     <% case state %>
     <% when :dob %>
       <form data-step="dob" class="se-gate__form">
-        <p class="se-gate__text">These documents are about a student. To make sure you have the right version, enter the student's date of birth. It is used only for this check and is not stored.</p>
+        <p class="se-gate__text">These documents are about a student. To make sure you have the right version, enter the student's date of birth. It is used for this check and, if the document asks for the student's date of birth, to fill it in; it is not kept anywhere else.</p>
         <label class="se-gate__field">
           <span>Student's date of birth</span>
           <input type="date" name="dob" aria-label="Student's date of birth" required max="<%= Time.zone.today.iso8601 %>" min="1900-01-01" autocomplete="off">
