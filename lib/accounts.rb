@@ -78,6 +78,8 @@ module Accounts
   end
 
   def load_signing_pkcs(account)
+    return Stevensed::VaultSigning.pkcs if Stevensed::VaultSigning.enabled? # StevensED Trusted Signature
+
     cert_data =
       if Docuseal.multitenant?
         data = EncryptedConfig.find_by(account:, key: EncryptedConfig::ESIGN_CERTS_KEY)&.value

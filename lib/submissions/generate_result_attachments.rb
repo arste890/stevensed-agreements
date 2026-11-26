@@ -826,11 +826,15 @@ module Submissions
     end
     # rubocop:enable Metrics
 
-    def maybe_enable_ltv(io, _sign_params)
-      io
+    def maybe_enable_ltv(io, sign_params)
+      return io unless sign_params[:external_signing] # StevensED: Vault-signed documents get PAdES B-LT
+
+      Stevensed::Ltv.call(io)
     end
 
     def build_signing_params(_submitter, pkcs, tsa_url)
+      return stevensed_signing_params(pkcs, tsa_url) if pkcs.is_a?(Stevensed::VaultSigning::Pkcs)
+
       params = {
         certificate: pkcs.certificate,
         key: pkcs.key,
@@ -841,6 +845,22 @@ module Submissions
         params[:timestamp_handler] = Submissions::TimestampHandler.new(tsa_url:)
         params[:signature_size] = 20_000
       end
+
+      params
+    end
+
+    # StevensED: PAdES signature with the StevensED Agreements certificate; key in Oracle Cloud Vault.
+    def stevensed_signing_params(pkcs, tsa_url)
+      params = {
+        certificate: pkcs.certificate,
+        certificate_chain: pkcs.ca_certs,
+        external_signing: Stevensed::VaultSigning.signing_proc,
+        digest_algorithm: 'sha256',
+        signature_type: :pades,
+        signature_size: 30_000
+      }
+
+      params[:timestamp_handler] = Submissions::TimestampHandler.new(tsa_url:) if tsa_url
 
       params
     end
