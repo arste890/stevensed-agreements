@@ -21,10 +21,6 @@ describe Stevensed::PolicySync do
     ] }
   end
 
-  def version(effective, map: 'forms/docuseal/map.json', sha: Digest::SHA256.hexdigest(pdf))
-    { 'effective' => effective, 'file' => 'forms/pdf/form.pdf', 'sha256' => sha, 'docuseal' => { 'file' => map } }
-  end
-
   let(:manifest) do
     { 'forms' => {
       'FRM-102-M' => { 'id' => 'FRM-102', 'title' => 'Electronic Records and Signature Consent', 'audience' => 'minor',
@@ -46,6 +42,10 @@ describe Stevensed::PolicySync do
   let(:http) { ->(path) { responses.fetch(path) } }
 
   before { create(:user, account:, role: User::ADMIN_ROLE) }
+
+  def version(effective, map: 'forms/docuseal/map.json', sha: Digest::SHA256.hexdigest(pdf))
+    { 'effective' => effective, 'file' => 'forms/pdf/form.pdf', 'sha256' => sha, 'docuseal' => { 'file' => map } }
+  end
 
   it 'keeps the version in effect and the later version, ignoring unmapped and superseded ones' do
     plan = described_class.call(apply: false, today:, http:)

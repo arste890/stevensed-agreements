@@ -32,6 +32,9 @@ class SubmitFormController < ApplicationController
                                 submission.template&.preferences&.dig('submitters_order') == 'preserved') &&
                                !Submitters.current_submitter_order?(@submitter)
 
+    # StevensED: electronic records consent on file (Stevensed::Consents); may apply the signer's legal name.
+    @stevensed_consent_gate = Stevensed::Consents.prepare(@submitter, request)
+
     Submissions.preload_with_pages(submission)
 
     @attachments_index = build_attachments_index(submission)

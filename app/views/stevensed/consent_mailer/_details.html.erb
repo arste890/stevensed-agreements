@@ -1,0 +1,8 @@
+<% document_name = submission.name.presence || submission.template&.name %>
+<%= render 'shared/email_details', rows: [
+      ['Envelope', submission.id.to_s],
+      ['Document', document_name],
+      ['Signer', [submitter.name, submitter.email].compact_blank.join(', ')],
+      *(local_assigns[:rows] || [])
+    ] %>
+<%= render 'shared/email_button', url: submission_url(submission), label: 'View envelope' %>

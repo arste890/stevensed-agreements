@@ -1,0 +1,5 @@
+<% content_for(:preheader, 'A signer asked for paper copies instead of signing electronically.') %>
+<%= render 'shared/email_heading', eyebrow: 'Paper copies requested', title: 'A signer declined electronic records' %>
+<p>The signer chose not to consent to electronic records and signatures and asked for paper copies. Under the electronic records consent (FRM-102, FRM-505, FRM-601), paper copies are provided free of charge.</p>
+<%= render 'stevensed/consent_mailer/details', submission: @submission, submitter: @submitter %>
+<p>Please contact the signer to arrange paper copies of this document. The envelope remains open in StevensED Agreements.</p>

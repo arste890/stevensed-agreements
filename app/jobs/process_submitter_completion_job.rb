@@ -12,6 +12,8 @@ class ProcessSubmitterCompletionJob
 
     create_completed_submitter!(submitter)
 
+    Stevensed::Consents.record_from_submitter(submitter) # StevensED: consent register
+
     is_last =
       if params.key?('is_last')
         params['is_last']

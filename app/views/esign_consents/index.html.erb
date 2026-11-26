@@ -1,0 +1,54 @@
+<div class="flex flex-wrap space-y-4 md:flex-nowrap md:space-y-0">
+  <%= render 'shared/settings_nav' %>
+  <div class="flex-grow max-w-3xl mx-auto">
+    <h1 class="text-3xl md:text-4xl font-bold mb-2">Electronic records consents</h1>
+    <p class="mb-6 text-base-content/80">Consents on file before signing: FRM-102-M and FRM-102-A for families, FRM-505 for faculty and staff, FRM-601 for others. A signed consent is added automatically. Record a consent given on paper below, or mark a consent withdrawn when the signer withdraws it (FRM-102 Section 5); they will then be asked again or receive paper.</p>
+    <%= form_with url: settings_esign_consents_path, method: :get, class: 'flex gap-2 mb-6' do |f| %>
+      <%= f.search_field :q, value: params[:q], placeholder: 'Search by email', class: 'base-input flex-grow', autocomplete: 'off' %>
+      <%= f.submit 'Search', class: 'base-button', name: nil %>
+    <% end %>
+    <% if @consents.empty? %>
+      <div class="card bg-base-200 p-6 text-center">No consents on file.</div>
+    <% else %>
+      <div class="space-y-3 mb-10">
+        <% @consents.each do |c| %>
+          <div class="bg-base-200 rounded-2xl p-4 <%= 'opacity-60' if c.withdrawn_at %>">
+            <div class="flex flex-wrap items-baseline justify-between gap-2">
+              <div class="font-semibold"><%= c.legal_name %> <span class="font-normal text-base-content/70"><%= c.email %></span></div>
+              <div class="text-sm text-base-content/70"><%= c.label %>, <%= c.signed_at.to_date %> (<%= c.source %>)</div>
+            </div>
+            <% if c.submission_id %>
+              <div class="text-sm mt-1"><%= link_to "Envelope #{c.submission_id}", submission_path(c.submission_id), class: 'link' %></div>
+            <% end %>
+            <% if c.note.present? %>
+              <div class="text-sm mt-1 text-base-content/80"><%= c.note %></div>
+            <% end %>
+            <% if c.withdrawn_at %>
+              <div class="text-sm mt-1">Withdrawn <%= c.withdrawn_at.to_date %><%= " by #{c.withdrawn_by_user.full_name}" if c.withdrawn_by_user %></div>
+            <% else %>
+              <%= form_with url: settings_esign_consent_path(c), method: :patch, class: 'flex flex-wrap gap-2 mt-3', data: { turbo_confirm: "Mark the consent for #{c.email} withdrawn?" } do |f| %>
+                <%= f.text_field :note, placeholder: 'Note (how and when it was withdrawn)', class: 'base-input input-sm flex-grow' %>
+                <%= f.submit 'Mark withdrawn', class: 'btn btn-sm' %>
+              <% end %>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+    <h2 class="text-2xl font-bold mb-3">Record a consent given on paper</h2>
+    <%= form_with model: @consent, url: settings_esign_consents_path, class: 'space-y-3 mb-10' do |f| %>
+      <div class="grid md:grid-cols-2 gap-3">
+        <div><%= f.label :email, 'Email address', class: 'label' %><%= f.email_field :email, required: true, class: 'base-input w-full' %></div>
+        <div><%= f.label :legal_name, 'Full legal name (as on the form)', class: 'label' %><%= f.text_field :legal_name, required: true, class: 'base-input w-full' %></div>
+        <div>
+          <%= f.label :kind, 'Form', class: 'label' %>
+          <%= f.select :kind, [['FRM-102-M (family, student under 18)', 'family_minor'], ['FRM-102-A (family, adult student)', 'family_adult'], ['FRM-505 (faculty and staff)', 'staff'], ['FRM-601 (general)', 'general']], {}, class: 'base-select w-full' %>
+        </div>
+        <div><%= f.label :form_version, 'Version', class: 'label' %><%= f.text_field :form_version, class: 'base-input w-full', placeholder: 'e.g. 4.1' %></div>
+        <div><%= f.label :signed_at, 'Date signed', class: 'label' %><%= f.date_field :signed_at, required: true, class: 'base-input w-full' %></div>
+        <div><%= f.label :note, 'Note', class: 'label' %><%= f.text_field :note, class: 'base-input w-full', placeholder: 'Where the paper original is kept' %></div>
+      </div>
+      <%= f.submit 'Record consent', class: 'base-button' %>
+    <% end %>
+  </div>
+</div>

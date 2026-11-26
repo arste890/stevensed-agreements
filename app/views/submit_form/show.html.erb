@@ -40,8 +40,8 @@
           <% end %>
           <% content_for(:stevensed_page_actions, guided_actions) %>
         <% end %>
-        <% if !@submitter.viewer? && !@submitter.completed_at? && !@submitter.declined_at? && !@submitter.submission_events.exists?(event_type: :accept_esign_consent) %>
-          <%= render 'submit_form/esign_consent', submitter: @submitter, decline_modal_id: %>
+        <% if @stevensed_consent_gate.present? && @stevensed_consent_gate != :none %>
+          <%= render 'submit_form/esign_consent', submitter: @submitter, decline_modal_id:, state: @stevensed_consent_gate %>
         <% end %>
       <% end %>
       <% schema.each do |item| %>

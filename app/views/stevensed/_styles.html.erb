@@ -63,6 +63,14 @@
     .se-gate .se-gate__continue { height: 2.75rem; padding-inline: 2rem; border: 0; cursor: pointer; }
     .se-gate .se-gate__continue:disabled { opacity: 0.45; cursor: not-allowed; }
     .se-gate__decline { background: none; border: 0; color: #2f3e68; font-weight: 600; text-decoration: underline; text-underline-offset: 0.2em; cursor: pointer; }
+    .se-gate__form { margin: 0; }
+    .se-gate__field { display: grid; gap: 0.4rem; font-weight: 600; color: #1f2948; }
+    .se-gate__field input { height: 2.75rem; padding: 0 0.85rem; border: 1px solid #d8d0c1; border-radius: 8px; background: #fff; font: inherit; font-weight: 500; color: #1f2948; max-width: 16rem; }
+    .se-gate__field input:focus-visible { outline: 3px solid #2f3e68; outline-offset: 2px; }
+    .se-gate__secondary { display: flex; flex-wrap: wrap; gap: 1.25rem; margin-top: 1rem; }
+    .se-gate__link { background: none; border: 0; padding: 0; color: #2f3e68; font-weight: 600; text-decoration: underline; text-underline-offset: 0.2em; cursor: pointer; font-size: 0.9375rem; }
+    .se-gate__message { margin: 1rem 0 0; padding: 0.9rem 1rem; background: #fff; border-left: 3px solid #2f3e68; border-radius: 4px; color: #1f2948; }
+    .se-gate__text strong { color: #1f2948; }
     .se-gate__note { font-size: 0.8125rem; color: #59697a; margin: 1.25rem 0 0; }
     .se-builder-header .template-name { font-size: 1.125rem !important; line-height: 1.3; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .se-builder-header :is(.btn, .white-button, .base-button) { height: 2.5rem; min-height: 2.5rem; padding-inline: 1rem; font-size: 0.9375rem; text-transform: none; letter-spacing: 0; font-weight: 600; }

@@ -1,28 +1,69 @@
-<%# StevensED: consent to electronic records and signatures (ESIGN Act; FRM-102) before signing. %>
+<%# StevensED: electronic records consent step before signing (Stevensed::Consents). state: :dob, :sign_consent, :parent_required, :checkbox %>
 <% requester = Stevensed::Requesters.for_submission(submitter.submission) %>
+<% ctx = Stevensed::Consents.context(submitter) %>
+<% kind = Stevensed::Consents.kinds_for(ctx, submitter.metadata.to_h['stevensed_student_age']).first %>
+<% consent_template = state == :sign_consent ? Stevensed::Consents.current_template(submitter.account, kind) : nil %>
+<% disclosure_url = 'https://policies.stevensed.org/#/doc/e-signature-consent' %>
 <esign-consent data-url="<%= submit_form_esign_consent_index_path(submitter.slug) %>" class="se-gate" role="dialog" aria-modal="true" aria-labelledby="se_consent_title">
   <div class="se-gate__card">
     <p class="se-gate__eyebrow"><%= Stevensed::Requesters.label(requester) %></p>
     <h2 id="se_consent_title" class="se-gate__title">Please review and sign these documents</h2>
     <p class="se-gate__doc"><%= submitter.submission.name || submitter.submission.template&.name %></p>
-    <p class="se-gate__text">
-      Before you continue, please read the
-      <a href="https://policies.stevensed.org/#/doc/e-signature-consent" target="_blank" rel="noopener">Electronic Records and Signature Consent (FRM-102)</a>.
-      It explains your right to receive these documents on paper at no charge, how to withdraw your consent, and the hardware and software you need to open and keep electronic records.
-    </p>
-    <label class="se-gate__check">
-      <input type="checkbox" name="agree" value="1">
-      <span>I agree to use electronic records and signatures.</span>
-    </label>
-    <p class="se-gate__error" data-role="error" hidden>Your consent could not be recorded. Check your connection and try again.</p>
-    <div class="se-gate__actions">
-      <button type="button" class="se-btn se-gate__continue" data-role="continue" disabled>Continue</button>
+    <% case state %>
+    <% when :dob %>
+      <form data-step="dob" class="se-gate__form">
+        <p class="se-gate__text">These documents are about a student. To make sure you have the right version, enter the student's date of birth. It is used only for this check and is not stored.</p>
+        <label class="se-gate__field">
+          <span>Student's date of birth</span>
+          <input type="date" name="dob" required max="<%= Time.zone.today.iso8601 %>" min="1900-01-01" autocomplete="off">
+        </label>
+        <p class="se-gate__error" data-role="error" hidden></p>
+        <div class="se-gate__actions">
+          <button type="submit" class="se-btn se-gate__continue" data-role="continue">Continue</button>
+        </div>
+      </form>
+    <% when :sign_consent %>
+      <form data-step="consent" class="se-gate__form">
+        <p class="se-gate__text">
+          Before your first document, StevensED asks for your consent to receive records and sign electronically. This is a one-time step: you review and sign the
+          <strong><%= consent_template&.name&.sub(/ \(from .*\)\z/, '') || 'Electronic Records and Signature Consent' %></strong>, and then return here.
+          The name you enter on it will be used on your documents.
+        </p>
+        <p class="se-gate__error" data-role="error" hidden></p>
+        <div class="se-gate__actions">
+          <button type="submit" class="se-btn se-gate__continue" data-role="continue">Review and sign the consent</button>
+        </div>
+      </form>
+    <% when :parent_required %>
+      <p class="se-gate__text">Before you can sign, your parent or guardian needs to complete StevensED's Electronic Records and Signature Consent. We have asked them by email. Please open this link again once they have signed it.</p>
+    <% else %>
+      <form data-step="checkbox" class="se-gate__form">
+        <p class="se-gate__text">
+          Before you continue, please read the
+          <a href="<%= disclosure_url %>" target="_blank" rel="noopener">Electronic Records and Signature Consent</a>.
+          It explains your right to receive these documents on paper at no charge, how to withdraw your consent, and the hardware and software you need to open and keep electronic records.
+        </p>
+        <label class="se-gate__check">
+          <input type="checkbox" name="agree" value="1" data-role="agree">
+          <span>I agree to use electronic records and signatures.</span>
+        </label>
+        <p class="se-gate__error" data-role="error" hidden></p>
+        <div class="se-gate__actions">
+          <button type="submit" class="se-btn se-gate__continue" data-role="continue" disabled>Continue</button>
+        </div>
+      </form>
+    <% end %>
+    <p class="se-gate__message" data-role="message" hidden></p>
+    <div class="se-gate__secondary">
+      <% if state != :parent_required %>
+        <button type="button" class="se-gate__link" data-step-link="paper">I prefer paper copies</button>
+      <% end %>
       <% if decline_modal_id %>
         <modal-button data-target="<%= decline_modal_id %>">
-          <button type="button" class="se-gate__decline"><%= t('decline_to_sign', default: 'Decline to sign') %></button>
+          <button type="button" class="se-gate__link"><%= t('decline_to_sign', default: 'Decline to sign') %></button>
         </modal-button>
       <% end %>
     </div>
-    <p class="se-gate__note">To request paper copies, write to <a href="mailto:<%= Stevensed::CONTACT_EMAIL %>"><%= Stevensed::CONTACT_EMAIL %></a>.</p>
+    <p class="se-gate__note">Questions or paper copies: <a href="mailto:<%= Stevensed::CONTACT_EMAIL %>"><%= Stevensed::CONTACT_EMAIL %></a>.</p>
   </div>
 </esign-consent>

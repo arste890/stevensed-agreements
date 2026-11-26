@@ -76,7 +76,7 @@ module Stevensed
           effective = Date.parse(version['effective'])
 
           Item.new(external_id: "#{key}_v#{number}", key:, version: number, effective:,
-                   name: form_name(form, key, number, effective, today), folder: folder_for(key),
+                   name: form_name(form, number, effective, today), folder: folder_for(key),
                    pdf_path: version.fetch('file'), pdf_sha256: version.fetch('sha256'),
                    fields: map.fetch('fields'), roles: map['roles'])
         end
@@ -90,7 +90,7 @@ module Stevensed
         versions = list.to_h { |key, env| [key, env.merge('effective' => env.fetch('onDate'))] }
         in_effect = versions.values.map { |e| Date.parse(e['effective']) }.select { |d| d <= today }.max
 
-        versions.filter_map do |key, env|
+        versions.values.filter_map do |env|
           effective = Date.parse(env['effective'])
           next if in_effect && effective < in_effect
 
@@ -104,7 +104,7 @@ module Stevensed
       end
     end
 
-    def form_name(form, key, number, effective, today)
+    def form_name(form, number, effective, today)
       audience = AUDIENCE_LABELS[form['audience']]
       dated("#{form.fetch('id')} #{form.fetch('title')}#{" (#{audience})" if audience} v#{number}", effective, today)
     end
@@ -194,8 +194,8 @@ module Stevensed
       width, height = sizes.fetch(src.fetch('page')) { [612.0, 792.0] }
 
       { 'attachment_uuid' => attachment_uuid, 'page' => src.fetch('page'),
-        'x' => src.fetch('x') / width, 'y' => src.fetch('y') / height,
-        'w' => src.fetch('w') / width, 'h' => src.fetch('h') / height }
+        'x' => src.fetch('x').to_f / width, 'y' => src.fetch('y').to_f / height,
+        'w' => src.fetch('w').to_f / width, 'h' => src.fetch('h').to_f / height }
     end
   end
 end

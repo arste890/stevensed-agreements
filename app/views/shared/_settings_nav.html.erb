@@ -120,6 +120,9 @@
             <li>
               <%= link_to t('stevensed.imported_records'), settings_imported_records_path, class: 'text-base hover:bg-base-300', data: nav_link_data %>
             </li>
+            <li>
+              <%= link_to 'Consents on file', settings_esign_consents_path, class: 'text-base hover:bg-base-300', data: nav_link_data %>
+            </li>
           <% end %>
           <% if (!Docuseal.multitenant? || can?(:manage, :saml_sso)) && can?(:read, EncryptedConfig.new(key: 'saml_configs', account: current_account)) && true_user == current_user && (!turbo_native_app? || can?(:manage, :saml_sso)) %>
             <li>

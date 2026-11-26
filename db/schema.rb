@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_20_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_26_180000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gin"
   enable_extension "pg_catalog.plpgsql"
@@ -351,6 +351,26 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_20_120000) do
     t.index ["record_id", "record_type"], name: "index_search_entries_on_record_id_and_record_type", unique: true
   end
 
+  create_table "stevensed_esign_consents", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.datetime "created_at", null: false
+    t.string "email", null: false
+    t.string "form_key", null: false
+    t.string "form_version"
+    t.string "kind", null: false
+    t.string "legal_name", null: false
+    t.text "note"
+    t.datetime "signed_at", null: false
+    t.string "source", null: false
+    t.bigint "submission_id"
+    t.bigint "submitter_id"
+    t.datetime "updated_at", null: false
+    t.datetime "withdrawn_at"
+    t.bigint "withdrawn_by_user_id"
+    t.index ["account_id", "email"], name: "index_stevensed_esign_consents_on_account_id_and_email"
+    t.index ["submitter_id"], name: "index_stevensed_esign_consents_on_submitter_id", unique: true, where: "(submitter_id IS NOT NULL)"
+  end
+
   create_table "submission_events", force: :cascade do |t|
     t.bigint "account_id"
     t.datetime "created_at", null: false
@@ -617,6 +637,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_20_120000) do
   add_foreign_key "oauth_access_grants", "users", column: "resource_owner_id"
   add_foreign_key "oauth_access_tokens", "oauth_applications", column: "application_id"
   add_foreign_key "oauth_access_tokens", "users", column: "resource_owner_id"
+  add_foreign_key "stevensed_esign_consents", "accounts"
+  add_foreign_key "stevensed_esign_consents", "submissions"
+  add_foreign_key "stevensed_esign_consents", "submitters"
+  add_foreign_key "stevensed_esign_consents", "users", column: "withdrawn_by_user_id"
   add_foreign_key "submission_events", "accounts"
   add_foreign_key "submission_events", "submissions"
   add_foreign_key "submission_events", "submitters"

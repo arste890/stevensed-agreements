@@ -1,46 +1,65 @@
-// StevensED: consent to electronic records and signatures before the document is shown for signing.
+// StevensED: electronic records consent step before signing. Each <form data-step> posts its fields with the step
+// name; the server answers with { reload }, { redirect }, { message } or { error }.
 export default class extends HTMLElement {
   connectedCallback () {
-    this.checkbox = this.querySelector('input[type="checkbox"]')
-    this.button = this.querySelector('[data-role="continue"]')
     this.error = this.querySelector('[data-role="error"]')
+    this.message = this.querySelector('[data-role="message"]')
 
-    this.checkbox.addEventListener('change', () => {
-      this.button.disabled = !this.checkbox.checked
+    const agree = this.querySelector('[data-role="agree"]')
+    const form = this.querySelector('form[data-step]')
+
+    agree?.addEventListener('change', () => {
+      form.querySelector('[data-role="continue"]').disabled = !agree.checked
     })
 
-    this.button.addEventListener('click', () => this.submit())
+    form?.addEventListener('submit', (e) => {
+      e.preventDefault()
+      this.post(form.dataset.step, new FormData(form), form.querySelector('[data-role="continue"]'))
+    })
+
+    this.querySelectorAll('[data-step-link]').forEach((link) => {
+      link.addEventListener('click', () => this.post(link.dataset.stepLink, new FormData(), link))
+    })
 
     document.documentElement.classList.add('se-gate-open')
-    this.checkbox.focus()
+    this.querySelector('input:not([type="hidden"]), button')?.focus()
   }
 
   disconnectedCallback () {
     document.documentElement.classList.remove('se-gate-open')
   }
 
-  async submit () {
-    if (!this.checkbox.checked) return
+  async post (step, body, button) {
+    body.append('step', step)
 
-    this.button.disabled = true
-    this.error.hidden = true
+    if (button) button.disabled = true
+    if (this.error) this.error.hidden = true
 
     try {
       const resp = await fetch(this.dataset.url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content
-        },
-        body: new URLSearchParams({ agree: '1' })
+        headers: { 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content, Accept: 'application/json' },
+        body
       })
+      const data = await resp.json().catch(() => ({}))
 
-      if (!resp.ok) throw new Error(resp.status)
-
-      this.remove()
+      if (data.redirect) {
+        window.location.assign(data.redirect)
+      } else if (data.reload) {
+        window.location.reload()
+      } else if (data.message) {
+        this.querySelectorAll('form, [data-step-link]').forEach((el) => { el.hidden = true })
+        this.message.textContent = data.message
+        this.message.hidden = false
+      } else {
+        throw new Error(data.error || 'Your answer could not be recorded. Check your connection and try again.')
+      }
     } catch (e) {
-      this.error.hidden = false
-      this.button.disabled = false
+      if (this.error) {
+        this.error.textContent = e.message
+        this.error.hidden = false
+      }
+      if (button) button.disabled = false
     }
   }
 }

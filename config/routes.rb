@@ -214,6 +214,7 @@ Rails.application.routes.draw do
     resource :personalization, only: %i[show create], controller: 'personalization_settings'
     resource :logo, only: %i[create destroy], controller: 'account_logos' # StevensED
     resources :imported_records, only: %i[index show], path: 'imported-records' # StevensED
+    resources :esign_consents, only: %i[index create update], path: 'consents' # StevensED
     resource :offices, only: %i[show create], controller: 'offices_settings' # StevensED: Send as office list
     resources :embedding, only: %i[index], controller: 'embedding_settings' # StevensED
     resources :webhooks, only: %i[index show new create update destroy], controller: 'webhook_settings' do

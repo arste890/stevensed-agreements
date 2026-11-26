@@ -1,0 +1,5 @@
+<% content_for(:preheader, 'A minor student cannot sign until a parent consent is on file.') %>
+<%= render 'shared/email_heading', eyebrow: 'Parent consent needed', title: 'A minor student is waiting to sign' %>
+<p>A student under 18 opened this envelope, but no parent or guardian with an electronic records consent (FRM-102-M) on file is listed in it, so no consent request could be sent automatically.</p>
+<%= render 'stevensed/consent_mailer/details', submission: @submission, submitter: @submitter %>
+<p>Please send FRM-102-M to the student's parent or guardian. The student can sign once it is on file.</p>
