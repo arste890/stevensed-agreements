@@ -10,10 +10,10 @@ RSpec.describe 'Personalization' do
   end
 
   it 'shows the personalization page' do
-    expect(page).to have_content('Email Templates')
-    expect(page).to have_content('Signature Request Email')
-    expect(page).to have_content('Completed Notification Email')
-    expect(page).to have_content('Documents Copy Email')
-    expect(page).to have_content('Company Logo')
+    expect(page).to have_content('Email templates')
+    expect(page).to have_content('Signature request email')
+    expect(page).to have_content('Completed notification email')
+    expect(page).to have_content('Documents copy email')
+    expect(page).to have_content('Company logo')
   end
 end

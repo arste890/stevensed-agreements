@@ -17,7 +17,7 @@ RSpec.describe 'Profile Settings' do
     expect(page).to have_field('user[first_name]', with: user.first_name)
     expect(page).to have_field('user[last_name]', with: user.last_name)
 
-    expect(page).to have_content('Change Password')
+    expect(page).to have_content('Change password')
     expect(page).to have_field('user[password]')
   end
 
