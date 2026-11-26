@@ -55,7 +55,10 @@ class SubmissionsController < ApplicationController
     [params.delete(:subject), params.delete(:body)] if params[:is_custom_message] != '1'
 
     submissions =
-      if params[:emails].present?
+      if params[:submissions_json].present? # StevensED: bulk send from CSV or XLSX
+        authorize!(:manage, :bulk_send)
+        create_bulk_submissions(@template, params)
+      elsif params[:emails].present?
         Submissions.create_from_emails(template: @template,
                                        user: current_user,
                                        source: :invite,
@@ -122,6 +125,28 @@ class SubmissionsController < ApplicationController
                                        submissions_attrs:,
                                        new_fields:,
                                        params: params.merge('send_completed_email' => true))
+  end
+
+  # StevensED: bulk send. Each row becomes a submission in the API's submitters format.
+  def create_bulk_submissions(template, params)
+    rows = JSON.parse(params[:submissions_json].to_s)
+    raise Submissions::CreateFromSubmitters::BaseError, I18n.t('stevensed.bulk_empty') unless rows.is_a?(Array) && rows.any?
+    raise Submissions::CreateFromSubmitters::BaseError, I18n.t('stevensed.bulk_too_many') if rows.size > 2_000
+
+    submissions_attrs = rows.map { |row| ActionController::Parameters.new(row).permit!.to_h.with_indifferent_access }
+
+    submissions_attrs, _, new_fields =
+      Submissions::NormalizeParamUtils.normalize_submissions_params!(submissions_attrs, template, add_fields: true)
+
+    Submissions.create_from_submitters(template:,
+                                       user: current_user,
+                                       source: :invite,
+                                       submitters_order: 'random',
+                                       submissions_attrs:,
+                                       new_fields:,
+                                       params: params.merge('send_completed_email' => true))
+  rescue JSON::ParserError
+    raise Submissions::CreateFromSubmitters::BaseError, I18n.t('stevensed.bulk_empty')
   end
 
   def save_template_message(template, params)

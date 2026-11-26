@@ -15,6 +15,7 @@ Rails.application.routes.draw do
   match '/auth/:provider/callback', to: 'omniauth_callbacks#callback', via: %i[get post] # StevensED SSO
   get '/auth/failure', to: 'omniauth_callbacks#failure' # StevensED SSO
   get '/my_agreements', to: 'my_agreements#index', as: :my_agreements # StevensED client portal
+  post '/upload_spreadsheet', to: 'upload_spreadsheets#create' # StevensED bulk send
 
   get 'up' => 'rails/health#show'
   get 'manifest' => 'pwa#manifest'

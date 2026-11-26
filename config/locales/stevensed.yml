@@ -24,4 +24,8 @@ en:
     saml_idp_url: Identity provider sign-in URL
     saml_idp_cert: Identity provider certificate (PEM)
     saml_sp_entity_id: Service provider entity ID (optional)
+    spreadsheet_too_large: The spreadsheet must be 10 MB or less.
+    spreadsheet_invalid: The file could not be read. Upload a CSV or XLSX file.
+    bulk_empty: The list has no rows to send.
+    bulk_too_many: Send at most 2,000 rows at a time.
   client: Client

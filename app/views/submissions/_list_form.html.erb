@@ -1,1 +1,11 @@
-<%= render 'submissions/bulk_send_placeholder' %>
+<%# StevensED: bulk send from CSV or XLSX (replaces the Pro placeholder). %>
+<%= form_for '', url: template_submissions_path(template), html: { autocomplete: 'off' }, data: { turbo_frame: :_top } do |f| %>
+  <import-list data-template="<%= template.to_json(only: %i[id name submitters fields]) %>" data-i18n="<%= %w[a_sample_spreadsheet_to_fill_and_import add_mapping click_to_upload download form new_field_mapping open or or_drag_and_drop_files recipient_field remove select_column select_field select_worksheet spreadsheet_column total_entries upload_csv_or_xlsx_spreadsheet variables].index_with { |k| t(k, default: k.humanize) }.to_json %>"></import-list>
+  <div id="list_form_buttons" class="hidden space-y-3 mt-4">
+    <label class="flex items-center space-x-2 cursor-pointer">
+      <%= check_box_tag :send_email, '1', true, class: 'base-checkbox' %>
+      <span><%= t('send_emails') %></span>
+    </label>
+    <%= f.button button_title(title: t('add_recipients'), disabled_with: t('submitting')), class: 'base-button w-full' %>
+  </div>
+<% end %>
