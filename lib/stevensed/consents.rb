@@ -300,6 +300,9 @@ module Stevensed
     def apply_name!(submitter, consent)
       name = consent.legal_name
       submission = submitter.submission
+      # Copy fields, schema, variables and submitters from the template together, as upstream does, so that
+      # completion (which reads template_schema) works once template_fields is set on the submission.
+      Submissions.update_template_fields!(submission) if submission.template_fields.blank?
       fields = fields_for(submission).deep_dup
       values = submitter.values.dup
 
