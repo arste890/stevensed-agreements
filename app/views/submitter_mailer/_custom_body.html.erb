@@ -1,0 +1,6 @@
+<%# StevensED: custom email body from DocuSeal settings, rendered inside the branded layout. Locals: body, submitter, sig, link_url, link_label. %>
+<% content_for(:skip_signoff, true) %>
+<%= render 'custom_content', content: local_assigns[:body], submitter: local_assigns[:submitter], sig: local_assigns[:sig] %>
+<% if local_assigns[:link_url].present? %>
+  <%= render 'shared/email_button', url: local_assigns[:link_url], label: local_assigns[:link_label] %>
+<% end %>

@@ -1,0 +1,14 @@
+<%# StevensED: document details panel. Locals: rows (array of [label, value]); blank values are skipped. %>
+<% rows = local_assigns[:rows].to_a.select { |(_, value)| value.present? } %>
+<% if rows.any? %>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:4px 0 24px 0;">
+    <tr>
+      <td class="se-panel" style="background-color:#F7F5F1;border:1px solid #E9E3D8;border-left:3px solid #2F3E68;border-radius:4px;padding:16px 20px 4px 20px;">
+        <% rows.each do |(label, value)| %>
+          <p style="margin:0 0 12px 0;"><span class="se-muted" style="display:block;font-size:11px;line-height:16px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#59697A;"><%= label %></span>
+          <span class="se-strong" style="display:block;font-size:15px;line-height:22px;font-weight:600;color:#1F2948;"><%= value %></span></p>
+        <% end %>
+      </td>
+    </tr>
+  </table>
+<% end %>

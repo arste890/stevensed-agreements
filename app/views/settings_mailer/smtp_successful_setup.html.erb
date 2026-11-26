@@ -1,1 +1,4 @@
-<p>SMTP has been successfully configured!</p>
+<% content_for(:preheader, t('stevensed.email.smtp_preheader', product_name: Stevensed::PRODUCT_NAME)) %>
+<%= render 'shared/email_heading', title: t('stevensed.email.smtp_title') %>
+<p><%= t('stevensed.email.smtp_intro', product_name: Stevensed::PRODUCT_NAME) %></p>
+<p><%= t('stevensed.email.smtp_no_action') %></p>

@@ -5,10 +5,12 @@ class SubmitterMailer < ApplicationMailer
   SIGN_TTL = 1.hour + 20.minutes
 
   NO_REPLY_REGEXP = /no-?reply@/i
+  STEVENSED_SUBJECT_PREFIX = 'StevensED: '
 
   def invitation_email(submitter, reminder: false)
     @current_account = submitter.submission.account
     @submitter = submitter
+    @reminder = reminder
 
     return reminder_email(submitter) if reminder && reminder_email_configured?(submitter)
 
@@ -37,7 +39,7 @@ class SubmitterMailer < ApplicationMailer
 
     I18n.with_locale(@current_account.locale) do
       subject = build_invite_subject(@subject, @email_config, submitter)
-      subject = "#{I18n.t('stevensed.reminder_prefix')} #{subject}" if reminder
+      subject = build_reminder_subject(subject) if reminder
 
       mail(
         to: @submitter.friendly_name,
@@ -56,6 +58,7 @@ class SubmitterMailer < ApplicationMailer
   end
 
   def reminder_email(submitter)
+    @reminder = true
     @email_config = AccountConfigs.find_for_account(@current_account,
                                                     AccountConfig::SUBMITTER_INVITATION_REMINDER_EMAIL_KEY)
 
@@ -147,8 +150,7 @@ class SubmitterMailer < ApplicationMailer
 
     I18n.with_locale(@current_account.locale) do
       subject =
-        ReplaceEmailVariables.call(@subject.presence || I18n.t(:template_name_has_been_completed_by_submitters),
-                                   submitter:)
+        ReplaceEmailVariables.call(@subject.presence || I18n.t('stevensed.email.completed_subject'), submitter:)
 
       mail(from: from_address_for_submitter(submitter),
            to: to || normalize_user_email(user),
@@ -168,8 +170,8 @@ class SubmitterMailer < ApplicationMailer
       mail(from: from_address_for_submitter(submitter),
            to: user.role == 'integration' ? user.friendly_name.sub(/\+\w+@/, '@') : user.friendly_name,
            reply_to: @submitter.friendly_name,
-           subject: I18n.t(:name_declined_by_submitter,
-                           name: (@submission.name || @submission.template&.name).to_s.truncate(20),
+           subject: I18n.t('stevensed.email.declined_subject',
+                           name: (@submission.name || @submission.template&.name).to_s.truncate(40),
                            submitter: @submitter.name || @submitter.email || @submitter.phone))
     end
   end
@@ -204,7 +206,12 @@ class SubmitterMailer < ApplicationMailer
 
     I18n.with_locale(@current_account.locale) do
       subject =
-        @subject.present? ? ReplaceEmailVariables.call(@subject, submitter:) : I18n.t(:your_document_copy)
+        if @subject.present?
+          ReplaceEmailVariables.call(@subject, submitter:)
+        else
+          I18n.t('stevensed.email.copy_subject',
+                 name: @submitter.submission.name.presence || @submitter.template&.name)
+        end
 
       mail(from: from_address_for_submitter(submitter),
            to: to || @submitter.friendly_name,
@@ -230,7 +237,7 @@ class SubmitterMailer < ApplicationMailer
       end
 
     I18n.with_locale(locale || submitter.account.locale) do
-      mail(to: submitter.email, from:, subject: I18n.t('email_verification'))
+      mail(to: submitter.email, from:, subject: I18n.t('stevensed.email.otp_subject'))
     end
   end
 
@@ -294,12 +301,25 @@ class SubmitterMailer < ApplicationMailer
   def build_invite_subject(subject, email_config, submitter)
     if email_config || subject
       ReplaceEmailVariables.call(subject || email_config.value['subject'], submitter:)
-    elsif submitter.viewer?
-      I18n.t(:you_are_invited_to_view_a_document)
-    elsif submitter.with_signature_fields?
-      I18n.t('stevensed.invite_subject', name: submitter.submission.name.presence || submitter.template&.name)
     else
-      I18n.t(:you_are_invited_to_submit_a_form)
+      name = submitter.submission.name.presence || submitter.template&.name
+
+      if submitter.viewer?
+        I18n.t('stevensed.email.view_subject', name:)
+      elsif submitter.with_signature_fields?
+        I18n.t('stevensed.invite_subject', name:)
+      else
+        I18n.t('stevensed.email.submit_subject', name:)
+      end
+    end
+  end
+
+  # StevensED: "StevensED: please review..." becomes "StevensED reminder: please review...".
+  def build_reminder_subject(subject)
+    if subject.start_with?(STEVENSED_SUBJECT_PREFIX)
+      "#{I18n.t('stevensed.reminder_subject_prefix')} #{subject.delete_prefix(STEVENSED_SUBJECT_PREFIX)}"
+    else
+      "#{I18n.t('stevensed.reminder_prefix')} #{subject}"
     end
   end
 

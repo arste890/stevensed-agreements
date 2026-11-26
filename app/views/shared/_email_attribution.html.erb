@@ -1,4 +1,16 @@
-<%# StevensED: institutional email footer. %>
-<p style="color:#59697a;font-size:12px;line-height:18px;margin-top:24px">
-  StevensED LLC | <%= Stevensed::OFFICE %> | <a href="mailto:<%= Stevensed::CONTACT_EMAIL %>" style="color:#59697a"><%= Stevensed::CONTACT_EMAIL %></a>
-</p>
+<%# StevensED: institutional email footer (ASCII only). %>
+<% link_style = 'color:#2F3E68;text-decoration:underline;white-space:nowrap;' %>
+<% legal_links = [] %>
+<% legal_links << [t('stevensed.email.footer_privacy'), 'https://stevensed.org/privacy/'] %>
+<% legal_links << [t('stevensed.email.footer_terms'), 'https://stevensed.org/terms/'] %>
+<% legal_links << [t('stevensed.email.footer_esign_consent'), 'https://policies.stevensed.org/#/doc/e-signature-consent'] %>
+<% legal_links << [t('stevensed.legal_notices'), 'https://agreements.stevensed.org/legal'] %>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;">
+  <tr>
+    <td class="se-muted se-sans" align="center" style="font-family:Inter, 'Helvetica Neue', Helvetica, Arial, sans-serif;font-size:12px;line-height:18px;color:#59697A;text-align:center;">
+      <p style="margin:0 0 10px 0;"><strong class="se-muted" style="color:#59697A;">StevensED LLC</strong><br><%= Stevensed::OFFICE %><br>P.O. Box 900342, Sandy, UT 84090<br><a href="mailto:<%= Stevensed::CONTACT_EMAIL %>" class="se-link" style="<%= link_style %>"><%= Stevensed::CONTACT_EMAIL %></a></p>
+      <p style="margin:0 0 10px 0;"><%= safe_join(legal_links.map { |(label, url)| link_to(label, url, class: 'se-link', style: link_style) }, ' | ') %></p>
+      <p style="margin:0;font-size:11px;line-height:16px;"><%= t('stevensed.email.footer_notice', product_name: Stevensed::PRODUCT_NAME) %></p>
+    </td>
+  </tr>
+</table>

@@ -1,13 +1,18 @@
+<% document_name = @submitter.submission.name.presence || @submitter.submission.template&.name %>
+<% copy_url = submissions_preview_url(@submitter.submission.slug, { sig: @sig, host: @custom_domain || ENV.fetch('EMAIL_HOST', Docuseal.default_url_options[:host]) }.compact) %>
+<% content_for(:preheader, t('stevensed.email.copy_preheader', name: document_name)) %>
+<% content_for(:personal_link_notice) { render 'shared/email_personal_link_notice' } %>
 <% if @body.present? %>
-  <%= render 'custom_content', content: @body, submitter: @submitter, sig: @sig %>
+  <%= render 'custom_body', body: @body, submitter: @submitter, sig: @sig %>
 <% else %>
-  <p><%= t('hi_there') %>,</p>
-  <p><%= t('please_check_the_copy_of_your_name_in_the_email_attachments', name: @submitter.submission.name || @submitter.submission.template&.name) %>
-  <p><%= t('alternatively_you_can_review_and_download_your_copy_using_the_link_below') %></p>
-  <p>
-    <%= link_to @submitter.submission.name || @submitter.submission.template&.name, submissions_preview_url(@submitter.submission.slug, { sig: @sig, host: @custom_domain || ENV.fetch('EMAIL_HOST', Docuseal.default_url_options[:host]) }.compact) %>
-  </p>
-  <p>
-  <%= t('thanks') %>,<br><%= @current_account.name %>
-  </p>
+  <%= render 'shared/email_heading', eyebrow: t('stevensed.email.completed_eyebrow'), title: t('stevensed.email.copy_title') %>
+  <%= render 'shared/email_greeting', name: @submitter.name %>
+  <p><%= t('stevensed.email.copy_intro_html', name: document_name) %></p>
+  <% if attachments.any? %>
+    <p><%= t('stevensed.email.copy_attached') %></p>
+  <% end %>
+  <p><%= t('stevensed.email.copy_link') %></p>
+  <%= render 'shared/email_button', url: copy_url, label: t('stevensed.email.download_copy') %>
+  <p><%= t('stevensed.email.copy_retain') %></p>
+  <p><%= t('stevensed.email.questions_html', email: Stevensed::CONTACT_EMAIL) %></p>
 <% end %>

@@ -1,3 +1,6 @@
-<p><%= t('your_verification_code_to_access_the_name', name: @submitter.submission.name || @submitter.submission.template&.name) %></p>
-<p><b><%= @otp_code %></b></p>
-<p><%= t('please_reply_to_this_email_if_you_didnt_request_this') %></p>
+<% content_for(:preheader, t('stevensed.email.otp_preheader')) %>
+<%= render 'shared/email_heading', title: t('stevensed.email.otp_title') %>
+<p><%= t('stevensed.email.otp_intro_html', name: @submitter.submission.name.presence || @submitter.submission.template&.name) %></p>
+<%= render 'shared/email_code', code: @otp_code %>
+<p><%= t('stevensed.email.otp_do_not_share') %></p>
+<p><%= t('stevensed.email.otp_not_requested_html', email: Stevensed::CONTACT_EMAIL) %></p>

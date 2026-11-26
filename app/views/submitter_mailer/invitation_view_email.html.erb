@@ -1,14 +1,15 @@
+<% document_name = @submitter.submission.name.presence || @submitter.submission.template&.name %>
+<% view_url = submit_form_url(slug: @submitter.slug, t: SubmissionEvents.build_tracking_param(@submitter, 'click_email'), host: @custom_domain || ENV.fetch('EMAIL_HOST', Docuseal.default_url_options[:host])) %>
+<% content_for(:preheader, t('stevensed.email.view_preheader', name: document_name)) %>
+<% content_for(:personal_link_notice) { render 'shared/email_personal_link_notice' } %>
 <% if @body.present? %>
-  <%= render 'custom_content', content: @body, submitter: @submitter %>
-  <% if !@body.match?(ReplaceEmailVariables::SUBMITTER_LINK) && !@body.match?(ReplaceEmailVariables::SUBMITTER_ID) && !@body.match?(ReplaceEmailVariables::SUBMISSION_LINK) && !@body.match?(ReplaceEmailVariables::TEMPLATE_ID) && !@submitter.submission.source.in?(%w[api embed]) %>
-    <p><%= link_to nil, submit_form_url(slug: @submitter.slug, t: SubmissionEvents.build_tracking_param(@submitter, 'click_email'), host: @custom_domain || ENV.fetch('EMAIL_HOST', Docuseal.default_url_options[:host])) %></p>
-  <% end %>
+  <% append_link = !@body.match?(ReplaceEmailVariables::SUBMITTER_LINK) && !@body.match?(ReplaceEmailVariables::SUBMITTER_ID) && !@body.match?(ReplaceEmailVariables::SUBMISSION_LINK) && !@body.match?(ReplaceEmailVariables::TEMPLATE_ID) && !@submitter.submission.source.in?(%w[api embed]) %>
+  <%= render 'custom_body', body: @body, submitter: @submitter, link_url: (view_url if append_link), link_label: t('stevensed.email.view_document') %>
 <% else %>
-  <p><%= t('hi_there') %>,</p>
-  <p><%= I18n.t(:you_have_been_invited_to_view_the_name, name: @submitter.submission.name || @submitter.submission.template&.name) %></p>
-  <p><%= link_to I18n.t(:view_document), submit_form_url(slug: @submitter.slug, t: SubmissionEvents.build_tracking_param(@submitter, 'click_email'), host: @custom_domain || ENV.fetch('EMAIL_HOST', Docuseal.default_url_options[:host])) %></p>
-  <p><%= t('please_contact_us_by_replying_to_this_email_if_you_have_any_questions') %></p>
-  <p>
-  <%= t('thanks') %>,<br><%= @current_account.name %>
-  </p>
+  <%= render 'shared/email_heading', title: t('stevensed.email.view_title') %>
+  <%= render 'shared/email_greeting', name: @submitter.name %>
+  <p><%= t('stevensed.email.view_intro_html', name: document_name, product_name: Stevensed::PRODUCT_NAME) %></p>
+  <%= render 'shared/email_details', rows: [[t('stevensed.email.document'), document_name], [t('stevensed.email.shared_by'), @submitter.submission.created_by_user&.full_name.presence]] %>
+  <%= render 'shared/email_button', url: view_url, label: t('stevensed.email.view_document') %>
+  <p><%= t('stevensed.email.questions_html', email: Stevensed::CONTACT_EMAIL) %></p>
 <% end %>

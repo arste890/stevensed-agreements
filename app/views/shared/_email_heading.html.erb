@@ -1,0 +1,5 @@
+<%# StevensED: email heading. Locals: title, eyebrow (optional). %>
+<% if local_assigns[:eyebrow].present? %>
+  <p class="se-muted" style="margin:0 0 6px 0;font-family:Inter, 'Helvetica Neue', Helvetica, Arial, sans-serif;font-size:11px;line-height:16px;font-weight:600;color:#C13F44;letter-spacing:1.4px;text-transform:uppercase;"><%= local_assigns[:eyebrow] %></p>
+<% end %>
+<h1 class="se-h1" style="margin:0 0 20px 0;font-family:'Cormorant Garamond', Georgia, 'Times New Roman', serif;font-size:30px;line-height:36px;font-weight:600;color:#1F2948;"><%= title %></h1>

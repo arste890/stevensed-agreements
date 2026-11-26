@@ -1,0 +1,8 @@
+<%# StevensED: notice that a signing or access link is personal. Locals: account (true for account links). %>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;">
+  <tr>
+    <td class="se-panel se-sans" style="background-color:#F7F5F1;border:1px solid #E9E3D8;border-radius:4px;padding:14px 18px;font-family:Inter, 'Helvetica Neue', Helvetica, Arial, sans-serif;">
+      <p class="se-muted" style="margin:0;font-size:12px;line-height:18px;color:#59697A;"><strong class="se-strong" style="color:#1F2948;"><%= t('stevensed.email.personal_link_title') %></strong> <%= t(local_assigns[:account] ? 'stevensed.email.personal_link_body_account' : 'stevensed.email.personal_link_body') %></p>
+    </td>
+  </tr>
+</table>
