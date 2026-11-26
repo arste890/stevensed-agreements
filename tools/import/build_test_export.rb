@@ -26,11 +26,11 @@ end
 
 def sha256(path) = Digest::SHA256.hexdigest(path.binread)
 
-def area(doc_uuid, y) = { 'attachment_uuid' => doc_uuid, 'page' => 0, 'x' => 0.12, 'y' => y, 'w' => 0.35, 'h' => 0.04 }
+def area(doc_uuid, top) = { 'attachment_uuid' => doc_uuid, 'page' => 0, 'x' => 0.12, 'y' => top, 'w' => 0.35, 'h' => 0.04 }
 
-def field(name, type, submitter_uuid, doc_uuid, y)
+def field(name, type, submitter_uuid, doc_uuid, top)
   { 'uuid' => SecureRandom.uuid, 'name' => name, 'type' => type, 'required' => true,
-    'submitter_uuid' => submitter_uuid, 'areas' => [area(doc_uuid, y)] }
+    'submitter_uuid' => submitter_uuid, 'areas' => [area(doc_uuid, top)] }
 end
 
 roles = { parent: SecureRandom.uuid, office: SecureRandom.uuid, signer: SecureRandom.uuid }
@@ -69,6 +69,8 @@ people = [
   ] }
 ]
 
+EVENT_TIMES = [%w[view_form opened_at], %w[complete_form completed_at]].freeze
+
 mapping = []
 submissions = people.each_with_index.map do |sub, si|
   dir = root.join(sub[:id].to_s)
@@ -101,7 +103,7 @@ submissions = people.each_with_index.map do |sub, si|
   end
 
   events = submitters.flat_map do |s|
-    [%w[view_form opened_at], %w[complete_form completed_at]].map do |type, at|
+    EVENT_TIMES.map do |type, at|
       { 'id' => (s['id'] * 10) + (type == 'view_form' ? 1 : 2), 'event_type' => type,
         'event_timestamp' => s[at], 'submitter_id' => s['id'], 'data' => {} }
     end

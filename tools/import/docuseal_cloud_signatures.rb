@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# rubocop:disable Metrics/BlockLength -- one-off migration script
-
 # StevensED: add the drawn signature images to submissions imported by docuseal_cloud_import.rb.
 # Usage (in the app container), rehearsal first:
 #   IMPORT_TARGET=rehearsal DRY_RUN=1 bin/rails runner tools/import/docuseal_cloud_signatures.rb
@@ -50,4 +48,3 @@ ImportGuard.with_upload_cleanup(dry_run: DRY) do
     raise ActiveRecord::Rollback if DRY
   end
 end
-# rubocop:enable Metrics/BlockLength
