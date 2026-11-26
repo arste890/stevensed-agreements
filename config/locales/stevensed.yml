@@ -1,13 +1,43 @@
 # StevensED fork strings (English; other locales fall back to en).
 en:
+  # Sentence case for upstream headings and buttons shown on Settings pages. Merged into en-US and en-GB at the
+  # end of this file, because those locales copy the upstream en strings instead of falling back to them.
+  <<: &stevensed_sentence_case
+    archived_users: Archived users
+    build_search_index: Build search index
+    change_password: Change password
+    completed_form_message: Completed form message
+    completed_form_redirect_button: Completed form redirect button
+    danger_zone: Danger zone
+    e_signature: E-signature
+    edit_user: Edit user
+    email_notifications: Email notifications
+    event_log: Event log
+    force_2fa_with_authenticator_app: Force 2FA with authenticator app
+    mcp_server: MCP server
+    new_user: New user
+    new_webhook: New webhook
+    policy_links: Policy links
+    reveal_api_key: Reveal API key
+    sign_request_email_reminders: Sign request email reminders
+    two_factor_authentication: Two-factor authentication
+    update_initials: Update initials
+    update_signature: Update signature
+    upload_certificate: Upload certificate
+    view_active: View active
+    view_archived: View archived
+    webhook_security: Webhook security
   stevensed:
     imported_records: Imported records
     imported_records_intro: Signed agreements imported from the former DocuSeal cloud account on November 26, 2026. Each document was checked against the SHA-256 value in its audit log. Records keep the retention period that applied when they were signed.
     no_imported_records: No imported records.
     completed_on: Completed %{date}
-    verified_against_audit: Verified against the audit log
-    not_verified: Not verified
-    original_envelope: 'Original envelope %{id}'
+    imported_records_verified: Verified against the DocuSeal audit log, original envelope %{id}
+    imported_records_not_verified: Not verified against the DocuSeal audit log, original envelope %{id}
+    imported_records_signed_document: Signed document
+    imported_records_signed_document_n: Signed document %{n}
+    imported_records_audit_log: Audit log
+    imported_records_combined: Combined PDF
     legal_notices: Legal notices
     logo_invalid: The logo must be a PNG, JPEG or WebP image of 2 MB or less.
     logo_hint: PNG, JPEG or WebP, 2 MB or less. Shown on signing pages and in the dashboard.
@@ -52,6 +82,43 @@ en:
     send_as: Send as
     send_as_with_name: With your name
     send_as_office_only: Office only
+    personalization:
+      title: Personalization
+      email_templates: Email templates
+      company_logo: Company logo
+      submission_form: Submission form
+    esign:
+      title: E-signature
+      intro: Completed documents are digitally signed with the certificate in use and timestamped by the timestamp authority below. To check the signature on a signed PDF, upload it at the end of this page.
+      vault_heading: StevensED signing certificate
+      in_use: In use
+      default: Default
+      retired: Retired
+      vault_key_statement: The private key is held in an Oracle Cloud Vault hardware security module and is not exportable. Only a digest of each document is sent to the Vault to be signed.
+      role_signing: Signing certificate
+      role_intermediate: Intermediate certificate authority
+      role_root: Root certificate authority
+      subject: Subject
+      issuer: Issuer
+      validity: Valid
+      validity_range: '%{from} to %{to}'
+      key_algorithm: Key
+      fingerprint: SHA-256 fingerprint
+      signing_certificates: Signing certificates
+      other_certificates: Other certificates
+      other_certificates_lede: These certificates are not used to sign new documents.
+      upload_cert: Upload cert
+      make_default: Make default
+      valid_to: Valid to %{date}
+      retired_note: 'Retired: kept to verify documents signed before %{date}'
+      not_in_use_note: Not in use. New documents are signed with the StevensED signing certificate.
+      vault_default_locked: The StevensED signing certificate is in use while Vault signing is enabled.
+      timestamp_heading: Timestamp authority
+      timestamp_lede: Each signature carries a trusted time from this RFC 3161 timestamp authority.
+      timestamp_url: Timestamp authority URL
+      verify_heading: Verify a signed PDF
+      verify_lede: Upload a signed PDF to check its signatures and certificates.
+      verify_action: Verify a signed PDF
     embed:
       unavailable: The template builder is not available
       invalid_token: The access token is invalid or has expired. Reload the page to request a new one.
@@ -195,3 +262,7 @@ en:
         subject: 'StevensED Agreements: password reset instructions'
   type: Type
   type_here_: Type your name or initials
+en-US:
+  <<: *stevensed_sentence_case
+en-GB:
+  <<: *stevensed_sentence_case

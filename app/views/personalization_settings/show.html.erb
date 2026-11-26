@@ -1,24 +1,27 @@
 <% content_for(:native_title, t('personalization')) if turbo_native_app? %>
 <div class="flex flex-wrap space-y-4 md:flex-nowrap md:space-y-0">
   <%= render 'shared/settings_nav' %>
-  <div class="flex-grow max-w-xl mx-auto">
-    <p class="text-3xl md:text-4xl font-bold mb-4">
-      <%= t('email_templates') %>
-    </p>
+  <div class="flex-grow">
+    <h1 class="text-3xl md:text-4xl font-bold mb-4">
+      <%= t('stevensed.personalization.title') %>
+    </h1>
+    <h2 class="text-2xl font-bold mb-4">
+      <%= t('stevensed.personalization.email_templates') %>
+    </h2>
     <div class="space-y-4">
       <%= render 'signature_request_email_form' %>
       <%= render 'documents_copy_email_form' %>
       <%= render 'submitter_completed_email_form' %>
     </div>
     <% if !turbo_native_app? || can?(:manage, :custom_logo) %>
-      <p class="text-3xl md:text-4xl font-bold mb-4 mt-8">
-        <%= t('company_logo') %>
-      </p>
+      <h2 class="text-2xl font-bold mb-4 mt-10">
+        <%= t('stevensed.personalization.company_logo') %>
+      </h2>
       <%= render 'logo_form' %>
     <% end %>
-    <p class="text-3xl md:text-4xl font-bold mb-4 mt-8">
-      <%= t('submission_form') %>
-    </p>
+    <h2 class="text-2xl font-bold mb-4 mt-10">
+      <%= t('stevensed.personalization.submission_form') %>
+    </h2>
     <div class="space-y-4">
       <%= render 'form_completed_message_form' %>
       <%= render 'form_completed_button_form' %>
@@ -26,5 +29,4 @@
     </div>
     <%= render 'form_customization_settings' %>
   </div>
-  <div class="w-0 lg:w-52"></div>
 </div>
