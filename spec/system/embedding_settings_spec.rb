@@ -27,7 +27,9 @@ RSpec.describe 'Embedding settings' do
     expect(page).to have_no_content('Allowed sites')
   end
 
-  it 'opens the HTML template form from the create dialog' do
+  it 'opens the HTML template form from the create dialog with the account paper size' do
+    account.update!(timezone: 'Mountain Time (US & Canada)')
+
     sign_in(admin)
     visit new_template_path
 
@@ -35,5 +37,14 @@ RSpec.describe 'Embedding settings' do
 
     expect(page).to have_field('html')
     expect(page).to have_select('size', selected: 'Letter')
+  end
+
+  it 'preselects A4 for accounts outside US time zones' do
+    sign_in(admin)
+    visit new_template_path
+
+    click_link 'Create a template from HTML'
+
+    expect(page).to have_select('size', selected: 'A4')
   end
 end
