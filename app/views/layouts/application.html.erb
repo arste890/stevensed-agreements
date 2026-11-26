@@ -1,3 +1,4 @@
+<% render 'stevensed/styles' unless turbo_native_app? %>
 <!DOCTYPE html>
 <html data-theme="docuseal" lang="<%= I18n.locale %>">
   <head>
@@ -19,6 +20,7 @@
       <link href="<%= canonical_url %>" rel="canonical">
     <% end %>
     <%= stylesheet_pack_tag 'application', media: 'all', data: { turbo_track: 'dynamic' } %>
+    <%= yield :head %>
   </head>
   <body>
     <% if params[:modal].present? %>
@@ -31,9 +33,10 @@
     <turbo-frame id="modal"></turbo-frame>
     <turbo-frame id="drawer"></turbo-frame>
     <%= render turbo_native_app? ? 'shared/native_navbar' : 'shared/navbar' %>
-    <main class="max-w-6xl mx-auto px-4 md:px-2 mb-8">
+    <main class="max-w-6xl mx-auto px-4 md:px-2 mb-8 se-app-main">
       <%= yield %>
     </main>
+    <%= render 'stevensed/footer' unless turbo_native_app? %>
     <% if flash.present? %><%= render 'shared/flash' %><% end %>
     <%= render 'shared/body_scripts' %>
   </body>

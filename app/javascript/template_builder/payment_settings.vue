@@ -195,12 +195,7 @@
         class="px-1 pb-1.5"
         @click.stop
       >
-        <a
-          class="block link text-center text-xs"
-          href="https://www.docuseal.com/blog/accept-payments-and-request-signatures-with-ease"
-          target="_blank"
-          data-turbo="false"
-        >{{ t('learn_more') }}</a>
+
       </div>
       <li
         v-if="withFormula || !nativePlatform"
