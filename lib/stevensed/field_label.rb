@@ -8,8 +8,13 @@ module Stevensed
 
     module_function
 
-    def display(name)
-      name.to_s.sub(SECTION_NUMBER, '')
+    # With role, a leading "Role — " (as in "Student — Signature") is left out too, for lists already grouped by
+    # signer.
+    def display(name, role: nil)
+      name = name.to_s.sub(SECTION_NUMBER, '')
+      name = name.sub(/\A#{Regexp.escape(role.to_s)}\s*[—–:-]\s+/i, '') if role.present?
+
+      name.presence || name
     end
   end
 end

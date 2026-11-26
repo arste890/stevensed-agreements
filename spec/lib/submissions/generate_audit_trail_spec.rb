@@ -80,8 +80,17 @@ describe Submissions::GenerateAuditTrail do
     text = pdf_text(build).join("\n")
 
     expect(text).to include('Testa Q. Signer')
-    expect(text).to include(field['name'].delete_prefix('10. ').upcase)
+    expect(text).to include(field['name'].delete_prefix('10. '), 'FIELD', 'ENTRY')
     expect(text).not_to include('10. ')
+  end
+
+  it 'writes dates as day, month name and year' do
+    text = pdf_text(build).join("\n")
+
+    completed_at = submission.submitters.first.completed_at.in_time_zone(account.timezone)
+
+    expect(text).to include(Stevensed.format_date(completed_at))
+    expect(text).to match(/\b\d{1,2} [A-Z][a-z]+ \d{4}, \d{1,2}:\d{2} [AP]M/)
   end
 
   it 'uses Letter for US time zones and A4 elsewhere' do

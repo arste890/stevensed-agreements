@@ -75,6 +75,10 @@ en:
       time_stamp_authority: Time-stamp authority
       verification: This log and the documents it describes are signed with the certificate above. To confirm a signature, open the document in Adobe Acrobat or Reader and compare the certificate fingerprints with those published at
       page_number_of_total: Page %{number} of %{total}
+      field: Field
+      entry: Entry
+      'yes': 'Yes'
+      'no': 'No'
     embed:
       unavailable: The template builder is not available
       invalid_token: The access token is invalid or has expired. Reload the page to request a new one.

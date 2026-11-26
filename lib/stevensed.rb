@@ -21,6 +21,22 @@ module Stevensed
 
   module_function
 
+  # StevensED date style: 26 November 2026, and 26 November 2026, 12:12 PM MST with the time.
+  DATE_FORMAT = '%-d %B %Y'
+  DATETIME_FORMAT = '%-d %B %Y, %-I:%M %p'
+  DATETIME_SECONDS_FORMAT = '%-d %B %Y, %-I:%M:%S %p'
+
+  def format_date(date)
+    I18n.l(date.to_date, format: DATE_FORMAT)
+  end
+
+  def format_datetime(time, timezone, seconds: false)
+    time = time.in_time_zone(timezone)
+
+    "#{I18n.l(time, format: seconds ? DATETIME_SECONDS_FORMAT : DATETIME_FORMAT)} " \
+      "#{TimeUtils.timezone_abbr(timezone, time)}"
+  end
+
   # Letter for accounts in a US time zone, A4 otherwise. Used for the audit log and for HTML-built forms.
   def page_size(account)
     abbr = TimeUtils.timezone_abbr(account&.timezone, Time.current.beginning_of_year)

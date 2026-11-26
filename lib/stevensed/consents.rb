@@ -319,13 +319,16 @@ module Stevensed
     end
 
     # One or two lines for the signer's block in the audit log.
-    def audit_line(event)
+    # With a time zone, times are written in the StevensED date style (Stevensed.format_datetime); otherwise
+    # as UTC ISO 8601.
+    def audit_line(event, timezone: nil)
       data = event.data.to_h
-      at = event.event_timestamp.utc.iso8601
+      stamp = ->(time) { timezone ? Stevensed.format_datetime(time, timezone) : time.utc.iso8601 }
+      at = stamp.call(event.event_timestamp)
       line =
         if data['consent_form']
           "Electronic records consent on file#{' (parent or guardian)' if data['via_parent']}: " \
-            "#{data['consent_form']} signed #{data['consent_signed_at']}" \
+            "#{data['consent_form']} signed #{signed_at(data['consent_signed_at'], stamp, timezone)}" \
             "#{" (envelope #{data['consent_envelope']})" if data['consent_envelope']}, confirmed #{at}"
         elsif data['source'] == 'in_envelope'
           "Electronic records consent: given in this envelope, #{at}"
@@ -336,6 +339,10 @@ module Stevensed
         data['student_age']
 
       "#{line}\n"
+    end
+
+    def signed_at(value, stamp, timezone)
+      timezone && value.present? ? stamp.call(Time.zone.parse(value)) : value
     end
 
     def request_paper!(submitter)

@@ -332,8 +332,6 @@ module Submissions
                 timezone = submitter.account.timezone
                 timezone = submitter.timezone || submitter.account.timezone if with_submitter_timezone
 
-                time_format = with_timestamp_seconds ? :detailed : :long
-
                 signature_timestamp =
                   (with_signature_id_completed_at ? submitter.completed_at : nil) || attachment.created_at
 
@@ -347,8 +345,7 @@ module Submissions
                                 else
                                   I18n.t('stevensed.audit_log.signed_by')
                                 end,
-                  time: "#{I18n.l(signature_timestamp.in_time_zone(timezone), format: time_format)} " \
-                        "#{TimeUtils.timezone_abbr(timezone, signature_timestamp)}"
+                  time: Stevensed.format_datetime(signature_timestamp, timezone, seconds: with_timestamp_seconds)
                 }
               end
 

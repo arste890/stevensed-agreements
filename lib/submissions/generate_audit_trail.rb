@@ -24,6 +24,7 @@ module Submissions
     BAND_MUTED = 'C9D0DE'
     RULE = 'D8D0C1'
     PANEL = 'F7F5F1'
+    LABEL_CELL = 'F1EDE5'
     TEXT_COLOR = INK
 
     MARGIN_X = 54
@@ -212,7 +213,7 @@ module Submissions
                                        cell_style: { padding: [0, 0, 14, 0], border: { width: 0 } })
       end
 
-      section_heading(composer, t(:signers))
+      signers_heading = false
 
       submission.template_submitters.filter_map do |item|
         submitter = submission.submitters.find { |e| e.uuid == item['uuid'] }
@@ -272,7 +273,7 @@ module Submissions
             *(is_id_verified && detail.call(I18n.t('identity_verification'), I18n.t('verified'))),
             *(complete_kba_event.persisted? &&
               detail.call(I18n.t('knowledge_based_authentication'), "#{I18n.t('passed')}#{kba_score}")),
-            esign_consent_event && { text: Stevensed::Consents.audit_line(esign_consent_event) },
+            esign_consent_event && { text: Stevensed::Consents.audit_line(esign_consent_event, timezone:) },
             *(completed_event.data['ip'] && detail.call(t(:ip_address), completed_event.data['ip'])),
             *(completed_event.data['sid'] && detail.call(I18n.t('session_id'), completed_event.data['sid'])),
             *(completed_event.data['ua'] && detail.call(t(:user_agent), completed_event.data['ua'].to_s.squish)),
@@ -280,7 +281,7 @@ module Submissions
           ].compact_blank, line_spacing: 1.4
         )
 
-        composer.table(
+        panel_box = composer.document.layout.table_box(
           [[identity_box, details_box]],
           column_widths: [170, -1],
           cell_style: { padding: [10, 12, 8, 12], background_color: PANEL,
@@ -314,8 +315,9 @@ module Submissions
         end
 
         submitter_field_counters = Hash.new { 0 }
+        layout = composer.document.layout
 
-        submission.template_fields.filter_map do |field|
+        field_rows = submission.template_fields.filter_map do |field|
           submitter_field_counters[field['type']] += 1
 
           next if field['submitter_uuid'] != submitter.uuid
@@ -328,7 +330,8 @@ module Submissions
           next if Array.wrap(value).compact_blank.blank?
 
           field_name = grouped_value_field_names[value].presence || field['title'].presence || field['name'].to_s
-          field_name = field_name.split(', ').map { |name| Stevensed::FieldLabel.display(name) }.join(', ')
+          field_name = field_name.split(', ').map { |name| Stevensed::FieldLabel.display(name, role: item['name']) }
+                                 .join(', ')
 
           field_type = field['type']
 
@@ -338,18 +341,11 @@ module Submissions
             field_type = 'file'
           end
 
+          label = TextUtils.maybe_rtl_reverse(field_name).presence ||
+                  "#{I18n.t("#{field['type']}_field")} #{submitter_field_counters[field['type']]}"
+
           [
-            composer.formatted_text_box(
-              [
-                {
-                  text: TextUtils.maybe_rtl_reverse(field_name).upcase.presence ||
-                        "#{I18n.t("#{field['type']}_field")} #{submitter_field_counters[field['type']]}".upcase,
-                  style: :eyebrow
-                }
-              ].compact_blank,
-              text_align: field_name.to_s.match?(RTL_REGEXP) ? :right : :left,
-              line_spacing: 1.3, padding: [0, 0, 2, 12]
-            ),
+            layout.text_box(label, text_align: label.match?(RTL_REGEXP) ? :right : :left),
             if field_type.in?(%w[image signature initials stamp kba]) &&
                (attachment = submitter.attachments.find { |a| a.uuid == value }) &&
                attachment.image?
@@ -383,46 +379,40 @@ module Submissions
                 height = MAX_IMAGE_HEIGHT
               end
 
+              image_box = layout.image_box(io, width:, height:, margin: [2, 0, 2, 0])
+
               if with_signature_id && field['type'].in?(%w[signature initials])
-                composer.image(io, width:, height:, margin: [4, 0, 2, 12])
-                composer.formatted_text_box([{ text: "ID #{attachment.uuid.upcase}", style: :eyebrow }],
-                                            padding: [0, 0, 10, 12])
+                [image_box, layout.text_box("ID #{attachment.uuid.upcase}", style: :eyebrow)]
               else
-                composer.image(io, width:, height:, margin: [4, 0, 10, 12])
-                composer.formatted_text_box([{ text: '' }])
+                image_box
               end
             elsif field_type.in?(%w[file payment image])
-              if field['type'] == 'payment'
-                unit = CURRENCY_SYMBOLS[field['preferences']['currency']] || field['preferences']['currency']
+              unit = CURRENCY_SYMBOLS[field.dig('preferences', 'currency')] || field.dig('preferences', 'currency')
 
-                price = ApplicationController.helpers.number_to_currency(field['preferences']['price'], unit:)
+              layout.formatted_text_box(
+                [
+                  field['type'] == 'payment' &&
+                    { text: "#{I18n.t('paid_price', price: ApplicationController.helpers.number_to_currency(
+                      field['preferences']['price'], unit:
+                    ))}\n" },
+                  *Array.wrap(value).map do |uuid|
+                    attachment = submitter.attachments.find { |a| a.uuid == uuid }
 
-                composer.formatted_text_box([{ text: "#{I18n.t('paid_price', price:)}\n" }],
-                                            padding: [0, 0, 10, 12])
-              end
+                    link =
+                      if with_file_links
+                        ActiveStorage::Blob.proxy_url(attachment.blob, expires_at: file_links_expire_at)
+                      else
+                        r.submissions_preview_url(submission.slug, **Docuseal.default_url_options)
+                      end
 
-              composer.formatted_text_box(
-                Array.wrap(value).map do |uuid|
-                  attachment = submitter.attachments.find { |a| a.uuid == uuid }
-
-                  link =
-                    if with_file_links
-                      ActiveStorage::Blob.proxy_url(attachment.blob, expires_at: file_links_expire_at)
-                    else
-                      r.submissions_preview_url(submission.slug, **Docuseal.default_url_options)
-                    end
-
-                  { link:, text: "#{TextUtils.maybe_rtl_reverse(attachment.filename.to_s)}\n", style: :link }
-                end,
-                padding: [0, 0, 10, 12]
+                    { link:, text: "#{TextUtils.maybe_rtl_reverse(attachment.filename.to_s)}\n", style: :link }
+                  end
+                ].compact_blank
               )
             elsif field_type == 'checkbox'
-              composer.formatted_text_box([{ text: value.to_s.titleize }], padding: [0, 0, 10, 12])
+              layout.text_box(ActiveModel::Type::Boolean.new.cast(value) ? t(:yes) : t(:no))
             else
-              if field['type'] == 'date'
-                value = TimeUtils.format_date_string(value, field.dig('preferences', 'format'), I18n.locale,
-                                                     timezone:)
-              end
+              value = format_date(value, field, timezone) if field['type'] == 'date'
 
               value = NumberUtils.format_number(value, field.dig('preferences', 'format')) if field['type'] == 'number'
 
@@ -432,14 +422,42 @@ module Submissions
                 value = TextUtils.mask_value(value, mask)
               end
 
-              composer.formatted_text_box([{ text: TextUtils.maybe_rtl_reverse(value.to_s.presence || 'n/a') }],
-                                          text_align: value.to_s.match?(RTL_REGEXP) ? :right : :left,
-                                          padding: [0, 0, 10, 12])
+              layout.text_box(TextUtils.maybe_rtl_reverse(value.to_s.presence || 'n/a'),
+                              text_align: value.to_s.match?(RTL_REGEXP) ? :right : :left)
             end
           ]
         end
 
-        composer.formatted_text_box([{ text: '' }], margin: [0, 0, 8, 0])
+        fields_box =
+          if field_rows.present?
+            layout.table_box(
+              field_rows,
+              column_widths: [170, -1],
+              header: lambda do |_table|
+                [[{ content: layout.text_box(t(:field).upcase, style: :eyebrow, fill_color: 'FFFFFF'),
+                    background_color: NAVY, padding: [5, 8, 4, 8] },
+                  { content: layout.text_box(t(:entry).upcase, style: :eyebrow, fill_color: 'FFFFFF'),
+                    background_color: NAVY, padding: [5, 8, 4, 8] }]]
+              end,
+              cell_style: lambda do |cell|
+                cell.style.update(padding: [5, 8, 4, 8], border: { width: [0, 0, 0.5, 0], color: RULE })
+                cell.style.update(background_color: LABEL_CELL) if cell.column.zero?
+              end,
+              margin: [0, 0, 18, 0]
+            )
+          end
+
+        # A signer's card and entries stay on one page when they fit on one; longer lists continue on the next
+        # page under a repeated header.
+        if signers_heading
+          keep_together(composer, [panel_box, fields_box].compact)
+        else
+          section_heading(composer, t(:signers), keep: [panel_box, fields_box].compact)
+          signers_heading = true
+        end
+
+        composer.draw_box(panel_box)
+        fields_box ? composer.draw_box(fields_box) : composer.formatted_text_box([{ text: '' }], margin: [0, 0, 8, 0])
       end
 
       submitter_versions_index = submission.submitters.preload(:submitter_versions).to_h do |s|
@@ -543,8 +561,12 @@ module Submissions
       composer.document
     end
 
-    def section_heading(composer, title)
-      composer.text(title, style: :section)
+    # The heading stays with what follows it: the boxes in keep when given, otherwise at least 110 pt of content.
+    def section_heading(composer, title, keep: nil)
+      heading = composer.document.layout.text_box(title, style: :section)
+      keep ? keep_together(composer, [heading, *keep], extra: 11) : keep_with_next(composer, 110)
+
+      composer.draw_box(heading)
       composer.draw_box(HexaPDF::Layout::Box.create(height: 0.75, margin: [0, 0, 10, 0],
                                                     border: { width: [0.75, 0, 0, 0], color: RULE }))
     end
@@ -641,8 +663,8 @@ module Submissions
         [t(:certificate_issuer), name_part.call(certificate.issuer, 'CN') || certificate.issuer.to_s],
         root && [t(:root_certificate), name_part.call(root.subject, 'CN') || root.subject.to_s],
         [t(:serial_number), certificate.serial.to_s(16).upcase],
-        [t(:valid), "#{format_time(certificate.not_before, timezone, :long)} to " \
-                    "#{format_time(certificate.not_after, timezone, :long)}"],
+        [t(:valid), "#{Stevensed.format_date(certificate.not_before.in_time_zone(timezone))} to " \
+                    "#{Stevensed.format_date(certificate.not_after.in_time_zone(timezone))}"],
         [t(:sha256_fingerprint), OpenSSL::Digest::SHA256.hexdigest(certificate.to_der).upcase.scan(/../)
                                                       .each_slice(16).map { |bytes| bytes.join(':') }.join(":\n")],
         tsa_host && [t(:time_stamp_authority), tsa_host]
@@ -707,7 +729,30 @@ module Submissions
     end
 
     def format_time(time, timezone, format)
-      "#{I18n.l(time.in_time_zone(timezone), format:)} #{TimeUtils.timezone_abbr(timezone, time)}"
+      Stevensed.format_datetime(time, timezone, seconds: format == :detailed)
+    end
+
+    def format_date(value, field, timezone)
+      Stevensed.format_date(Date.iso8601(value.to_s))
+    rescue Date::Error
+      TimeUtils.format_date_string(value, field.dig('preferences', 'format'), I18n.locale, timezone:)
+    end
+
+    # Starts a new page when the boxes do not fit in what is left of this page but would fit on an empty one.
+    def keep_together(composer, boxes, extra: 0)
+      frame = composer.frame
+      height = extra + boxes.sum do |box|
+        probe = HexaPDF::Layout::Frame.new(0, 0, frame.width, 100_000, context: frame.context)
+        probe.fit(box).then { box.height + box.style.margin.top + box.style.margin.bottom }
+      end
+
+      composer.new_page if height > frame.available_height && height <= frame.height
+    end
+
+    # Starts a new page when less than height is left, so that a heading or signer card is not left at the foot
+    # of a page apart from what follows it.
+    def keep_with_next(composer, height)
+      composer.new_page if composer.frame.available_height < height
     end
 
     def sign_reason
