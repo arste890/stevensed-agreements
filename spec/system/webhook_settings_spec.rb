@@ -27,7 +27,7 @@ RSpec.describe 'Webhook Settings' do
     visit settings_webhooks_path
 
     expect(page).to have_content('Webhooks')
-    expect(page).to have_link('New Webhook')
+    expect(page).to have_link('New webhook')
 
     webhook_urls.each do |webhook_url|
       expect(page).to have_content(webhook_url.url)

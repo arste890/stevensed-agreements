@@ -4,7 +4,7 @@ class TemplateDocumentsCropController < ApplicationController
   load_and_authorize_resource :template
   before_action :load_attachment
 
-  rescue_from Leptonica::LeptonicaError do
+  rescue_from Leptonica::LeptonicaError, ImageUtils::UnsupportedFormat, Vips::Error do # StevensED: non-image documents
     render json: { error: I18n.t(:unable_to_save) }, status: :unprocessable_content
   end
 

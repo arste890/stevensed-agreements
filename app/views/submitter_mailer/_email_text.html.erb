@@ -1,0 +1,4 @@
+<%# StevensED: an editable email part (introduction or closing note): simple markdown with variables. Locals: text, submitter, sig. %>
+<% if local_assigns[:text].present? %>
+<%= MarkdownToHtml.call(ReplaceEmailVariables.call(local_assigns[:text], submitter: local_assigns[:submitter], sig: local_assigns[:sig], html_escape: true)) %>
+<% end %>

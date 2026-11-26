@@ -6,6 +6,13 @@ module Stevensed
     REPLACEMENTS = [
       ['https://www.docuseal.com/privacy', 'https://stevensed.org/privacy/'],
       ['https://www.docuseal.com/terms', 'https://stevensed.org/terms/'],
+      ['support@docuseal.com', Stevensed::CONTACT_EMAIL],
+      ['To resolve this, follow this <a href="https://www.docuseal.com/resources/pre-filling-recipients" ' \
+       'class="link font-bold" rel="noopener noreferrer nofollow" target="_blank">guide</a> to define the ' \
+       'default signer details.',
+       'To resolve this, open the template and set default signer details for the other parties.'],
+      # Upstream help articles are not StevensED documentation: keep the link text, drop the link.
+      [%r{<a href="https://www\.docuseal\.com/resources/[^"]*"[^>]*>(.*?)</a>}, '\\1'],
       ["DocuSeal's", "#{Stevensed::PRODUCT_NAME}'s"],
       ['DocuSeal Pro', Stevensed::PRODUCT_NAME],
       ['DocuSeal Console', Stevensed::PRODUCT_NAME],

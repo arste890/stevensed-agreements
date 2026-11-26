@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe 'PDF Signature Settings' do
+RSpec.describe 'E-signature settings' do
   let!(:account) { create(:account) }
   let!(:user) { create(:user, account:) }
 
@@ -9,10 +9,10 @@ RSpec.describe 'PDF Signature Settings' do
     visit settings_esign_path
   end
 
-  it 'shows verify signed PDF page' do
-    expect(page).to have_content('PDF Signature')
-    expect(page).to have_content('Upload signed PDF file to validate its signature')
-    expect(page).to have_content('Verify Signed PDF')
+  it 'shows the verify signed PDF section' do
+    expect(page).to have_content('E-signature')
+    expect(page).to have_content('Upload a signed PDF to check its signatures and certificates.')
+    expect(page).to have_content('Verify a signed PDF')
     expect(page).to have_content('Click to upload or drag and drop files')
   end
 end

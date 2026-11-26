@@ -1,4 +1,3 @@
-<% submitter_preferences_index = template&.preferences&.dig('submitters').to_a.index_by { |e| e['uuid'] } %>
 <% template_submitters = local_assigns[:submitter]&.submission&.template_submitters || template.submitters %>
 <% message_field_id = "message_field_#{SecureRandom.hex(3)}" %>
 <% unless local_assigns[:submitter] %>
@@ -55,14 +54,9 @@
     </div>
   <% end %>
 </div>
-<% config = AccountConfigs.find_or_initialize_for_key(current_account, AccountConfig::SUBMITTER_INVITATION_EMAIL_KEY) %>
-<% view_config = AccountConfigs.find_or_initialize_for_key(current_account, AccountConfig::SUBMITTER_VIEW_INVITATION_EMAIL_KEY) %>
-<% config_body = (config.value['body_type'] == 'html' && config.value['html_body'].presence) || config.value['body'] %>
-<% view_template_subject = template&.preferences&.dig('invitation_view_email_subject').presence %>
-<% view_template_body = template&.preferences&.dig('invitation_view_email_body').presence %>
-<% default_subject = template&.preferences&.dig('request_email_subject').presence || config.value['subject'] %>
-<% default_body = template&.preferences&.dig('request_email_body').presence || config_body %>
+<%# StevensED: the message starts from the saved email text (see Stevensed::EmailParts) and replaces its introduction. %>
 <% is_edit_viewer = local_assigns[:submitter] && local_assigns[:viewer_submitter_uuids].include?(local_assigns[:submitter].uuid) %>
+<% default_subject, default_body = Stevensed::EmailParts.send_dialog_defaults(account: current_account, template:, submitter_uuid: local_assigns[:submitter]&.uuid, viewer: is_edit_viewer) %>
 <div id="<%= message_field_id %>" class="relative flex flex-col rounded-2xl md:bg-base-300/40 hidden">
   <div class="flex flex-auto flex-col gap-2 md:text-sm md:p-4">
     <%= tag.input id: toggle_uuid = SecureRandom.uuid, value: '1', name: 'request_email_per_submitter', class: 'peer', type: 'checkbox', hidden: true, checked: local_assigns[:message_per_submitter] != false && template_submitters.size < 11 && template&.preferences&.dig('submitters').to_a.size > 1 %>
@@ -81,13 +75,13 @@
             </label>
           <% end %>
         </div>
-        <%= f.text_field :subject, value: local_assigns[:submitter_email_message]&.subject.presence || (is_edit_viewer ? view_template_subject : nil) || submitter_preferences_index.dig(local_assigns[:submitter]&.uuid, 'request_email_subject').presence || (is_edit_viewer ? view_config.value['subject'] : default_subject), required: true, class: '!text-sm base-input w-full', dir: 'auto' %>
+        <%= f.text_field :subject, value: local_assigns[:submitter_email_message]&.subject.presence || default_subject, required: true, class: '!text-sm base-input w-full', dir: 'auto' %>
       </div>
       <div class="form-control">
-        <%= f.label :message, t('body'), class: 'label' %>
+        <%= f.label :message, t('stevensed.email_templates.send_dialog_message'), class: 'label' %>
         <% body_variables = AccountConfig::EMAIL_VARIABLES[AccountConfig::SUBMITTER_INVITATION_EMAIL_KEY] %>
-        <%= render 'personalization_settings/email_body_editor', name: f.field_name(:body), value: local_assigns[:submitter_email_message]&.normalized_body.presence || (is_edit_viewer ? view_template_body : nil) || submitter_preferences_index.dig(local_assigns[:submitter]&.uuid, 'request_email_body').presence || (is_edit_viewer ? view_config.value['body'] : default_body), variables: body_variables %>
-        <% if !local_assigns.fetch(:disable_save_as_default_template_option, false) && config.value['body_type'] != 'html' && template && can?(:update, template) %>
+        <%= render 'personalization_settings/email_body_editor', name: f.field_name(:body), value: local_assigns[:submitter_email_message]&.normalized_body.presence || default_body, variables: body_variables %>
+        <% if !local_assigns.fetch(:disable_save_as_default_template_option, false) && template && can?(:update, template) %>
           <label for="<%= uuid = SecureRandom.uuid %>" class="flex items-center cursor-pointer">
             <%= check_box_tag :save_message, id: uuid, class: 'base-checkbox', checked: false %>
             <span class="label"><%= t('save_as_default_template_message') %></span>
@@ -114,17 +108,18 @@
         </toggle-visible>
         <% template_submitters.each_with_index do |submitter, index| %>
           <% is_viewer = local_assigns[:viewer_submitter_uuids].include?(submitter['uuid']) %>
+          <% party_subject, party_body = Stevensed::EmailParts.send_dialog_defaults(account: current_account, template:, submitter_uuid: submitter['uuid'], viewer: is_viewer) %>
           <%= fields_for :submitter_preferences, nil, index: submitter['uuid'] do |ff| %>
             <div id="request_email_<%= uuid %>_<%= submitter['uuid'] %>" class="<%= 'hidden' if index != 0 %>">
               <div class="form-control">
                 <div class="flex justify-between">
                   <%= ff.label :subject, t('subject'), class: 'label' %>
                 </div>
-                <%= ff.text_field :subject, value: local_assigns[:submitter_email_message]&.subject.presence || (is_viewer ? view_template_subject : nil) || submitter_preferences_index.dig(submitter['uuid'], 'request_email_subject').presence || (is_viewer ? view_config.value['subject'] : default_subject), required: true, class: '!text-sm base-input w-full', dir: 'auto' %>
+                <%= ff.text_field :subject, value: local_assigns[:submitter_email_message]&.subject.presence || party_subject, required: true, class: '!text-sm base-input w-full', dir: 'auto' %>
               </div>
               <div class="form-control">
-                <%= ff.label :message, t('body'), class: 'label' %>
-                <%= render 'personalization_settings/email_body_editor', name: ff.field_name(:body), value: local_assigns[:submitter_email_message]&.normalized_body.presence || (is_viewer ? view_template_body : nil) || submitter_preferences_index.dig(submitter['uuid'], 'request_email_body').presence || (is_viewer ? view_config.value['body'] : default_body), variables: body_variables %>
+                <%= ff.label :message, t('stevensed.email_templates.send_dialog_message'), class: 'label' %>
+                <%= render 'personalization_settings/email_body_editor', name: ff.field_name(:body), value: local_assigns[:submitter_email_message]&.normalized_body.presence || party_body, variables: body_variables %>
               </div>
             </div>
           <% end %>

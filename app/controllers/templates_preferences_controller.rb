@@ -21,8 +21,13 @@ class TemplatesPreferencesController < ApplicationController
   def create
     authorize!(:update, @template)
 
-    @template.preferences = @template.preferences.merge(template_params[:preferences])
-    @template.preferences = @template.preferences.reject { |_, v| (v.is_a?(String) || v.is_a?(Hash)) && v.blank? }
+    apply_email_parts
+
+    if params[:template].present?
+      @template.preferences = @template.preferences.merge(template_params[:preferences])
+      @template.preferences = @template.preferences.reject { |_, v| (v.is_a?(String) || v.is_a?(Hash)) && v.blank? }
+    end
+
     @template.save!
 
     head :ok
@@ -40,6 +45,9 @@ class TemplatesPreferencesController < ApplicationController
       @template.preferences.delete(key)
     end
 
+    # StevensED: Reset returns the email to the account version.
+    Stevensed::EmailParts.reset_template(@template, config_key)
+
     @template.save!
 
     render turbo_stream: turbo_stream.replace("#{config_key}_form",
@@ -48,6 +56,22 @@ class TemplatesPreferencesController < ApplicationController
   end
 
   private
+
+  # StevensED: parts-based email editor (see Stevensed::EmailParts). One email per form submission.
+  def apply_email_parts
+    key = params[:email_key].to_s
+
+    return unless Stevensed::EmailParts::KEYS.include?(key)
+
+    fields = Stevensed::EmailParts::FIELDS
+    submitted = params.fetch(:email_parts, {}).permit(*fields)
+    by_submitter =
+      if key == Stevensed::EmailParts::INVITATION && params[:email_parts_by_submitter].present?
+        params[:email_parts_by_submitter].permit(@template.submitters.pluck('uuid').index_with { fields })
+      end
+
+    Stevensed::EmailParts.apply_template_fields(@template, key, submitted, by_submitter:)
+  end
 
   def template_params
     params.require(:template).permit(
