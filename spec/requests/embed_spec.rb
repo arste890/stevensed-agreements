@@ -2,7 +2,7 @@
 
 describe 'Embedding' do
   let(:account) { create(:account) }
-  let(:author) { create(:user, account:) }
+  let!(:author) { create(:user, account:) }
   let(:template) { create(:template, account:, author:, only_field_types: %w[text]) }
 
   def builder_token(user:, payload: {}, key: user.access_token.token)
@@ -130,7 +130,9 @@ describe 'Embedding' do
     end
 
     it 'rejects a token for a template in another account' do
-      other_template = create(:template, only_field_types: %w[text])
+      other_account = create(:account)
+      other_template = create(:template, account: other_account, author: create(:user, account: other_account),
+                                         only_field_types: %w[text])
 
       post embed_builder_path, params: { token: builder_token(user: author,
                                                               payload: { template_id: other_template.id }) }

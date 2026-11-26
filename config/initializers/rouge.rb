@@ -9,6 +9,12 @@ module Rouge
   module Lexers
     autoload :JSON, 'rouge/lexers/json'
     autoload :Shell, 'rouge/lexers/shell'
+    # StevensED: Settings, Embedding snippets
+    autoload :HTML, 'rouge/lexers/html'
+    autoload :CSS, 'rouge/lexers/css'
+    autoload :Javascript, 'rouge/lexers/javascript'
+    autoload :Ruby, 'rouge/lexers/ruby'
+    autoload :Python, 'rouge/lexers/python'
   end
 
   autoload :Formatter, 'rouge/formatter'
