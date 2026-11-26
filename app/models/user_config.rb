@@ -26,6 +26,7 @@ class UserConfig < ApplicationRecord
   RECEIVE_COMPLETED_EMAIL = 'receive_completed_email'
   RECEIVE_DECLINED_EMAIL = 'receive_declined_email'
   SHOW_APP_TOUR = 'show_app_tour'
+  OFFICE_KEY = 'stevensed_office' # StevensED: default "Send as" office
 
   belongs_to :user
 

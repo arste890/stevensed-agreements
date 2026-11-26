@@ -1,0 +1,4 @@
+<%# StevensED: "Send as" requester for a submission: name and office, office only, or name and organization. Locals: submission. %>
+<% requester = Stevensed::Requesters.for_submission(local_assigns[:submission]) %>
+<% lines = requester['name'].present? ? [requester['name'], requester['office'].presence || Stevensed::ORGANIZATION] : [requester['office'].presence || Stevensed::ORGANIZATION] %>
+<%= safe_join(lines, tag.br) %>

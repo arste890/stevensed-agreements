@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 class ApplicationMailer < ActionMailer::Base
-  default from: "#{Stevensed::ORGANIZATION} #{Stevensed::OFFICE} <#{Stevensed::CONTACT_EMAIL}>"
+  # StevensED: system emails (password reset, codes, staff invitations) come from the service at the office address.
+  default from: "#{Stevensed::PRODUCT_NAME} <#{Stevensed::CONTACT_EMAIL}>"
   layout 'mailer'
 
   register_interceptor ActionMailerConfigsInterceptor

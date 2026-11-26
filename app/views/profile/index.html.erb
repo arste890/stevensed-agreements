@@ -17,6 +17,11 @@
         </div>
       </div>
       <div class="form-control">
+        <%= label_tag :office, t('stevensed.office'), class: 'label' %>
+        <%= select_tag :office, options_for_select(Stevensed::Requesters.offices(current_account), Stevensed::Requesters.profile_office(current_user)), include_blank: t('stevensed.office_none'), class: 'base-select' %>
+        <label class="label"><span class="label-text-alt"><%= t('stevensed.office_hint') %></span></label>
+      </div>
+      <div class="form-control">
         <%= f.label :email, t('email'), class: 'label' %>
         <%= f.email_field :email, autocomplete: 'off', class: 'base-input' %>
         <% if current_user.try(:pending_reconfirmation?) %>

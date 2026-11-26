@@ -35,6 +35,16 @@ en:
     invite_subject: 'StevensED: please review and sign "%{name}"'
     redirecting_to_sso: Taking you to StevensED sign-in. If nothing happens, choose the button below.
     dashboard: Dashboard
+    office: Default office
+    office_none: None (StevensED)
+    office_hint: Preselected under "Send as" when you send a signature request. Offices are managed in Settings, Offices.
+    offices: Offices
+    offices_intro: Offices that staff can choose under "Send as" when sending a signature request. The choice is shown as the requester in the email and in its From line.
+    offices_label: One office per line
+    offices_hint: Renaming or removing an office does not change requests that were already sent.
+    send_as: Send as
+    send_as_with_name: With your name
+    send_as_office_only: Office only
     email:
       # Subjects
       view_subject: 'StevensED: "%{name}" has been shared with you'

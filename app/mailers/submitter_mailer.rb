@@ -2,7 +2,8 @@
 
 class SubmitterMailer < ApplicationMailer
   MAX_ATTACHMENTS_SIZE = 10.megabytes
-  SIGN_TTL = 1.hour + 20.minutes
+  # StevensED: signed download links in copy emails stay valid for 7 days (upstream: 80 minutes).
+  SIGN_TTL = 7.days
 
   NO_REPLY_REGEXP = /no-?reply@/i
   STEVENSED_SUBJECT_PREFIX = 'StevensED: '
@@ -363,7 +364,8 @@ class SubmitterMailer < ApplicationMailer
 
       put_metadata('from_user_id' => user.id)
 
-      user.friendly_name
+      # StevensED: From shows the "Send as" requester at the office address, never a personal address.
+      Stevensed::Requesters.from_address(Stevensed::Requesters.for_submission(submitter.submission))
     end
   end
 
