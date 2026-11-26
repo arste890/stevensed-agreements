@@ -19,7 +19,8 @@ Rails.application.routes.draw do
   post '/upload_spreadsheet', to: 'upload_spreadsheets#create' # StevensED bulk send
 
   get 'up' => 'rails/health#show'
-  get 'manifest' => 'pwa#manifest'
+  get 'manifest.json' => 'pwa#manifest', format: false, defaults: { format: :json }
+  get 'manifest', to: redirect('/manifest.json') # StevensED: /manifest without .json used to return 500
 
   devise_for :users, path: '/', only: %i[sessions passwords],
                      controllers: { sessions: 'sessions', passwords: 'passwords' }

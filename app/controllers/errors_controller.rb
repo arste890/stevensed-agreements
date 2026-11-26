@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
 class ErrorsController < ActionController::Base
-  ENTERPRISE_FEATURE_MESSAGE =
-    'This feature is available in Pro Edition: https://www.docuseal.com/pricing'
+  ENTERPRISE_FEATURE_MESSAGE = 'This feature is not available in StevensED Agreements.' # StevensED
 
   ENTERPRISE_PATHS = [
     '/submissions/html',
@@ -40,7 +39,7 @@ class ErrorsController < ActionController::Base
         render json: { status: error_status_code, error: }.compact, status: error_status_code
       end
 
-      f.any { render error_status_code.to_s, status: error_status_code }
+      f.any { render error_page, formats: [:html], content_type: 'text/html', status: error_status_code }
     end
   end
 
@@ -52,6 +51,15 @@ class ErrorsController < ActionController::Base
     headers['Access-Control-Allow-Headers'] = '*'
     headers['Access-Control-Max-Age'] = '1728000'
     headers['Access-Control-Allow-Credentials'] = 'true'
+  end
+
+  # StevensED: every status gets a page. Statuses without their own page use the generic 400 or 500 page.
+  def error_page
+    page = error_status_code.to_s
+
+    return page if lookup_context.exists?(page, ['errors'], false, [], formats: [:html])
+
+    error_status_code < 500 ? '400' : '500'
   end
 
   def error_status_code
