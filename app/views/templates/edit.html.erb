@@ -9,7 +9,7 @@
 <% end %>
 <% account_configs = current_account.account_configs.where(key: [AccountConfig::TEMPLATE_CUSTOM_FIELDS_KEY, AccountConfig::TEMPLATE_DATE_FORMATS_KEY, AccountConfig::TEMPLATE_BUILDER_AUTOSAVE_KEY]).to_a %>
 <% custom_fields = account_configs.find { |e| e.key == AccountConfig::TEMPLATE_CUSTOM_FIELDS_KEY }&.value || [] %>
-<% date_formats = account_configs.find { |e| e.key == AccountConfig::TEMPLATE_DATE_FORMATS_KEY }&.value || [] %>
+<% date_formats = account_configs.find { |e| e.key == AccountConfig::TEMPLATE_DATE_FORMATS_KEY }&.value.presence || [TimeUtils::STEVENSED_DATE_FORMAT] %>
 <% autosave = account_configs.find { |e| e.key == AccountConfig::TEMPLATE_BUILDER_AUTOSAVE_KEY }&.value != false %>
 <% unless turbo_native_app? %>
   <%# StevensED: the builder renders its title and actions into the institutional header. %>

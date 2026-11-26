@@ -527,7 +527,7 @@ export default {
         try {
           return this.formatDate(
             this.modelValue === '{{date}}' ? new Date() : new Date(this.modelValue),
-            this.field.preferences?.format || (this.locale.endsWith('-US') ? 'MM/DD/YYYY' : 'DD/MM/YYYY'),
+            this.stevensedDateFormat(this.field.preferences?.format),
             { withTimePlaceholders: this.modelValue === '{{date}}', utc: this.modelValue !== '{{date}}' }
           )
         } catch {
@@ -650,6 +650,13 @@ export default {
       } else {
         return number
       }
+    },
+    // StevensED: date-only formats are shown as 26 November 2026; formats with a time or without a day keep theirs.
+    stevensedDateFormat (format) {
+      if (!format) return 'D MMMM YYYY'
+      if (/[HhmsAaz]/.test(format) || !format.includes('D')) return format
+
+      return 'D MMMM YYYY'
     },
     formatDate (date, format, { withTimePlaceholders = false, utc = true } = {}) {
       const monthFormats = { M: 'numeric', MM: '2-digit', MMM: 'short', MMMM: 'long' }

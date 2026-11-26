@@ -70,6 +70,13 @@
         :value="modelValue"
       >
     </div>
+    <p
+      v-if="formatType === 'date' && displayDate"
+      class="text-center mt-2 text-base"
+      aria-live="polite"
+    >
+      {{ displayDate }}
+    </p>
   </div>
 </template>
 
@@ -104,6 +111,15 @@ export default {
   },
   emits: ['update:model-value', 'focus', 'submit'],
   computed: {
+    // StevensED: the chosen date shown as 26 November 2026 (the native date input keeps the device's own style).
+    displayDate () {
+      if (!this.value || !/^\d{4}-\d{2}-\d{2}$/.test(this.value)) return ''
+
+      const [y, m, d] = this.value.split('-').map(Number)
+
+      return new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
+        .format(new Date(Date.UTC(y, m - 1, d)))
+    },
     formatType () {
       const format = this.field.preferences?.format || ''
 
@@ -197,8 +213,12 @@ export default {
 
       this.setInputValue(parsedDate)
     },
+    // StevensED: "today" is the date in America/Denver, whatever the signer's device time zone.
     setCurrentDate () {
-      this.setInputValue(new Date())
+      const [y, m, d] = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Denver', year: 'numeric', month: '2-digit', day: '2-digit' })
+        .format(new Date()).split('-').map(Number)
+
+      this.setInputValue(this.formatType === 'datetime' ? new Date() : new Date(y, m - 1, d))
     },
     setInputValue (date) {
       const inputEl = this.$refs.input

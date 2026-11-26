@@ -179,6 +179,11 @@ module Stevensed
         field['readonly'] = true if f['readonly']
         field['default_value'] = f['default_value'] if f.key?('default_value')
         field['preferences'] = f['preferences'] if f['preferences'].present?
+        if field['type'] == 'date'
+          field['preferences'] = (field['preferences'] || {}).merge(
+            'format' => TimeUtils.stevensed_format(field.dig('preferences', 'format'))
+          )
+        end
         field['description'] = f['description'] if f['description'].present?
         field['options'] = f['options'].map { |o| option(o) } if f['options'].present?
         field['areas'] = f.fetch('areas').map { |a| area(a, attachment_uuid, sizes) }

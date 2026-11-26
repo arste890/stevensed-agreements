@@ -3,6 +3,17 @@ en:
   # Sentence case for upstream headings and buttons shown on Settings pages. Merged into en-US and en-GB at the
   # end of this file, because those locales copy the upstream en strings instead of falling back to them.
   <<: &stevensed_sentence_case
+    # StevensED date style everywhere: 26 November 2026 (and 26 November 2026, 12:12 PM with a time).
+    date:
+      formats:
+        default: '%-d %B %Y'
+        short: '%-d %b'
+        long: '%-d %B %Y'
+    time:
+      formats:
+        short: '%-d %b, %-I:%M %p'
+        long: '%-d %B %Y, %-I:%M %p'
+        detailed: '%-d %B %Y, %-I:%M:%S %p'
     archived_users: Archived users
     build_search_index: Build search index
     change_password: Change password

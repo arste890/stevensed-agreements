@@ -60,8 +60,11 @@ module TimeUtils
 
   MONTH_ONLY_VALUE_REGEX = /\A\d{4}-\d{2}\z/
 
-  DEFAULT_DATE_FORMAT_US = 'MM/DD/YYYY'
-  DEFAULT_DATE_FORMAT = 'DD/MM/YYYY'
+  # StevensED: one date style everywhere (26 November 2026). Date-only field formats are shown in it; formats with
+  # a time or without a day (month and year) keep their own pattern. Stored values stay ISO dates.
+  STEVENSED_DATE_FORMAT = 'D MMMM YYYY'
+  DEFAULT_DATE_FORMAT_US = STEVENSED_DATE_FORMAT
+  DEFAULT_DATE_FORMAT = STEVENSED_DATE_FORMAT
 
   US_TIMEZONES = %w[EST EDT CST CDT MST MDT PST PDT HST HDT AKST AKDT].freeze
 
@@ -91,9 +94,16 @@ module TimeUtils
     format.to_s.present? && !format.to_s.match?(/[DdHhAasz]/)
   end
 
+  def stevensed_format(format)
+    return STEVENSED_DATE_FORMAT if format.blank?
+    return format if format.match?(/[HhmsAaz]/) || !format.include?('D')
+
+    STEVENSED_DATE_FORMAT
+  end
+
   def format_date_preview(format, locale, timezone)
     format = format.upcase if format && !format_with_time?(format)
-    format = format.presence || (locale.to_s.ends_with?('US') ? DEFAULT_DATE_FORMAT_US : DEFAULT_DATE_FORMAT)
+    format = stevensed_format(format)
 
     preview_pattern = format.gsub(TOKEN_REGEX) { |token| TIME_FORMATS.key?(token) ? '--' : ALL_FORMATS[token] }
 
@@ -122,7 +132,7 @@ module TimeUtils
 
   def format_date_string(string, format, locale, timezone: nil)
     format = format.upcase if format && !format_with_time?(format)
-    format = format.presence || (locale.to_s.ends_with?('US') ? DEFAULT_DATE_FORMAT_US : DEFAULT_DATE_FORMAT)
+    format = stevensed_format(format)
 
     date =
       if format_with_time?(format)
