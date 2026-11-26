@@ -85,6 +85,13 @@ describe Stevensed::Consents do
       expect(described_class.prepare(signer, request)).to eq(:sign_consent)
     end
 
+    it 'shows no gate on the consent form itself' do
+      signer = signer_for(frm102m, 'Parent')
+
+      expect(described_class.prepare(signer, request)).to eq(:none)
+      expect(signer.submission_events.find_by!(event_type: :accept_esign_consent).data['source']).to eq('in_envelope')
+    end
+
     it 'falls back to the checkbox when no consent form is published' do
       signer = signer_for(build_template(external_id: nil, roles: ['Candidate'], name: 'Offer Letter'), 'Candidate')
 

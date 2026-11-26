@@ -258,6 +258,12 @@ module Stevensed
     def prepare(submitter, request)
       return :none if submitter.viewer? || submitter.completed_at? || submitter.declined_at? || accepted?(submitter)
 
+      # The consent form itself is the consent: no gate on it.
+      if consent_form_for(submitter.submission.template)&.last == 'signed'
+        accept!(submitter, request, source: 'in_envelope')
+        return :none
+      end
+
       ctx = context(submitter)
       band = submitter.metadata.to_h['stevensed_student_age']
       return :dob if ctx.audience == 'family' && !ctx.minor_signer && band.blank?
@@ -318,7 +324,7 @@ module Stevensed
             "#{data['consent_form']} signed #{data['consent_signed_at']}" \
             "#{" (envelope #{data['consent_envelope']})" if data['consent_envelope']}, confirmed #{at}"
         elsif data['source'] == 'in_envelope'
-          "Electronic records consent: given in this envelope (FRM-102), #{at}"
+          "Electronic records consent: given in this envelope, #{at}"
         else
           "Electronic records consent: accepted #{at}"
         end
