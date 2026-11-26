@@ -3,8 +3,14 @@
 describe Stevensed::SignatureStamp do
   let(:pdf) { HexaPDF::Document.new }
   let(:page) { pdf.pages.add([0, 0, 612, 792]) }
-  let(:lines) { ['Digitally signed by Alexandria Whitfield-Montgomery <registrar@example.org>', 'November 26, 2026'] }
+  let(:image) { Vips::Image.black(600, 120).new_from_image([31, 41, 72]).bandjoin(Vips::Image.black(600, 120) + 255) }
   let(:id) { SecureRandom.uuid }
+
+  def place(width:, height:, signer: 'Jordan Reyes', left: 61, top: 434)
+    described_class.place(page.canvas(type: :overlay), pdf, image:, box: [left, top, width, height], id:, signer:,
+                                                            prefix: 'Digitally signed by', short_prefix: 'Signed by',
+                                                            time: 'November 26, 2026 at 12:46 PM MST')
+  end
 
   def page_text
     io = StringIO.new
@@ -13,19 +19,40 @@ describe Stevensed::SignatureStamp do
     Pdfium::Document.open_bytes(io.string) { |doc| doc.get_page(0).text }
   end
 
-  it 'fits the full stamp in a StevensED signature box' do
-    size = described_class.draw(page.canvas(type: :overlay), pdf, left: 208, top: 434, width: 145, height: 22,
-                                                                  id:, lines:)
+  it 'sets the stamp beside the signature at 6 pt or more in a StevensED signature box (294 by 22 pt)' do
+    plan = place(width: 293.64, height: 22)
 
-    expect(size).to be >= described_class::MIN_FONT_SIZE
-    expect(page_text.gsub(/\s+/, '')).to include("ID#{id.upcase}", 'Whitfield-Montgomery')
+    expect(plan.mode).to eq(:side)
+    expect(plan.font_size).to be >= 6
+    expect(page_text.gsub(/\s+/, '')).to include('DigitallysignedbyJordanReyes', "ID#{id.upcase}")
   end
 
-  it 'leaves out what does not fit instead of drawing outside a very small box' do
-    size = described_class.draw(page.canvas(type: :overlay), pdf, left: 72, top: 300, width: 40, height: 6, id:,
-                                                                  lines:)
+  it 'keeps a long name legible by using the short prefix, then shortening the name in the stamp' do
+    plan = place(width: 293.64, height: 22, signer: 'Alexandria Whitfield-Montgomery-Vanderbilt')
 
-    expect(size).to be < described_class::MAX_FONT_SIZE
+    expect(plan.font_size).to be >= 6
+    expect(page_text).to include('Signed by Alexandria')
+  end
+
+  it 'stacks the stamp under the signature in a tall narrow box' do
+    plan = place(width: 120, height: 70)
+
+    expect(plan.mode).to eq(:stacked)
+    expect(plan.font_size).to be >= 6
+    expect(plan.height).to be < 70 * 0.5
+  end
+
+  it 'stays inside a box too small for 6 pt' do
+    plan = place(width: 90, height: 12)
+
+    expect(plan.nil? || plan.height <= 12).to be(true)
+  end
+
+  it 'shows only the time and ID when the signer line is turned off' do
+    place(width: 293.64, height: 22, signer: nil)
+
+    expect(page_text).to include('November 26, 2026', 'ID ')
+    expect(page_text).not_to include('signed by')
   end
 
   it 'uses the fallback font for scripts Inter does not cover' do

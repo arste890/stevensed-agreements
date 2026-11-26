@@ -252,8 +252,9 @@ module Submissions
           [
             { text: "#{TextUtils.maybe_rtl_reverse(item['name'].to_s).upcase}\n", style: :eyebrow,
               fill_color: CORAL },
-            submitter.name && { text: "#{TextUtils.maybe_rtl_reverse(submitter.name.squish)}\n",
-                                font: [SANS, { variant: :bold }], font_size: 10 },
+            (signer_name = Stevensed::SignerName.for(submitter)) &&
+              { text: "#{TextUtils.maybe_rtl_reverse(signer_name.squish)}\n", font: [SANS, { variant: :bold }],
+                font_size: 10 },
             submitter.email && { text: "#{submitter.email.squish}\n" },
             submitter.phone && { text: "#{submitter.phone.squish}\n" },
             submitter.completed_at && { text: "#{t(:completed)} " \
@@ -327,6 +328,7 @@ module Submissions
           next if Array.wrap(value).compact_blank.blank?
 
           field_name = grouped_value_field_names[value].presence || field['title'].presence || field['name'].to_s
+          field_name = field_name.split(', ').map { |name| Stevensed::FieldLabel.display(name) }.join(', ')
 
           field_type = field['type']
 

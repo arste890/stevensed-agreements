@@ -325,7 +325,9 @@ module Submissions
 
             reason_value = submitter.values[field.dig('preferences', 'reason_field_uuid')].presence
 
-            reason_string =
+            # StevensED: Stevensed::SignatureStamp lays out the signature and its stamp (signer, time, ID) at 6 to
+            # 7 pt without overlap. The signer is shown by legal name; the email address is in the audit log.
+            stamp =
               I18n.with_locale(locale) do
                 timezone = submitter.account.timezone
                 timezone = submitter.timezone || submitter.account.timezone if with_submitter_timezone
@@ -335,51 +337,25 @@ module Submissions
                 signature_timestamp =
                   (with_signature_id_completed_at ? submitter.completed_at : nil) || attachment.created_at
 
-                if with_signature_id_reason || field.dig('preferences', 'reasons').present?
-                  reason_line =
-                    "#{"#{I18n.t('reason')}: " if reason_value}#{reason_value || I18n.t('digitally_signed_by')} " \
-                    "#{submitter.name}#{" <#{submitter.email}>" if submitter.email.present?}"
+                with_reason = with_signature_id_reason || field.dig('preferences', 'reasons').present?
 
-                  "#{TextUtils.maybe_rtl_reverse(reason_line)}\n" \
-                    "#{I18n.l(signature_timestamp.in_time_zone(timezone), format: time_format)} " \
-                    "#{TimeUtils.timezone_abbr(timezone, signature_timestamp)}"
-                else
-                  "#{I18n.l(signature_timestamp.in_time_zone(timezone), format: time_format)} " \
-                    "#{TimeUtils.timezone_abbr(timezone, signature_timestamp)}"
-                end
+                {
+                  signer: (TextUtils.maybe_rtl_reverse(Stevensed::SignerName.for(submitter).to_s) if with_reason),
+                  prefix: reason_value ? "#{I18n.t('reason')}: #{reason_value}" : I18n.t('digitally_signed_by'),
+                  short_prefix: if reason_value
+                                  "#{I18n.t('reason')}: #{reason_value}"
+                                else
+                                  I18n.t('stevensed.audit_log.signed_by')
+                                end,
+                  time: "#{I18n.l(signature_timestamp.in_time_zone(timezone), format: time_format)} " \
+                        "#{TimeUtils.timezone_abbr(timezone, signature_timestamp)}"
+                }
               end
 
-            area_x = area['x'] * width
-            area_y = area['y'] * height
-            area_w = area['w'] * width
-            area_h = area['h'] * height
+            box = [area['x'] * width, height - (area['y'] * height), area['w'] * width, area['h'] * height]
 
-            # StevensED: the stamp text is drawn by Stevensed::SignatureStamp. In a wide box the signature takes
-            # the left half and the stamp the right half; otherwise the signature sits above the stamp.
-            if area_h.positive? && (area_w.to_f / area_h) > 4.5
-              half_width = area_w / 2.0
-              image_box = [area_x, height - area_y, half_width, area_h]
-              stamp_box = { left: area_x + half_width + 2, top: height - area_y, width: half_width - 2, height: area_h }
-            else
-              image_h = area_h * 0.6
-              image_box = [area_x, height - area_y, area_w, image_h]
-              stamp_box = { left: area_x + TEXT_LEFT_MARGIN, top: height - area_y - image_h,
-                            width: area_w - TEXT_LEFT_MARGIN, height: area_h - image_h }
-            end
-
-            box_x, box_top, box_w, box_h = image_box
-            scale = [box_w / image.width, box_h / image.height].min
-            image_width = image.width * scale
-            image_height = image.height * scale
-
-            io =
-              StringIO.new(image.resize([scale * 4, 1].select(&:positive?).min).write_to_buffer('.png', strip: true))
-
-            canvas.image(io, at: [box_x + ((box_w - image_width) / 2.0), box_top - ((box_h + image_height) / 2.0)],
-                             width: image_width, height: image_height)
-
-            Stevensed::SignatureStamp.draw(canvas, pdf, **stamp_box,
-                                           id: attachment.uuid, lines: reason_string.split("\n"), fallback: FONT_NAME)
+            Stevensed::SignatureStamp.place(canvas, pdf, image:, box:, id: attachment.uuid, fallback: FONT_NAME,
+                                                         **stamp)
           when 'image', 'signature', 'initials', 'stamp', 'kba'
             attachment = submitter.attachments.find { |a| a.uuid == value }
 

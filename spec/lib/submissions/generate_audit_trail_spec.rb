@@ -67,6 +67,23 @@ describe Submissions::GenerateAuditTrail do
     expect(font_names.join(' ')).to include('Inter', 'CormorantGaramond')
   end
 
+  it 'names each signer by legal name and leaves section numbers out of field labels' do
+    signer = submission.submitters.first
+    StevensedEsignConsent.create!(account:, submission:, submitter: signer, email: signer.email, kind: 'general',
+                                  form_key: 'FRM-102-A', legal_name: 'Testa Q. Signer', signed_at: Time.current,
+                                  source: 'signed')
+    field = submission.template_fields.find { |f| f['submitter_uuid'] == signer.uuid && f['type'] == 'text' }
+    field['name'] = "10. #{field['name']}"
+    submission.update!(template_fields: submission.template_fields)
+    signer.update!(values: signer.values.merge(field['uuid'] => 'Entered value'))
+
+    text = pdf_text(build).join("\n")
+
+    expect(text).to include('Testa Q. Signer')
+    expect(text).to include(field['name'].delete_prefix('10. ').upcase)
+    expect(text).not_to include('10. ')
+  end
+
   it 'uses Letter for US time zones and A4 elsewhere' do
     expect(build.pages.first.box(:media).height).to eq(792)
 

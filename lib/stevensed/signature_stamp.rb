@@ -5,6 +5,10 @@ module Stevensed
   # Inter in StevensED navy, a coral rule beside each signature stamp, and a quiet per-page line in the bottom
   # margin below the form's own footer. Text in scripts Inter does not cover is set in the result PDF's
   # default font (Go Noto Kurrent in production) so that names never drop out.
+  #
+  # The stamp is set at 6 to 7 pt and never shares space with the signature: in a wide box the signature gets the
+  # left part and the stamp the right; otherwise the stamp sits under the signature inside the box. Everything
+  # stays inside the field's box.
   module SignatureStamp
     INK = '1F2948'
     MUTED = '5B6478'
@@ -15,16 +19,127 @@ module Stevensed
     BOLD_PATH = FONTS_DIR.join('Inter-SemiBold.ttf').to_s
 
     MAX_FONT_SIZE = 7
-    MIN_FONT_SIZE = 3.5
-    LINE_SPACING = 1.12
+    MIN_FONT_SIZE = 6
+    # Used only when a box is too small for 6 pt (for example a very short box drawn by hand in a template).
+    SMALL_BOX_MIN_FONT_SIZE = 4.5
+    FONT_SIZE_STEP = 0.25
     RULE_GAP = 3
+    GAP = 6
+    WIDE_RATIO = 3
+    SIDE_SHARES = [0.5, 0.55, 0.6].freeze
 
     # Distance of the per-page line's baseline from the bottom edge. StevensED forms keep their own footer
     # between 30 and 37 pt from the bottom, so the line sits clear of it.
     FOOTER_BASELINE = 14
     FOOTER_FONT_SIZE = 6
 
+    Plan = Struct.new(:mode, :result, :font_size, :width, :height, keyword_init: true)
+
     module_function
+
+    # Draws the signature image and its stamp in the field box [left, top, width, height] (top-left corner).
+    # signer: the signer's name; prefix and short_prefix: "Digitally signed by" and "Signed by" (or a reason);
+    # time: the signing time. Returns the Plan used, or nil when only the signature could be drawn.
+    def place(canvas, pdf, image:, box:, id:, signer:, prefix:, short_prefix:, time:, fallback: nil)
+      left, top, width, height = box
+      line_sets = ->(text_width) { line_sets(pdf, signer, prefix, short_prefix, time, text_width, fallback) }
+      wide = height.positive? && (width / height) > WIDE_RATIO
+
+      # In a wide box the stamp takes half the width, or up to 60% when it needs it; a signature at that height
+      # needs far less than the remaining 40%.
+      plan = (wide && SIDE_SHARES.lazy.filter_map do |share|
+        plan_for(pdf, line_sets, id, (width - GAP) * share, height, MIN_FONT_SIZE, :side, fallback)
+      end.first) ||
+             plan_for(pdf, line_sets, id, width, height * 0.5, MIN_FONT_SIZE, :stacked, fallback) ||
+             plan_for(pdf, line_sets, id, wide ? (width - GAP) * SIDE_SHARES.last : width,
+                      wide ? height : height * 0.5, SMALL_BOX_MIN_FONT_SIZE, wide ? :side : :stacked, fallback)
+      side_width = plan&.width
+
+      image_box =
+        case plan&.mode
+        when :side then [left, top, width - side_width - GAP, height]
+        when :stacked then [left, top, width, height - plan.height - 2]
+        else [left, top, width, height]
+        end
+
+      draw_image(canvas, image, *image_box)
+
+      return unless plan
+
+      if plan.mode == :side
+        draw_text(canvas, plan, left + width - side_width, top - ((height - plan.height) / 2.0))
+      else
+        draw_text(canvas, plan, left, top - height + plan.height)
+      end
+
+      plan
+    end
+
+    # Candidate texts, preferred first: the full prefix, the short prefix, then the short prefix with the name
+    # shortened to fit (the name is given in full in the audit log and in the signature itself).
+    def line_sets(pdf, signer, prefix, short_prefix, time, text_width, fallback)
+      return [[time]] if signer.blank?
+
+      sets = [["#{prefix} #{signer}", time], ["#{short_prefix} #{signer}", time]]
+
+      name = signer.to_s
+      too_wide = ->(text) { fragment(pdf, text, MIN_FONT_SIZE, INK, bold: true, fallback:).width > text_width }
+      name = name[0..-2].rstrip while name.length > 12 && too_wide.call("#{short_prefix} #{name}…")
+      sets << ["#{short_prefix} #{name}…", time] if name != signer.to_s
+
+      sets.uniq
+    end
+
+    # The ID on one line, or split after its second group when the box is narrow.
+    def id_lines(id)
+      full = "ID #{id}".upcase
+      parts = full.split('-')
+
+      [[full], ["#{parts[0..1].join('-')}-", parts[2..].join('-')]]
+    end
+
+    def plan_for(pdf, line_sets, id, width, height, min_size, mode, fallback)
+      text_width = width - RULE_GAP - 0.6
+
+      return if text_width <= 0 || height <= 0
+
+      line_sets.call(text_width).product(id_lines(id)).each do |lines, id_text|
+        size = MAX_FONT_SIZE
+
+        while size >= min_size
+          result = HexaPDF::Layout::TextLayouter.new.fit(fragments(pdf, lines, id_text, size, fallback),
+                                                         text_width, height)
+
+          if result.status == :success && result.lines.size == lines.size + id_text.size
+            return Plan.new(mode:, result:, font_size: size, width:, height: result.lines.sum(&:height))
+          end
+
+          size -= FONT_SIZE_STEP
+        end
+      end
+
+      nil
+    end
+
+    def draw_image(canvas, image, left, top, width, height)
+      return if width <= 0 || height <= 0
+
+      scale = [width / image.width, height / image.height].min
+      image_width = image.width * scale
+      image_height = image.height * scale
+      io = StringIO.new(image.resize([scale * 4, 1].select(&:positive?).min).write_to_buffer('.png', strip: true))
+
+      canvas.image(io, at: [left + ((width - image_width) / 2.0), top - ((height + image_height) / 2.0)],
+                       width: image_width, height: image_height)
+    end
+
+    def draw_text(canvas, plan, left, top)
+      canvas.save_graphics_state do
+        canvas.stroke_color(CORAL).line_width(0.6).line(left + 0.3, top, left + 0.3, top - plan.height).stroke
+      end
+
+      plan.result.draw(canvas, left + RULE_GAP + 0.6, top)
+    end
 
     def font(pdf, text, bold: false, fallback: nil)
       font = pdf.fonts.add(bold ? BOLD_PATH : REGULAR_PATH)
@@ -40,55 +155,13 @@ module Stevensed
       text.to_s.each_codepoint.all? { |codepoint| codepoint < 32 || cmap[codepoint] }
     end
 
-    # Draws the stamp text in the box whose top-left corner is (left, top). lines[0] is the signer line, the
-    # remaining lines are the time and any reason, and the signature ID goes last. The text is made smaller until
-    # it fits; lines that still do not fit at the minimum size are left out rather than drawn over the page.
-    # Returns the font size used.
-    def draw(canvas, pdf, left:, top:, width:, height:, id:, lines:, fallback: nil)
-      text_left = left + RULE_GAP + 0.6
-      text_width = width - RULE_GAP - 0.6
-      full_id = "ID #{id}".upcase
-      font_size = [MAX_FONT_SIZE, height / ((lines.size + 1) * LINE_SPACING)].min
-
-      result = nil
-      layouter = HexaPDF::Layout::TextLayouter.new(line_spacing: { type: :proportional, value: LINE_SPACING })
-
-      loop do
-        id_text = fit_id(pdf, full_id, font_size * 0.92, text_width, fallback)
-        result = layouter.fit(fragments(pdf, lines, id_text, font_size, fallback), text_width, height)
-
-        break if result.status == :success || font_size < MIN_FONT_SIZE
-
-        font_size *= 0.92
-      end
-
-      used_height = result.lines.sum(&:height) * LINE_SPACING
-      text_top = top - [(height - used_height) / 2.0, 0].max
-
-      canvas.save_graphics_state do
-        canvas.stroke_color(CORAL).line_width(0.6)
-              .line(left + 0.3, text_top, left + 0.3, text_top - [used_height, height].min).stroke
-      end
-
-      result.draw(canvas, text_left, text_top)
-
-      font_size
-    end
-
-    # Shortens the ID only when it is wider than the stamp; the full ID is always in the audit log.
-    def fit_id(pdf, id_text, font_size, width, fallback)
-      id_text = "#{id_text.delete_suffix('...')[0..-2]}..." while id_text.length > 14 &&
-                                                                  fragment(pdf, id_text, font_size, MUTED,
-                                                                           fallback:).width > width
-      id_text
-    end
-
-    def fragments(pdf, lines, id_text, font_size, fallback)
+    def fragments(pdf, lines, id_lines, font_size, fallback)
       signer, *rest = lines
 
       items = [fragment(pdf, signer, font_size, INK, bold: true, fallback:)]
-      rest.each { |line| items.push(newline(pdf, font_size), fragment(pdf, line, font_size, MUTED, fallback:)) }
-      items.push(newline(pdf, font_size), fragment(pdf, id_text, font_size * 0.92, MUTED, fallback:))
+      (rest + id_lines).each do |line|
+        items.push(newline(pdf, font_size), fragment(pdf, line, font_size, MUTED, fallback:))
+      end
 
       items
     end
