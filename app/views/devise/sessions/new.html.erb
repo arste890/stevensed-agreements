@@ -2,7 +2,9 @@
 <% content_for(:html_title, "#{t('sign_in')} | #{Docuseal.product_name}") %>
 <%# StevensED: single sign-on first; email and password for local accounts on request. %>
 <% sso = Stevensed::Sso.oidc_enabled? || Stevensed::Sso.saml_enabled? %>
-<% password_open = !sso || flash[:alert].present? || params.dig(:user, :email).present? %>
+<% password_open = !sso || params[:local].present? || params.dig(:user, :email).present? %>
+<% auto_sso = Stevensed::Sso.oidc_enabled? && !password_open && request.get? %>
+<% if auto_sso %><% content_for :head do %><script src="/stevensed/sso-redirect.js" defer></script><% end %><% end %>
 <%= render 'stevensed/styles' %>
 <div class="se">
   <%= render 'stevensed/header' %>
@@ -10,10 +12,10 @@
     <div class="se-signin">
       <h1 class="se-serif"><%= t('sign_in') %></h1>
       <% if sso %>
-        <p class="se-signin-lede"><%= t('stevensed.sign_in_lede') %></p>
+        <p class="se-signin-lede"><%= auto_sso ? t('stevensed.redirecting_to_sso') : t('stevensed.sign_in_lede') %></p>
         <div class="se-signin-actions">
           <% if Stevensed::Sso.oidc_enabled? %>
-            <%= button_to '/auth/stevensed', method: :post, data: { turbo: false }, class: 'se-btn se-btn-block', form_class: 'se-contents' do %>
+            <%= button_to '/auth/stevensed', method: :post, data: { turbo: false }, class: 'se-btn se-btn-block', form_class: 'se-contents', form: { id: 'se-sso-form' } do %>
               <%= svg_icon('login') %><span><%= t('stevensed.sign_in_with_stevensed') %></span>
             <% end %>
           <% end %>

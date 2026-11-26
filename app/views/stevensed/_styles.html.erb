@@ -30,9 +30,8 @@
     .se-link { display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 600; color: var(--navy) !important; text-decoration: underline; text-decoration-color: #2f3e6855; }
     .se-link:hover { text-decoration-color: var(--crimson); }
     .se-link svg { width: 1.05rem; height: 1.05rem; }
-    .se-figure { margin: 0; position: relative; }
-    .se-figure img { display: block; width: 100%; aspect-ratio: 3 / 2; object-fit: cover; border-radius: 16px; box-shadow: 0 30px 60px -36px #1f294880; }
-    .se-figure::before { content: ''; position: absolute; left: -0.9rem; top: 1.4rem; bottom: 1.4rem; width: 2px; background: var(--crimson); border-radius: 2px; }
+    .se-skyline { margin: 0; background: #2c324a; border-top: 3px solid var(--crimson); }
+    .se-skyline img { display: block; width: 100%; max-width: 120rem; margin-inline: auto; height: clamp(9rem, 26vw, 24rem); object-fit: cover; object-position: center bottom; }
     .se-section { padding-block: 4.5rem; }
     .se-how { display: grid; grid-template-columns: 1fr; gap: 2rem 4rem; }
     .se-h2 { font-size: clamp(2rem, 3.6vw, 2.75rem); line-height: 1.1; margin: 0; }
@@ -86,9 +85,7 @@
     @media (min-width: 768px) {
       .se-wrap { padding-inline: 2.5rem; }
       .se-hero { grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 3rem; padding-block: 3.5rem 6rem; }
-      .se-hero > div:first-child { grid-column: 1 / span 7; }
-      .se-figure { grid-column: 8 / span 5; }
-      .se-figure img { aspect-ratio: 4 / 5; }
+      .se-hero > div:first-child { grid-column: 1 / span 9; }
       .se-how { grid-template-columns: repeat(12, minmax(0, 1fr)); }
       .se-how > :first-child { grid-column: 1 / span 4; }
       .se-steps { grid-column: 6 / span 7; }
@@ -101,9 +98,9 @@
     @media (prefers-reduced-motion: no-preference) {
       .se-rise { animation: se-rise .8s cubic-bezier(.16,1,.3,1) both; }
       .se-rise-2 { animation-delay: .08s; } .se-rise-3 { animation-delay: .16s; }
-      .se-figure img { animation: se-reveal 1.1s cubic-bezier(.16,1,.3,1) .1s both; }
+      .se-skyline img { animation: se-reveal 1.4s cubic-bezier(.16,1,.3,1) .15s both; }
       @keyframes se-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
-      @keyframes se-reveal { from { clip-path: inset(0 0 100% 0 round 16px); } to { clip-path: inset(0 0 0 0 round 16px); } }
+      @keyframes se-reveal { from { clip-path: inset(100% 0 0 0); opacity: .4; } to { clip-path: inset(0 0 0 0); opacity: 1; } }
     }
   </style>
 <% end %>

@@ -100,12 +100,11 @@
       v-if="attribution"
       class="text-center mt-4"
     >
-      {{ t('powered_by') }}
       <a
-        href="https://www.docuseal.com/start"
+        href="/legal"
         target="_blank"
-        class="underline"
-      >DocuSeal</a> - {{ t('open_source_documents_software') }}
+        class="text-xs opacity-70 hover:underline"
+      >Legal notices</a>
     </div>
   </div>
 </template>

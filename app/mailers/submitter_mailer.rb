@@ -241,9 +241,8 @@ class SubmitterMailer < ApplicationMailer
     reply_to ||= submitter.template&.preferences&.dig('documents_copy_email_reply_to').presence if documents_copy_email
     reply_to ||= email_config.value['reply_to'].presence if email_config
 
-    if reply_to.blank? && (submitter.submission.created_by_user || submitter.template.author)&.email != submitter.email
-      reply_to = (submitter.submission.created_by_user || submitter.template.author)&.friendly_name&.sub(/\+\w+@/, '@')
-    end
+    # StevensED: replies go to the office mailbox, never to the sending staff member's personal address.
+    reply_to ||= Stevensed::CONTACT_EMAIL
 
     return nil if reply_to.to_s.match?(NO_REPLY_REGEXP)
 
@@ -298,7 +297,7 @@ class SubmitterMailer < ApplicationMailer
     elsif submitter.viewer?
       I18n.t(:you_are_invited_to_view_a_document)
     elsif submitter.with_signature_fields?
-      I18n.t(:you_are_invited_to_sign_a_document)
+      I18n.t('stevensed.invite_subject', name: submitter.submission.name.presence || submitter.template&.name)
     else
       I18n.t(:you_are_invited_to_submit_a_form)
     end
