@@ -41,7 +41,7 @@ describe Submissions::GenerateAuditTrail do
     expect(text).to include(Stevensed::PRODUCT_NAME)
     expect(text).to include(Stevensed::OFFICE.upcase)
     expect(text).to include(I18n.t('audit_log'))
-    expect(text).to include('Signers', 'Event Log', 'Signing certificate')
+    expect(text).to include('Signers', I18n.t('event_log'), 'Signing certificate')
     expect(text).to include('198.51.100.10')
     expect(text).to include("Page 1 of #{pages.size}")
     expect(text).to include("#{I18n.t('envelope_id')} #{submission.id}")
