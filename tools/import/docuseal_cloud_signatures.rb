@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# rubocop:disable Metrics/BlockLength, Layout/LineLength -- one-off migration script
+
 # StevensED: add the drawn signature images to submissions imported by docuseal_cloud_import.rb.
 # Usage (in the app container): DRY_RUN=1 bin/rails runner tools/import/docuseal_cloud_signatures.rb
 # Input: /data/imported/docuseal-cloud/signatures/mapping.json and the PNG files it lists
@@ -41,3 +43,4 @@ ActiveRecord::Base.transaction do
   pp report
   raise ActiveRecord::Rollback if DRY
 end
+# rubocop:enable Metrics/BlockLength, Layout/LineLength

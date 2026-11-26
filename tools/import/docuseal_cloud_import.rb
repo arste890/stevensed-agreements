@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# rubocop:disable Metrics/BlockLength, Layout/LineLength -- one-off migration script
+
 # StevensED: import templates and completed submissions exported from the former DocuSeal cloud account.
 # Usage (in the app container): DRY_RUN=1 bin/rails runner tools/import/docuseal_cloud_import.rb
 # Input: /data/imported/docuseal-cloud/export/export.json and docs/<document uuid>.pdf,
@@ -126,3 +128,4 @@ ActiveRecord::Base.transaction do
   puts DRY ? 'DRY RUN: rolled back' : 'COMMITTED'
   raise ActiveRecord::Rollback if DRY
 end
+# rubocop:enable Metrics/BlockLength, Layout/LineLength
