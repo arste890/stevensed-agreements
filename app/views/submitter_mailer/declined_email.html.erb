@@ -2,7 +2,7 @@
 <% submitter_name = @submitter.name || @submitter.email || @submitter.phone %>
 <% content_for(:preheader, t('stevensed.email.declined_preheader', name: document_name, submitter: submitter_name)) %>
 <% content_for(:meta) { render 'shared/email_meta', submission: @submitter.submission, account: @current_account } %>
-<%= render 'shared/email_heading', eyebrow: t('stevensed.email.declined_eyebrow'), title: t('stevensed.email.declined_title', name: document_name) %>
+<%= render 'shared/email_heading', eyebrow: t('stevensed.email.declined_eyebrow'), tone: :danger, title: t('stevensed.email.declined_title', name: document_name) %>
 <%= render 'shared/email_greeting', name: @user&.first_name %>
 <p><%= t('stevensed.email.declined_intro') %></p>
 <%= render 'shared/email_details', rows: [[t('stevensed.email.document'), document_name], [t('stevensed.email.declined_by'), submitter_name]] %>

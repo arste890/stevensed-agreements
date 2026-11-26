@@ -7,7 +7,7 @@
 <% if @body.present? %>
   <%= render 'custom_body', body: @body, submitter: @submitter, sig: @sig %>
 <% else %>
-  <%= render 'shared/email_heading', eyebrow: t('stevensed.email.completed_eyebrow'), title: t('stevensed.email.copy_title', name: document_name) %>
+  <%= render 'shared/email_heading', eyebrow: t('stevensed.email.completed_eyebrow'), tone: :success, title: t('stevensed.email.copy_title', name: document_name) %>
   <%= render 'shared/email_greeting', name: @submitter.name %>
   <p><%= t('stevensed.email.copy_intro') %></p>
   <%= render 'shared/email_details', rows: [[t('stevensed.email.document'), document_name], [t('stevensed.email.signed_by'), submitters], [t('stevensed.email.completed_on'), (l(@submitter.completed_at.in_time_zone(@current_account.timezone), format: :long) if @submitter.completed_at)]] %>
@@ -16,8 +16,7 @@
   <% end %>
   <%= render 'shared/email_button', url: copy_url, label: t('stevensed.email.download_copy') %>
   <% if @sig %>
-    <p><%= t('stevensed.email.copy_link_expires') %></p>
+    <p><%= t('stevensed.email.copy_link_expires', duration: SubmitterMailer::SIGN_TTL.inspect) %></p>
   <% end %>
-  <p><%= t('stevensed.email.copy_retain') %></p>
   <p><%= t('stevensed.email.questions_html', email: Stevensed::CONTACT_EMAIL) %></p>
 <% end %>

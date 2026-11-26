@@ -11,10 +11,7 @@
 <% else %>
   <%= render 'shared/email_heading', eyebrow: (t('stevensed.email.reminder_eyebrow') if @reminder), title: t(signing ? 'stevensed.email.invitation_title_sign' : 'stevensed.email.invitation_title_submit', name: document_name) %>
   <%= render 'shared/email_greeting', name: @submitter.name %>
-  <p><%= t(signing ? 'stevensed.email.invitation_intro_sign' : 'stevensed.email.invitation_intro_submit') %></p>
-  <% if @reminder %>
-    <p><%= t('stevensed.email.reminder_intro') %></p>
-  <% end %>
+  <p><%= t("stevensed.email.#{@reminder ? 'reminder' : 'invitation'}_intro_#{signing ? 'sign' : 'submit'}") %></p>
   <%= render 'shared/email_details', rows: [[t('stevensed.email.document'), document_name], [t('stevensed.email.requested_by'), [@submitter.submission.created_by_user&.full_name.presence, Stevensed::ORGANIZATION].compact.join(', ')], [t('stevensed.email.recipient'), @submitter.name.presence || @submitter.email]] %>
   <%= render 'shared/email_button', url: submit_url, label: action_label %>
   <% if signing %>
