@@ -12,7 +12,7 @@ module Stevensed
   CONTACT_EMAIL = ENV.fetch('STEVENSED_CONTACT_EMAIL', 'legal@stevensed.org')
   SOURCE_URL = ENV.fetch('SOURCE_URL', 'https://github.com/arste890/stevensed-agreements')
   UPSTREAM_URL = 'https://github.com/docusealco/docuseal'
-  LOGO_PATH = '/stevensed/logo-color.png'
+  LOGO_PATH = '/stevensed/logo-lockup.svg'
   EMAIL_LOGO_PATH = '/stevensed/logo-email.png'
   SHOW_UPSTREAM_LINKS = false
   SIGN_REASON = "Signed with #{PRODUCT_NAME}".freeze
