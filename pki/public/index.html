@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StevensED Public Key Infrastructure</title>
+<style>body{font-family:Georgia,serif;max-width:46rem;margin:3rem auto;padding:0 1.25rem;color:#1f2948;line-height:1.6}h1{font-weight:600}code{font-family:ui-monospace,Menlo,monospace;font-size:.85rem;word-break:break-all}td,th{text-align:left;padding:.4rem .6rem;vertical-align:top;border-bottom:1px solid #d8d0c1}a{color:#2f3e68}</style></head>
+<body>
+<h1>StevensED Public Key Infrastructure</h1>
+<p>StevensED LLC signs completed agreements from StevensED Agreements (agreements.stevensed.org) with the certificates below. Private keys are generated and held in a hardware security module (Oracle Cloud Vault) and cannot be exported. Signatures carry RFC 3161 time-stamps and long-term validation data.</p>
+<p>To validate StevensED signatures in Adobe Acrobat or Reader, add the StevensED Root CA as a trusted certificate for certified documents and verify its SHA-256 fingerprint against this page.</p>
+<table>
+<tr><th>Certificate</th><th>Valid</th><th>SHA-256 fingerprint</th></tr>
+<tr><td><a href="/root-ca.crt">StevensED Root CA</a> (<a href="/root-ca.crt.pem">PEM</a>)</td><td>2026-11-26 to 2046-11-26</td><td><code>1D:4C:C1:A5:E8:B4:89:76:C3:E3:70:85:B5:7F:E3:2D:18:F9:32:76:CA:1A:93:E9:6A:0C:91:A0:73:F6:7C:8F</code></td></tr>
+<tr><td><a href="/document-signing-ca.crt">StevensED Document Signing CA</a> (<a href="/document-signing-ca.crt.pem">PEM</a>)</td><td>2026-11-26 to 2036-11-26</td><td><code>1B:53:CA:35:A7:77:C2:57:FB:88:C1:E6:17:B9:61:47:4F:1D:E8:05:36:80:99:F8:90:FC:B5:E3:A9:2D:A6:09</code></td></tr>
+<tr><td><a href="/stevensed-agreements.crt">StevensED Agreements</a> (<a href="/stevensed-agreements.crt.pem">PEM</a>)</td><td>2026-11-26 to 2029-11-26</td><td><code>23:B0:89:44:2C:54:96:60:3B:A6:D0:81:01:FB:89:33:CE:5D:4B:A0:4B:A0:1B:CC:CB:FB:8F:A2:E6:FA:D8:03</code></td></tr>
+</table>
+<p>Certificate revocation lists: <a href="/root-ca.crl">Root CA</a>, <a href="/document-signing-ca.crl">Document Signing CA</a>. Both are reissued at least annually.</p>
+<p>Questions: <a href="mailto:legal@stevensed.org">legal@stevensed.org</a>, Office of Legal Operations and Institutional Compliance, StevensED LLC, P.O. Box 900342, Sandy, UT 84090.</p>
+</body></html>
