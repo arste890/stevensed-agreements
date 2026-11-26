@@ -4,6 +4,7 @@
 class UploadSpreadsheetsController < ApplicationController
   MAX_SIZE = 10.megabytes
   MAX_ROWS = 2_000
+  BOM = [0xFEFF].pack('U')
 
   def create
     authorize!(:manage, :bulk_send)
@@ -24,7 +25,7 @@ class UploadSpreadsheetsController < ApplicationController
   def parse(file)
     case File.extname(file.original_filename.to_s).downcase
     when '.csv', '.txt'
-      text = file.read.force_encoding('UTF-8').delete_prefix("﻿")
+      text = file.read.force_encoding('UTF-8').delete_prefix(BOM)
       [['CSV', CSV.parse(text).first(MAX_ROWS + 1).map { |row| row.map { |v| v.to_s.strip } }]]
     when '.xlsx'
       require 'roo'
