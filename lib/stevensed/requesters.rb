@@ -86,6 +86,11 @@ module Stevensed
       office || Stevensed::ORGANIZATION
     end
 
+    # Signer-facing eyebrow on the consent step: "From Office of the Bursar", or "From StevensED" without an office.
+    def from_label(requester)
+      "From #{requester.to_h['office'].presence || Stevensed::ORGANIZATION}"
+    end
+
     # From display name: an office on its own is followed by the organization unless it already names it.
     def from_name(requester)
       return label(requester) if requester['name'].present?

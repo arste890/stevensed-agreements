@@ -4,6 +4,7 @@ const en = {
   download_kind_audit: 'Audit log only',
   download_kind_combined: 'Combined (documents and audit log)',
   available_once_everyone_has_signed: 'This is available once everyone has signed.',
+  failed_to_download_files: 'The files could not be downloaded. Please try again.',
   finish: 'Finish',
   guide_start: 'Start',
   guide_next: 'Next',

@@ -90,6 +90,12 @@
           {{ t(`download_kind_${kind}`) }}
         </button>
       </div>
+      <p
+        class="text-sm text-center empty:hidden completed-form-notice"
+        :class="{ 'text-error': isNoticeError }"
+        aria-live="polite"
+        aria-atomic="true"
+      >{{ notice }}</p>
       <a
         v-if="isDemo"
         target="_blank"
@@ -211,7 +217,9 @@ export default {
   data () {
     return {
       isSendingCopy: false,
-      isDownloading: false
+      isDownloading: false,
+      notice: '',
+      isNoticeError: false
     }
   },
   computed: {
@@ -239,19 +247,29 @@ export default {
   },
   methods: {
     sanitizeUrl,
+    // StevensED: results are shown on the page (announced to screen readers) instead of a browser alert.
+    showNotice (message, isError = false) {
+      this.notice = ''
+      this.isNoticeError = isError
+
+      this.$nextTick(() => {
+        this.notice = message
+      })
+    },
     sendCopyToEmail () {
       this.isSendingCopy = true
 
       fetch(this.baseUrl + `/send_submission_email.json?submitter_slug=${this.submitterSlug}`, {
         method: 'POST'
       }).then(() => {
-        alert(this.t('email_has_been_sent'))
+        this.showNotice(this.t('email_has_been_sent'))
       }).finally(() => {
         this.isSendingCopy = false
       })
     },
     download (kind = null) {
       this.isDownloading = true
+      this.notice = ''
 
       const src = this.baseUrl + `/s/${this.submitterSlug}/documents` + (typeof kind === 'string' ? `?kind=${kind}` : '')
 
@@ -276,9 +294,9 @@ export default {
             this.downloadUrls(urls)
           }
         } else if (response.status === 404 && typeof kind === 'string' && kind !== 'documents') {
-          alert(this.t('available_once_everyone_has_signed'))
+          this.showNotice(this.t('available_once_everyone_has_signed'))
         } else {
-          alert(this.t('failed_to_download_files'))
+          this.showNotice(this.t('failed_to_download_files'), true)
         }
       }).finally(() => {
         this.isDownloading = false

@@ -33,6 +33,8 @@ export default targetable(class extends HTMLElement {
 
     this.toggleState()
 
+    if (this.errorElement) this.errorElement.textContent = ''
+
     fetch(this.dataset.src).then(async (response) => {
       if (response.ok) {
         const urls = await response.json()
@@ -45,9 +47,29 @@ export default targetable(class extends HTMLElement {
           this.downloadUrls(urls)
         }
       } else {
-        alert('Failed to download files')
+        this.toggleState()
+        this.showError()
       }
+    }).catch(() => {
+      this.toggleState()
+      this.showError()
     })
+  }
+
+  // StevensED: a failed download is reported next to the button (announced to screen readers), not in an alert.
+  showError () {
+    if (!this.errorElement) {
+      this.errorElement = document.createElement('p')
+      this.errorElement.setAttribute('role', 'alert')
+      this.errorElement.style.cssText = 'margin-top: 0.5rem; font-size: 0.875rem; text-align: center; color: #b42318;'
+      this.insertAdjacentElement('afterend', this.errorElement)
+    }
+
+    this.errorElement.textContent = ''
+
+    setTimeout(() => {
+      this.errorElement.textContent = this.dataset.errorMessage || 'The files could not be downloaded. Please try again.'
+    }, 50)
   }
 
   downloadUrls (urls) {

@@ -28,4 +28,10 @@ describe Stevensed::Requesters do
     expect(described_class.from_address('office' => 'Office of the Bursar'))
       .to eq('"Office of the Bursar, StevensED" <legal@stevensed.org>')
   end
+
+  it 'labels the consent step in sentence case, by office when one is set' do
+    expect(described_class.from_label('name' => 'StevensED Admin')).to eq('From StevensED')
+    expect(described_class.from_label('name' => 'Alec Stevens', 'office' => 'Office of the Bursar'))
+      .to eq('From Office of the Bursar')
+  end
 end

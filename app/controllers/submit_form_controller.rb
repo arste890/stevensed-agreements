@@ -17,6 +17,9 @@ class SubmitFormController < ApplicationController
 
   CONFIG_KEYS = [].freeze
 
+  # StevensED: an unknown or replaced signing link gets a page with a contact, not a bare JSON error.
+  rescue_from ActiveRecord::RecordNotFound, with: :render_signing_link_not_found
+
   def show
     submission = @submitter.submission
 
@@ -116,6 +119,13 @@ class SubmitFormController < ApplicationController
   end
 
   private
+
+  def render_signing_link_not_found
+    respond_to do |f|
+      f.html { render :not_found, status: :not_found }
+      f.any { render json: { status: 404 }, status: :not_found }
+    end
+  end
 
   def maybe_render_not_found_for_search_bot
     return unless DetectBrowserDevice.search_bot?(request.user_agent)

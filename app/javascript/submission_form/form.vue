@@ -520,6 +520,7 @@
             :attachments-index="attachmentsIndex"
             :require-signing-reason="requireSigningReason"
             :signature-text="signatureText"
+            :legal-name-text="legalNameText"
             :signature-src="signatureSrc"
             :button-text="submitButtonText"
             :dry-run="dryRun"
@@ -652,6 +653,10 @@
           >
             {{ t('please_fill_all_required_fields') }}
           </div>
+          <div
+            class="text-center text-error mt-1 empty:hidden step-error-message"
+            role="alert"
+          >{{ stepError }}</div>
         </div>
       </form>
       <InviteForm
@@ -734,6 +739,7 @@ import FormCompleted from './completed'
 import { IconInnerShadowTop, IconArrowsDiagonal, IconWritingSign, IconArrowsDiagonalMinimize2 } from '@tabler/icons-vue'
 import AppearsOn from './appears_on'
 import i18n from './i18n'
+import { displayFieldName } from './field_labels'
 import { sanitizeUrl } from '@braintree/sanitize-url'
 
 if (typeof URL.canParse !== 'function') {
@@ -1112,6 +1118,7 @@ export default {
   data () {
     return {
       isCompleted: false,
+      stepError: '',
       isInvite: false,
       isFormVisible: this.expand !== false,
       showFillAllRequiredFields: false,
@@ -1130,6 +1137,12 @@ export default {
     }
   },
   computed: {
+    // StevensED: the signer's "Full legal name" entry (consent forms) prefills the typed signature.
+    legalNameText () {
+      const field = this.fields.find((f) => f.type === 'text' && /Full legal name$/i.test(displayFieldName(f.name || '').trim()))
+
+      return (field && typeof this.values[field.uuid] === 'string') ? this.values[field.uuid].trim() : ''
+    },
     requiredFieldsCount () {
       return this.stepFields.flat().filter((f) => f.required).length
     },
@@ -1409,6 +1422,9 @@ export default {
   watch: {
     expand (value) {
       this.isFormVisible = value
+    },
+    currentStep () {
+      this.stepError = ''
     },
     currentStepFields (value) {
       if (isEmpty(value) && this.currentStep > 0) {
@@ -1806,6 +1822,7 @@ export default {
     },
     async submitStep (e) {
       this.isSubmitting = true
+      this.stepError = ''
 
       const forceComplete = e?.submitter?.getAttribute('name') === 'completed'
 
@@ -1867,9 +1884,9 @@ export default {
             } else if (data.error) {
               const i18nKey = data.error.replace(/\s+/g, '_').toLowerCase()
 
-              alert(this.t(i18nKey) !== i18nKey ? this.t(i18nKey) : data.error)
+              this.stepError = this.t(i18nKey) !== i18nKey ? this.t(i18nKey) : data.error
             } else {
-              alert(this.t('value_is_invalid'))
+              this.stepError = this.t('value_is_invalid')
             }
 
             return Promise.reject(new Error(data.error))

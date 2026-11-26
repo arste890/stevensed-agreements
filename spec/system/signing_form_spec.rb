@@ -605,11 +605,9 @@ RSpec.describe 'Signing Form' do
       find('#expand_form_button').click
       page.find('canvas').click([], { x: 150, y: 100 })
 
-      alert_text = page.accept_alert do
-        click_button 'Sign and Complete'
-      end
+      click_button 'Sign and Complete'
 
-      expect(alert_text).to eq 'Signature is too small or simple. Please redraw.'
+      expect(page).to have_css('[role="alert"]', text: 'Signature is too small or simple. Please redraw.')
     end
 
     it 'completes the form if the canvas is typed' do

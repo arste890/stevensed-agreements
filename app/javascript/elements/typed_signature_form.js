@@ -1,25 +1,14 @@
 // StevensED: "Type" option for the profile signature and initials. Renders the typed text in
-// Dancing Script on a canvas and submits it as a PNG, like the Draw option.
+// MonteCarlo (as in the signing form) on a canvas and submits it as a PNG, like the Draw option.
 import { target, targetable } from '@github/catalyst/lib/targetable'
 import { cropCanvasAndExportToPNG } from '../submission_form/crop_canvas'
-
-let fontLoadPromise = null
-
-function loadFont () {
-  if (!fontLoadPromise) {
-    const font = new FontFace('Dancing Script', 'url(/fonts/DancingScript-Regular.otf) format("opentype")')
-
-    fontLoadPromise = font.load().then((loaded) => document.fonts.add(loaded)).catch(() => {})
-  }
-
-  return fontLoadPromise
-}
+import { loadTypedSignatureFont, drawTypedText } from '../submission_form/typed_signature'
 
 export default targetable(class extends HTMLElement {
   static [target.static] = ['text', 'canvas', 'input', 'button']
 
   connectedCallback () {
-    loadFont().then(() => this.draw())
+    loadTypedSignatureFont().then(() => this.draw())
 
     this.text.addEventListener('input', () => this.draw())
     this.resizeObserver = new ResizeObserver(() => requestAnimationFrame(() => this.draw()))
@@ -51,23 +40,8 @@ export default targetable(class extends HTMLElement {
 
     const ctx = this.canvas.getContext('2d')
     ctx.setTransform(scale, 0, 0, scale, 0, 0)
-    ctx.clearRect(0, 0, width, height)
 
-    const text = this.text.value.trim()
-    if (!text) return
-
-    let size = Math.min(72, height * 0.6)
-    ctx.font = `${size}px "Dancing Script"`
-
-    while (ctx.measureText(text).width > width * 0.9 && size > 12) {
-      size -= 2
-      ctx.font = `${size}px "Dancing Script"`
-    }
-
-    ctx.fillStyle = '#000'
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'middle'
-    ctx.fillText(text, width / 2, height / 2)
+    drawTypedText(ctx, this.text.value.trim(), { width, height, maxFontSize: Math.min(76, height * 0.55) })
   }
 
   async submit () {

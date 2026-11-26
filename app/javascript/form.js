@@ -12,6 +12,7 @@ import SubmitForm from './elements/submit_form'
 import ModalButton from './elements/modal_button'
 import NativeAction from './elements/native_action'
 import EsignConsent from './elements/esign_consent'
+import { withDisplayFieldNames } from './submission_form/field_labels'
 
 const safeRegisterElement = (name, element, options = {}) => !window.customElements.get(name) && window.customElements.define(name, element, options)
 
@@ -63,7 +64,7 @@ safeRegisterElement('submission-form', class extends HTMLElement {
       completedMessage: JSON.parse(this.dataset.completedMessage || '{}'),
       completedRedirectUrl: this.dataset.completedRedirectUrl,
       attachments: reactive(JSON.parse(this.dataset.attachments)),
-      fields: JSON.parse(this.dataset.fields),
+      fields: withDisplayFieldNames(JSON.parse(this.dataset.fields)), // StevensED: no section numbers in labels
       completeButtonContainer: document.getElementById('complete_button_container'),
       completeButtonScrollContainer: document.getElementById('complete_button_container_scroll'),
       // StevensED: guided signing (Finish button, progress and guide tags in the institutional header)

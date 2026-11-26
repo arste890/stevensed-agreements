@@ -47,8 +47,9 @@ button[disabled] .enabled, button.btn-disabled .enabled {
   @apply textarea textarea-bordered bg-white rounded-3xl;
 }
 
+/* StevensED: sentence case buttons in the signing form (daisyUI capitalises .btn by default) */
 .btn {
-  @apply no-animation;
+  @apply no-animation normal-case;
 }
 
 .base-input {

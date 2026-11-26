@@ -6,7 +6,7 @@
 <% disclosure_url = 'https://policies.stevensed.org/#/doc/e-signature-consent' %>
 <esign-consent data-url="<%= submit_form_esign_consent_index_path(submitter.slug) %>" class="se-gate" role="dialog" aria-modal="true" aria-labelledby="se_consent_title">
   <div class="se-gate__card">
-    <p class="se-gate__eyebrow"><%= Stevensed::Requesters.label(requester) %></p>
+    <p class="se-gate__eyebrow se-gate__eyebrow--from"><%= Stevensed::Requesters.from_label(requester) %></p>
     <h2 id="se_consent_title" class="se-gate__title">Please review and sign these documents</h2>
     <p class="se-gate__doc"><%= submitter.submission.name || submitter.submission.template&.name %></p>
     <% case state %>

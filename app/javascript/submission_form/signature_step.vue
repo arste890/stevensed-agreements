@@ -237,6 +237,10 @@
         </div>
       </div>
     </div>
+    <p
+      class="text-error text-sm mt-2 empty:hidden signature-error-message"
+      role="alert"
+    >{{ errorMessage }}</p>
     <input
       v-if="isTextSignature && !modelValue && !computedPreviousValue && !computedPrefillData"
       id="signature_text_input"
@@ -346,13 +350,12 @@
 import { IconReload, IconCamera, IconSignature, IconTextSize, IconArrowsDiagonalMinimize2, IconQrcode, IconX } from '@tabler/icons-vue'
 import { cropCanvasAndExportToPNG } from './crop_canvas'
 import { isValidSignatureCanvas, isCanvasBlocked } from './validate_signature'
+import { loadTypedSignatureFont, drawTypedText } from './typed_signature'
 import SignaturePad from 'signature_pad'
 import AppearsOn from './appears_on'
 import FileDropzone from './dropzone'
 import MarkdownContent from './markdown_content'
 import { v4 } from 'uuid'
-
-let fontLoadPromise = null
 
 const scale = 3
 
@@ -454,6 +457,11 @@ export default {
       required: false,
       default: ''
     },
+    legalNameText: {
+      type: String,
+      required: false,
+      default: ''
+    },
     nativePlatform: {
       type: String,
       required: false,
@@ -472,6 +480,7 @@ export default {
       isShowQr: false,
       isOtherReason: false,
       isUsePreviousValue: true,
+      errorMessage: '',
       isTextSignature: !this.signatureSrc && (!!this.signatureText || this.field.preferences?.format === 'typed' || this.field.preferences?.format === 'typed_or_upload'),
       uploadImageInputKey: Math.random().toString()
     }
@@ -537,6 +546,7 @@ export default {
 
       this.pad.addEventListener('endStroke', () => {
         this.isSignatureStarted = true
+        this.errorMessage = ''
 
         this.$emit('start')
       })
@@ -640,17 +650,26 @@ export default {
       this.isSignatureStarted = false
     },
     loadFont () {
-      if (!fontLoadPromise) {
-        const font = new FontFace('Dancing Script', `url(${this.baseUrl}/fonts/DancingScript-Regular.otf) format("opentype")`)
+      return loadTypedSignatureFont(this.baseUrl)
+    },
+    // StevensED: errors are shown under the box (announced to screen readers) instead of a browser alert.
+    showError (message) {
+      this.errorMessage = ''
 
-        fontLoadPromise = font.load().then((loadedFont) => {
-          document.fonts.add(loadedFont)
-        }).catch((error) => {
-          console.error('Font loading failed:', error)
-        })
+      this.$nextTick(() => {
+        this.errorMessage = message
+      })
+    },
+    showCanvasError () {
+      if (isCanvasBlocked()) {
+        this.showError(this.t('browser_privacy_settings_block_canvas'))
+
+        if (window.Rollbar) {
+          window.Rollbar.info('Canvas blocked')
+        }
+      } else {
+        this.showError(this.t('signature_is_too_small_or_simple_please_redraw'))
       }
-
-      return fontLoadPromise
     },
     showQr () {
       this.isShowQr = true
@@ -705,6 +724,7 @@ export default {
       this.pad.clear()
 
       this.isSignatureStarted = false
+      this.errorMessage = ''
 
       if (this.$refs.textInput) {
         this.$refs.textInput.value = ''
@@ -713,35 +733,18 @@ export default {
     },
     updateWrittenSignature (e) {
       this.isSignatureStarted = !!e.target.value
+      this.errorMessage = ''
 
       const canvas = this.$refs.canvas
-      const context = canvas.getContext('2d')
+      const width = canvas.width / scale
+      const height = canvas.height / scale
 
-      const fontFamily = 'Dancing Script'
-      const initialFontSize = 44
-      const fontStyle = 'italic'
-      const fontWeight = ''
-
-      const setFontSize = (size) => {
-        context.font = `${fontStyle} ${fontWeight} ${size}px ${fontFamily}`
-      }
-
-      const adjustFontSizeToFit = (text, maxWidth, initialSize) => {
-        let size = initialSize
-
-        setFontSize(size)
-
-        while (context.measureText(text).width > maxWidth && size > 1) {
-          size -= 1
-          setFontSize(size)
-        }
-      }
-
-      adjustFontSizeToFit(e.target.value, canvas.width / scale, initialFontSize)
-
-      context.textAlign = 'center'
-      context.clearRect(0, 0, canvas.width / scale, canvas.height / scale)
-      context.fillText(e.target.value, canvas.width / 2 / scale, canvas.height / 2 / scale + 11)
+      drawTypedText(canvas.getContext('2d'), e.target.value, {
+        width,
+        height,
+        maxFontSize: Math.min(76, height * 0.5),
+        color: this.field.preferences?.color || '#000000'
+      })
     },
     toggleTextInput () {
       this.remove()
@@ -751,7 +754,7 @@ export default {
       this.$nextTick(() => {
         if (this.isTextSignature) {
           if (this.$refs.textInput) {
-            if (this.submitter.name) {
+            if (this.submitter.name || this.legalNameText) {
               this.$refs.typeTextButton?.focus()
             } else {
               this.$refs.textInput.focus()
@@ -769,6 +772,8 @@ export default {
     async initTypedSignature () {
       if (this.signatureText) {
         this.$refs.textInput.value = this.signatureText
+      } else if (this.legalNameText) {
+        this.$refs.textInput.value = this.legalNameText
       } else if (this.submitter.name) {
         this.$refs.textInput.value = this.submitter.name
       }
@@ -949,15 +954,7 @@ export default {
 
       if (this.isSignatureStarted && this.pad.toData().length > 0 && !isValidSignatureCanvas(this.pad.toData())) {
         if (this.field.required === true || this.pad.toData().length > 0) {
-          if (isCanvasBlocked()) {
-            alert(this.t('browser_privacy_settings_block_canvas'))
-
-            if (window.Rollbar) {
-              window.Rollbar.info('Canvas blocked')
-            }
-          } else {
-            alert(this.t('signature_is_too_small_or_simple_please_redraw'))
-          }
+          this.showCanvasError()
 
           return Promise.reject(new Error('Image too small or simple'))
         } else {
@@ -1024,15 +1021,7 @@ export default {
           }
         }).catch((error) => {
           if (this.field.required === true) {
-            if (isCanvasBlocked()) {
-              alert(this.t('browser_privacy_settings_block_canvas'))
-
-              if (window.Rollbar) {
-                window.Rollbar.info('Canvas blocked')
-              }
-            } else {
-              alert(this.t('signature_is_too_small_or_simple_please_redraw'))
-            }
+            this.showCanvasError()
 
             return reject(error)
           } else {

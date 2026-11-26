@@ -23,6 +23,11 @@ module Stevensed
     LEGAL_NAME_FIELD = /(?:\A|\s)(?:\d+\.\s*)?Full legal name\z/i
     RECORDS_EMAIL_FIELD = /Email address for records and notices\z/i
     NAME_FIELDS = /printed name|full legal name|\Aname\z/i
+    # A name field about the student (e.g. "Student name") is the student's name, not the signer's: it is filled with
+    # the legal name only when an adult student signs their own Adult document.
+    STUDENT_FIELD = /student|child/i
+    STUDENT_NAME_FIELD = /\b(?:student|child)(?:'s)?\b.*\bname\b|\bname of (?:the )?(?:student|child)\b/i
+    STUDENT_AGE_FIELD = /\b(?:student|child)(?:'s)?\s+age\b|\bage of (?:the )?(?:student|child)\b/i
     DOB_FIELD = /date of birth|birth ?date|\bDOB\b/i
     PACKET_FAMILY = /first-time-enrollment/i
     AGE_BANDS = { 'under_13' => 'under 13', 'under_18' => '13 to 17', 'adult' => '18 or older' }.freeze
@@ -79,8 +84,12 @@ module Stevensed
 
     # -- Age check -----------------------------------------------------------------------------------------------
 
+    def age_in_years(dob, today: Time.current.in_time_zone(PolicySync::TIME_ZONE).to_date)
+      today.year - dob.year - (today < dob.next_year(today.year - dob.year) ? 1 : 0)
+    end
+
     def age_band(dob, today: Time.current.in_time_zone(PolicySync::TIME_ZONE).to_date)
-      age = today.year - dob.year - (today < dob.next_year(today.year - dob.year) ? 1 : 0)
+      age = age_in_years(dob, today:)
 
       if age < 13 then 'under_13'
       elsif age < 18 then 'under_18'
@@ -107,16 +116,22 @@ module Stevensed
       end
     end
 
-    # Keeps the age band (not the date) and fills the signer's own date-of-birth field, if the document has one.
-    def store_age!(submitter, dob, band)
-      field = fields_for(submitter.submission).find do |f|
-        f['submitter_uuid'] == submitter.uuid && f['type'] == 'date' && f['name'].to_s.match?(DOB_FIELD) &&
+    # Keeps the age band (not the date) and fills the signer's own date-of-birth and student age fields, if the
+    # document has them. The age is the student's age in years on the day it is entered.
+    def store_age!(submitter, dob, band, today: Time.current.in_time_zone(PolicySync::TIME_ZONE).to_date)
+      fields = fields_for(submitter.submission).select { |f| f['submitter_uuid'] == submitter.uuid }
+      dob_field = fields.find do |f|
+        f['type'] == 'date' && f['name'].to_s.match?(DOB_FIELD) &&
           f['name'].to_s.match?(/student|child|\A\d*\.?\s*date of birth/i)
       end
+      age_field = fields.find { |f| f['type'].in?(%w[text number]) && f['name'].to_s.match?(STUDENT_AGE_FIELD) }
+
+      values = submitter.values.dup
+      values[dob_field['uuid']] = dob.iso8601 if dob_field && values[dob_field['uuid']].blank?
+      values[age_field['uuid']] = age_in_years(dob, today:).to_s if age_field && values[age_field['uuid']].blank?
+
       attrs = { metadata: submitter.metadata.to_h.merge('stevensed_student_age' => band) }
-      if field && submitter.values[field['uuid']].blank?
-        attrs[:values] = submitter.values.merge(field['uuid'] => dob.iso8601)
-      end
+      attrs[:values] = values if values != submitter.values
 
       submitter.update!(attrs)
     end
@@ -213,7 +228,7 @@ module Stevensed
                                                 declined_at: nil, submissions: { template_id: template.id,
                                                                                  archived_at: nil }).last
       if open
-        open.update!(preferences: open.preferences.merge('completed_redirect_url' => return_url))
+        open.update!(preferences: open.preferences.except('send_email').merge('completed_redirect_url' => return_url))
         return open
       end
 
@@ -223,10 +238,11 @@ module Stevensed
       consent_submitter = submission.submitters.first
       email_field = template.fields.find { |f| f['name'].to_s.match?(RECORDS_EMAIL_FIELD) }
 
+      # Emails stay on (no 'send_email' => false), so the signer gets a copy of the signed consent like any other
+      # document, and a parent asked to sign one (parent_consent) gets the request.
+      preferences = consent_submitter.preferences.except('send_email').merge('completed_redirect_url' => return_url)
       consent_submitter.update!(name: submitter.name,
-                                values: email_field ? { email_field['uuid'] => submitter.email } : {},
-                                preferences: consent_submitter.preferences.merge('completed_redirect_url' => return_url,
-                                                                                 'send_email' => false),
+                                values: email_field ? { email_field['uuid'] => submitter.email } : {}, preferences:,
                                 metadata: { 'stevensed_consent_for' => submitter.id })
       consent_submitter
     end
@@ -305,9 +321,11 @@ module Stevensed
       Submissions.update_template_fields!(submission) if submission.template_fields.blank?
       fields = fields_for(submission).deep_dup
       values = submitter.values.dup
+      own_student_form = adult_student_signer?(submitter)
 
       fields.each do |f|
-        next unless f['submitter_uuid'] == submitter.uuid && f['type'] == 'text' && f['name'].to_s.match?(NAME_FIELDS)
+        next unless f['submitter_uuid'] == submitter.uuid && f['type'] == 'text' &&
+                    legal_name_field?(f['name'], own_student_form)
 
         values[f['uuid']] = name
         f['readonly'] = true
@@ -316,6 +334,23 @@ module Stevensed
 
       submission.update!(template_fields: fields) if fields != fields_for(submission)
       submitter.update!(name:, values:, metadata: submitter.metadata.to_h.merge('stevensed_legal_name' => name))
+    end
+
+    # Printed-name fields take the signer's legal name. Fields about the student take it only when the student signs
+    # their own Adult document; a parent signing for a minor never has the student's name filled with their own.
+    def legal_name_field?(name, own_student_form)
+      name = name.to_s
+      return own_student_form && name.match?(STUDENT_NAME_FIELD) if name.match?(STUDENT_FIELD)
+
+      name.match?(NAME_FIELDS)
+    end
+
+    # An Adult document, or one without a version whose student was confirmed to be 18 or older at the gate.
+    def adult_student_signer?(submitter)
+      return false unless role_name(submitter).match?(/\Astudent\z/i)
+
+      variant = context(submitter).variant
+      variant == 'adult' || (variant.nil? && submitter.metadata.to_h['stevensed_student_age'] == 'adult')
     end
 
     # One or two lines for the signer's block in the audit log.

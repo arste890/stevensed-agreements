@@ -1,0 +1,9 @@
+<%# StevensED: unknown, withdrawn or replaced signing link (SubmitFormController#render_signing_link_not_found) %>
+<%= render 'shared/html_title', title: 'Signing link not found' %>
+<div class="max-w-md mx-auto px-4 mt-12 mb-8">
+  <div class="bg-base-200 rounded-xl p-6 space-y-3" dir="auto">
+    <h1 class="text-xl font-semibold">This signing link is not available</h1>
+    <p>The link may be incomplete, or the document may have been withdrawn or replaced by a newer version. If you were expecting to sign a document, please use the most recent email you received for it.</p>
+    <p>For help, contact <a class="link" href="mailto:<%= Stevensed::CONTACT_EMAIL %>"><%= Stevensed::CONTACT_EMAIL %></a> and include the link you tried to open.</p>
+  </div>
+</div>

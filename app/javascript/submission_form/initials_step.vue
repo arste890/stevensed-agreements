@@ -165,6 +165,10 @@
         @touchcancel.passive="unlockSwipe"
       />
     </div>
+    <p
+      class="text-error text-sm mt-2 empty:hidden initials-error-message"
+      role="alert"
+    >{{ errorMessage }}</p>
     <input
       v-if="!isDrawInitials && !modelValue && !computedPreviousValue && !computedPrefillData"
       id="initials_text_input"
@@ -182,7 +186,7 @@
 
 <script>
 import { cropCanvasAndExportToPNG } from './crop_canvas'
-import { isCanvasBlocked } from './validate_signature'
+import { loadTypedSignatureFont, drawTypedText } from './typed_signature'
 import { IconReload, IconTextSize, IconUpload, IconSignature, IconArrowsDiagonalMinimize2 } from '@tabler/icons-vue'
 import SignaturePad from 'signature_pad'
 import AppearsOn from './appears_on'
@@ -258,6 +262,7 @@ export default {
       isInitialsStarted: false,
       isUsePreviousValue: true,
       isDrawInitials: false,
+      errorMessage: '',
       uploadImageInputKey: Math.random().toString()
     }
   },
@@ -288,6 +293,10 @@ export default {
     this.isInitialsStarted = !!(this.computedPreviousValue || this.computedPrefillData)
   },
   async mounted () {
+    if (!this.isDrawInitials) {
+      loadTypedSignatureFont(this.baseUrl)
+    }
+
     this.$nextTick(() => {
       if (this.$refs.canvas) {
         this.$refs.canvas.width = this.$refs.canvas.parentNode.clientWidth * scale
@@ -306,6 +315,7 @@ export default {
 
       this.pad.addEventListener('beginStroke', () => {
         this.isInitialsStarted = true
+        this.errorMessage = ''
 
         this.$emit('start')
       })
@@ -341,6 +351,8 @@ export default {
     lockSwipe: SignatureStep.methods.lockSwipe,
     unlockSwipe: SignatureStep.methods.unlockSwipe,
     drawOnCanvas: SignatureStep.methods.drawOnCanvas,
+    showError: SignatureStep.methods.showError,
+    showCanvasError: SignatureStep.methods.showCanvasError,
     drawImage (event) {
       this.remove()
       this.isInitialsStarted = true
@@ -359,6 +371,7 @@ export default {
       this.pad.clear()
 
       this.isInitialsStarted = false
+      this.errorMessage = ''
 
       if (this.$refs.textInput) {
         this.$refs.textInput.value = ''
@@ -366,35 +379,18 @@ export default {
     },
     updateWrittenInitials (e) {
       this.isInitialsStarted = !!e.target.value
+      this.errorMessage = ''
 
       const canvas = this.$refs.canvas
-      const context = canvas.getContext('2d')
+      const width = canvas.width / scale
+      const height = canvas.height / scale
 
-      const fontFamily = 'Arial'
-      const initialFontSize = 50
-      const fontStyle = 'italic'
-      const fontWeight = ''
-
-      const setFontSize = (size) => {
-        context.font = `${fontStyle} ${fontWeight} ${size}px ${fontFamily}`
-      }
-
-      const adjustFontSizeToFit = (text, maxWidth, initialSize) => {
-        let size = initialSize
-
-        setFontSize(size)
-
-        while (context.measureText(text).width > maxWidth && size > 1) {
-          size -= 1
-          setFontSize(size)
-        }
-      }
-
-      adjustFontSizeToFit(e.target.value, canvas.width / scale, initialFontSize)
-
-      context.textAlign = 'center'
-      context.clearRect(0, 0, canvas.width / scale, canvas.height / scale)
-      context.fillText(e.target.value, canvas.width / 2 / scale, canvas.height / 2 / scale + 11)
+      drawTypedText(canvas.getContext('2d'), e.target.value, {
+        width,
+        height,
+        maxFontSize: Math.min(76, height * 0.62),
+        color: this.field.preferences?.color || '#000000'
+      })
     },
     toggleTextInput () {
       this.remove()
@@ -415,14 +411,16 @@ export default {
         })
       }
     },
-    initTextInitial () {
+    async initTextInitial () {
       if (this.submitter.name) {
         const parts = this.submitter.name.trim().split(/\s+/)
 
         this.$refs.textInput.value = (parts.length > 1 ? [parts[0], parts[parts.length - 1]] : parts).map((part) => part[0]?.toUpperCase() || '').join('')
       }
 
-      if (this.$refs.textInput.value) {
+      await loadTypedSignatureFont(this.baseUrl)
+
+      if (this.$refs.textInput?.value) {
         this.updateWrittenInitials({ target: this.$refs.textInput })
       }
     },
@@ -532,15 +530,7 @@ export default {
           }
         }).catch((error) => {
           if (this.field.required === true) {
-            if (isCanvasBlocked()) {
-              alert(this.t('browser_privacy_settings_block_canvas'))
-
-              if (window.Rollbar) {
-                window.Rollbar.info('Canvas blocked')
-              }
-            } else {
-              alert(this.t('signature_is_too_small_or_simple_please_redraw'))
-            }
+            this.showCanvasError()
 
             return reject(error)
           } else {

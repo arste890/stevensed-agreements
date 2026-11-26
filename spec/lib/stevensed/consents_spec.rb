@@ -172,4 +172,90 @@ describe Stevensed::Consents do
       expect(described_class.on_file(account, 'PAT@example.org', ['family_adult'])).to eq(consent)
     end
   end
+
+  describe '.store_age!' do
+    it 'fills the student age in years alongside the date of birth' do
+      template = build_template(external_id: 'FRM-104-M_v2.0', roles: %w[Parent], fields: lambda { |u|
+        [field('1. Student date of birth', 'date', u['Parent']), field('2. Student age', 'text', u['Parent'])]
+      })
+      signer = signer_for(template, 'Parent')
+
+      described_class.store_age!(signer, Date.new(2012, 11, 27), 'under_18', today: Date.new(2026, 11, 26))
+
+      dob_field, age_field = template.fields
+
+      expect(signer.reload.values).to include(dob_field['uuid'] => '2012-11-27', age_field['uuid'] => '13')
+      expect(signer.metadata['stevensed_student_age']).to eq('under_18')
+    end
+  end
+
+  describe 'legal name prefill' do
+    def consent_on_file(email, kind)
+      StevensedEsignConsent.create!(account:, email:, kind:, form_key: described_class::CONSENT_FORMS.fetch(kind),
+                                    legal_name: 'Jordan Q. Example', source: 'manual', signed_at: 1.day.ago)
+    end
+
+    it 'fills the student name for an adult student signing their own Adult document' do
+      template = build_template(external_id: 'FRM-103-A_v7.1', roles: %w[Student StevensED], fields: lambda { |u|
+        [field('3. Student name', 'text', u['Student']), field('Student — Printed name', 'text', u['Student'])]
+      })
+      signer = signer_for(template, 'Student', email: 'jordan@example.org')
+      described_class.store_age!(signer, Date.new(2000, 1, 1), 'adult')
+      consent_on_file('jordan@example.org', 'family_adult')
+
+      expect(described_class.prepare(signer, request)).to eq(:none)
+
+      values = signer.reload.values
+      expect(template.fields.map { |f| values[f['uuid']] }).to eq(['Jordan Q. Example'] * 2)
+    end
+
+    it 'does not fill the student name when a parent signs for a minor' do
+      template = build_template(external_id: 'FRM-103-M_v7.1', roles: %w[Parent StevensED], fields: lambda { |u|
+        [field('3. Student name', 'text', u['Parent']), field('Parent — Printed name', 'text', u['Parent'])]
+      })
+      signer = signer_for(template, 'Parent', email: 'jordan@example.org')
+      described_class.store_age!(signer, Date.new(2012, 1, 1), 'under_18')
+      consent_on_file('jordan@example.org', 'family_minor')
+
+      expect(described_class.prepare(signer, request)).to eq(:none)
+
+      student_name, printed_name = template.fields
+      values = signer.reload.values
+      expect(values[student_name['uuid']]).to be_blank
+      expect(values[printed_name['uuid']]).to eq('Jordan Q. Example')
+    end
+  end
+
+  describe 'documents copy of a signed consent' do
+    let(:delivery) { instance_double(ActionMailer::MessageDelivery, deliver_later!: true) }
+
+    before do
+      allow(SubmitterMailer).to receive_messages(completed_email: delivery, documents_copy_email: delivery)
+    end
+
+    it 'sends the consent signer a copy, as for any other signed document' do
+      frm102m
+      consent_signer = described_class.start_consent!(signer_for(frm103m, 'Parent'), 'family_minor', nil)
+      consent_signer.update!(completed_at: Time.current)
+
+      expect(consent_signer.preferences).not_to have_key('send_email')
+
+      ProcessSubmitterCompletionJob.new.send(:enqueue_completed_emails, consent_signer)
+
+      expect(SubmitterMailer).to have_received(:documents_copy_email)
+        .with(consent_signer, to: a_string_including('pat@example.org'), sig: true)
+    end
+
+    it 'sends no copy when the account has turned documents copy emails off' do
+      create(:account_config, account:, key: AccountConfig::SUBMITTER_DOCUMENTS_COPY_EMAIL_KEY,
+                              value: { 'enabled' => false })
+      frm102m
+      consent_signer = described_class.start_consent!(signer_for(frm103m, 'Parent'), 'family_minor', nil)
+      consent_signer.update!(completed_at: Time.current)
+
+      ProcessSubmitterCompletionJob.new.send(:enqueue_completed_emails, consent_signer)
+
+      expect(SubmitterMailer).not_to have_received(:documents_copy_email)
+    end
+  end
 end
