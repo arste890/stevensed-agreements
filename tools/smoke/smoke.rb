@@ -12,6 +12,7 @@
 require 'warden'
 
 include Warden::Test::Helpers # rubocop:disable Style/MixinUsage
+
 Warden.test_mode!
 
 Rails.logger.level = :warn
@@ -60,7 +61,7 @@ paths.uniq.sort.each do |path|
   session.get(path)
   status = session.response.status
   branded = path.match?(ALLOWED_BRANDING) ? nil : visible_text(session.response.body)[BRANDING]
-  results << [path, status, branded] if ![200, 302, 304].include?(status) || branded
+  results << [path, status, branded] if [200, 302, 304].exclude?(status) || branded
 rescue StandardError => e
   results << [path, "ERROR #{e.class}: #{e.message[0, 120]}", nil]
 end
@@ -74,7 +75,7 @@ slugs.each do |slug|
     session.get(path)
     status = session.response.status
     branded = visible_text(session.response.body)[BRANDING]
-    results << [path, status, branded] if ![200, 302, 304, 404].include?(status) || branded
+    results << [path, status, branded] if [200, 302, 304, 404].exclude?(status) || branded
   rescue StandardError => e
     results << [path, "ERROR #{e.class}: #{e.message[0, 120]}", nil]
   end
@@ -85,5 +86,5 @@ puts "Checked #{paths.uniq.size} admin paths and #{slugs.size} signing links " \
 if results.empty?
   puts 'No problems found.'
 else
-  results.each { |path, status, branded| puts [path, status, (branded && "branding: #{branded}")].compact.join(' | ') }
+  results.each { |path, status, branded| puts [path, status, branded && "branding: #{branded}"].compact.join(' | ') }
 end
