@@ -66,7 +66,7 @@ module Stevensed
       ext = cert.extensions.find { |e| e.oid == 'crlDistributionPoints' }
       return [] unless ext
 
-      ext.value.scan(%r{URI:(http[^\s,]+)}).flatten
+      ext.value.scan(/URI:(http[^\s,]+)/).flatten
     end
 
     def fetch_crls(cert)
