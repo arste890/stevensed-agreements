@@ -110,6 +110,11 @@
               <% end %>
             </li>
           <% end %>
+          <% if can?(:manage, current_account) %>
+            <li>
+              <%= link_to t('stevensed.imported_records'), settings_imported_records_path, class: 'text-base hover:bg-base-300', data: nav_link_data %>
+            </li>
+          <% end %>
           <% if (!Docuseal.multitenant? || can?(:manage, :saml_sso)) && can?(:read, EncryptedConfig.new(key: 'saml_configs', account: current_account)) && true_user == current_user && (!turbo_native_app? || can?(:manage, :saml_sso)) %>
             <li>
               <%= link_to 'SSO', settings_sso_index_path, class: 'text-base hover:bg-base-300', data: nav_link_data %>

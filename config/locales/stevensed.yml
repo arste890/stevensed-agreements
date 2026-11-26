@@ -1,6 +1,13 @@
 # StevensED fork strings (English; other locales fall back to en).
 en:
   stevensed:
+    imported_records: Imported records
+    imported_records_intro: Signed agreements imported from the former DocuSeal cloud account on November 26, 2026. Each document was checked against the SHA-256 value in its audit log. Records keep the retention period that applied when they were signed.
+    no_imported_records: No imported records.
+    completed_on: Completed %{date}
+    verified_against_audit: Verified against the audit log
+    not_verified: Not verified
+    original_envelope: 'Original envelope %{id}'
     legal_notices: Legal notices
     logo_invalid: The logo must be a PNG, JPEG or WebP image of 2 MB or less.
     logo_hint: PNG, JPEG or WebP, 2 MB or less. Shown on signing pages and in the dashboard.
