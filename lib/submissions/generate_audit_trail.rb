@@ -180,7 +180,7 @@ module Submissions
         end.presence
 
         original_documents ||= submission.template.documents.select do |e|
-          e.image? && submission.template_schema.any? do |item|
+          e.image? && (submission.template_schema.presence || submission.template.schema).any? do |item|
             item['attachment_uuid'] == e.uuid
           end
         end

@@ -114,6 +114,8 @@ describe Stevensed::Consents do
       expect(signer.reload.name).to eq('Patricia Q. Example')
       expect(signer.values[name_field['uuid']]).to eq('Patricia Q. Example')
       expect(name_field['readonly']).to be(true)
+      expect(signer.submission.template_schema).to eq(frm103m.schema)
+      expect(signer.submission.template_submitters).to be_present
       expect(described_class.audit_line(event)).to include('FRM-102-M v4.1', 'Student age confirmed: 13 to 17')
     end
 
