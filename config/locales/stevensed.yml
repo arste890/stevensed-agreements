@@ -32,7 +32,7 @@ en:
     imported_records_intro: Signed agreements imported from the former DocuSeal cloud account on November 26, 2026. Each document was checked against the SHA-256 value in its audit log. Records keep the retention period that applied when they were signed.
     no_imported_records: No imported records.
     completed_on: Completed %{date}
-    imported_records_verified: Verified against the DocuSeal audit log, original envelope %{id}
+    imported_records_verified: Verified against the original audit log, envelope %{id}
     imported_records_not_verified: Not verified against the DocuSeal audit log, original envelope %{id}
     imported_records_signed_document: Signed document
     imported_records_signed_document_n: Signed document %{n}

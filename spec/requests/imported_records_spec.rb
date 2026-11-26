@@ -41,7 +41,7 @@ describe 'Imported records' do
     expect(body.index('Audit log')).to be < body.index('Combined PDF')
     expect(body.index('janey@example.com')).to be < body.index('records@stevensed.org')
     expect(body).to include('Completed November 22, 2026')
-    expect(body).to include('Verified against the DocuSeal audit log, original envelope 13478070')
+    expect(body).to include('Verified against the original audit log, envelope 13478070')
   end
 
   it 'serves only files listed in the record metadata' do
