@@ -29,14 +29,14 @@
   <% end %>
   <% groups.each_with_index do |group, group_index| %>
     <% group_id = "#{editor_id}_#{group_index}" %>
-    <div class="space-y-4" data-party="<%= group[:party] %>" <%= 'hidden' unless group_index.zero? %>>
+    <%= tag.div class: 'space-y-4', data: { party: group[:party] }, hidden: !group_index.zero? do %>
       <% if group[:variants].size > 1 %>
         <fieldset>
           <legend class="label"><%= t('stevensed.email_templates.version') %></legend>
           <div class="flex flex-wrap gap-x-5 gap-y-1 px-1">
             <% group[:variants].each_with_index do |variant, index| %>
               <label class="flex items-center gap-2 cursor-pointer">
-                <input type="radio" class="radio radio-sm" name="<%= group_id %>_variant" value="<%= variant %>" data-role="variant" <%= 'checked' if index.zero? %>>
+                <%= radio_button_tag "#{group_id}_variant", variant, index.zero?, id: "#{group_id}_variant_#{variant}", class: 'radio radio-sm', data: { role: 'variant' } %>
                 <span><%= t("stevensed.email_templates.versions.#{variant}") %></span>
               </label>
             <% end %>
@@ -44,7 +44,7 @@
         </fieldset>
       <% end %>
       <% group[:variants].each_with_index do |variant, index| %>
-        <div class="space-y-4" data-variant="<%= variant %>" <%= 'hidden' unless index.zero? %>>
+        <%= tag.div class: 'space-y-4', data: { variant: }, hidden: !index.zero? do %>
           <% %w[subject heading intro].each do |part| %>
             <% field = Stevensed::EmailParts.field_name(part, variant) %>
             <% field_id = "#{group_id}_#{field}" %>
@@ -53,21 +53,21 @@
               <% if part == 'intro' %>
                 <textarea id="<%= field_id %>" name="<%= group[:name_prefix] %>[<%= field %>]" rows="4" class="base-textarea !rounded-lg w-full text-base" dir="auto" data-field="<%= field %>" placeholder="<%= group.dig(:placeholders, field) %>" aria-describedby="<%= field_id %>_hint <%= editor_id %>_formatting"><%= group[:values][field] %></textarea>
               <% else %>
-                <input id="<%= field_id %>" type="text" name="<%= group[:name_prefix] %>[<%= field %>]" value="<%= group[:values][field] %>" placeholder="<%= group.dig(:placeholders, field) %>" class="base-input w-full" dir="auto" autocomplete="off" data-field="<%= field %>" <%= %(aria-describedby="#{field_id}_hint") if part == 'heading' %>>
+                <%= text_field_tag "#{group[:name_prefix]}[#{field}]", group[:values][field], id: field_id, placeholder: group.dig(:placeholders, field), class: 'base-input w-full', dir: 'auto', autocomplete: 'off', data: { field: }, aria: { describedby: ("#{field_id}_hint" if part == 'heading') } %>
               <% end %>
               <% if part.in?(%w[heading intro]) %>
                 <p id="<%= field_id %>_hint" class="text-sm text-base-content/70 mt-1 px-1"><%= t("stevensed.email_templates.hints.#{part}") %></p>
               <% end %>
             </div>
           <% end %>
-        </div>
+        <% end %>
       <% end %>
       <div class="form-control">
         <label for="<%= group_id %>_closing" class="label"><%= t('stevensed.email_templates.fields.closing') %></label>
         <textarea id="<%= group_id %>_closing" name="<%= group[:name_prefix] %>[closing]" rows="2" class="base-textarea !rounded-lg w-full text-base" dir="auto" data-field="closing" placeholder="<%= group.dig(:placeholders, 'closing') %>" aria-describedby="<%= group_id %>_closing_hint <%= editor_id %>_formatting"><%= group[:values]['closing'] %></textarea>
         <p id="<%= group_id %>_closing_hint" class="text-sm text-base-content/70 mt-1 px-1"><%= t('stevensed.email_templates.hints.closing') %></p>
       </div>
-    </div>
+    <% end %>
   <% end %>
   <div class="flex flex-wrap items-end gap-2">
     <button type="button" class="white-button btn-sm normal-case" data-role="bold" aria-label="<%= t('stevensed.email_templates.bold') %>"><strong><%= t('stevensed.email_templates.bold') %></strong></button>
