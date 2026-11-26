@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 describe 'Signing link not found' do
+  before { create(:user) } # an instance without users redirects to setup
+
   it 'shows a page with a contact for an unknown signing link' do
     get '/s/no-such-link', headers: { 'Accept' => 'text/html' }
 
