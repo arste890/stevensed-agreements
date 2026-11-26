@@ -26,7 +26,7 @@ describe 'E-signature settings' do
       expect(leaf_index).to be < body.index('<h3 class="se-row__title">StevensED Document Signing CA</h3>')
       expect(body).to include('StevensED Root CA', 'RSA 3072-bit', 'ECDSA P-384')
       expect(body).to include(leaf.fingerprint.split(':').join(':<wbr>'))
-      expect(body).to include('Retired: kept to verify documents signed before November 26, 2026')
+      expect(body).to include('Retired: kept to verify documents signed before 26 November 2026')
       expect(body).not_to include('Make default')
       expect(body).not_to include('PRIVATE KEY')
     end

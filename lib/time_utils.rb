@@ -96,7 +96,7 @@ module TimeUtils
 
   def stevensed_format(format)
     return STEVENSED_DATE_FORMAT if format.blank?
-    return format if format.match?(/[HhmsAaz]/) || !format.include?('D')
+    return format if format.match?(/[HhmsAaz]/) || format.exclude?('D')
 
     STEVENSED_DATE_FORMAT
   end
