@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class SubmitFormEmail2fasController < ApplicationController
+  include StevensedEmbeddable # StevensED: may be shown in an iframe on allowed origins
+
   around_action :with_browser_locale
 
   skip_before_action :authenticate_user!

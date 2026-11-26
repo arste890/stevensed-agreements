@@ -4,6 +4,8 @@
     <%= render 'layouts/head_tags' %>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <%= csrf_meta_tags %>
+    <%= stevensed_embed_meta_tag(submitter: @submitter, template: @template) %>
+    <script src="/js/frame.js" type="text/javascript" defer></script>
     <% if ENV['ROLLBAR_CLIENT_TOKEN'] %>
       <meta name="rollbar-token" content="<%= ENV.fetch('ROLLBAR_CLIENT_TOKEN', nil) %>">
       <%= javascript_pack_tag 'rollbar', 'form', defer: true %>

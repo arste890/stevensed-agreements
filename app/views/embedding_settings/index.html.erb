@@ -1,0 +1,58 @@
+<% content_for(:native_title, t('embedding')) if turbo_native_app? %>
+<div class="flex flex-wrap space-y-4 md:flex-nowrap md:space-y-0 md:space-x-10">
+  <%= render 'shared/settings_nav' %>
+  <div class="flex-grow min-w-0 space-y-6">
+    <h1 class="text-3xl md:text-4xl font-bold"><%= t('embedding') %></h1>
+    <p><%= t('stevensed.embedding.intro') %></p>
+    <div class="card bg-base-200">
+      <div class="card-body p-6 space-y-2">
+        <h2 class="text-xl font-semibold"><%= t('stevensed.embedding.allowed_sites') %></h2>
+        <p class="text-sm"><%= t('stevensed.embedding.allowed_sites_hint') %></p>
+        <ul class="list-disc pl-6 font-mono text-sm">
+          <% @allowed_origins.each do |origin| %>
+            <li><%= origin %></li>
+          <% end %>
+        </ul>
+      </div>
+    </div>
+    <section class="space-y-3">
+      <h2 class="text-2xl font-semibold"><%= t('stevensed.embedding.signing_form') %></h2>
+      <p class="text-sm"><%= t('stevensed.embedding.signing_form_hint') %></p>
+      <%= render 'code', lexer: 'HTML', text: @snippets[:form] %>
+      <p class="text-sm"><%= t('stevensed.embedding.share_link_hint') %></p>
+      <%= render 'code', lexer: 'HTML', text: @snippets[:share_link] %>
+      <div class="overflow-x-auto">
+        <table class="table table-sm">
+          <thead>
+            <tr>
+              <th><%= t('stevensed.embedding.attribute') %></th>
+              <th><%= t('stevensed.embedding.description') %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="font-mono">data-src</td><td><%= t('stevensed.embedding.attr_src') %></td></tr>
+            <tr><td class="font-mono">data-email, data-name, data-phone</td><td><%= t('stevensed.embedding.attr_prefill') %></td></tr>
+            <tr><td class="font-mono">data-language</td><td><%= t('stevensed.embedding.attr_language') %></td></tr>
+            <tr><td class="font-mono">data-height, data-min-height</td><td><%= t('stevensed.embedding.attr_height') %></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="text-sm"><%= t('stevensed.embedding.events_hint') %></p>
+    </section>
+    <section class="space-y-3">
+      <h2 class="text-2xl font-semibold"><%= t('stevensed.embedding.template_builder') %></h2>
+      <p class="text-sm"><%= t('stevensed.embedding.template_builder_hint') %></p>
+      <%= render 'code', lexer: 'HTML', text: @snippets[:builder] %>
+      <p class="text-sm"><%= t('stevensed.embedding.token_hint') %></p>
+      <%= render 'code', lexer: 'Ruby', text: @snippets[:ruby_token] %>
+      <%= render 'code', lexer: 'Javascript', text: @snippets[:node_token] %>
+      <%= render 'code', lexer: 'Python', text: @snippets[:python_token] %>
+      <p class="text-sm"><%= t('stevensed.embedding.token_security_hint') %></p>
+    </section>
+    <section class="space-y-3">
+      <h2 class="text-2xl font-semibold"><%= t('stevensed.embedding.html_templates') %></h2>
+      <p class="text-sm"><%= t('stevensed.embedding.html_templates_hint') %></p>
+      <%= render 'code', lexer: 'Shell', text: @snippets[:html_template] %>
+    </section>
+  </div>
+</div>

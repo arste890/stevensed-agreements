@@ -45,6 +45,43 @@ en:
     send_as: Send as
     send_as_with_name: With your name
     send_as_office_only: Office only
+    embed:
+      unavailable: The template builder is not available
+      invalid_token: The access token is invalid or has expired. Reload the page to request a new one.
+      session_expired: The builder session has expired. Reload the page to request a new one.
+      signed_in_as_another_user: This browser is signed in to StevensED Agreements as a different user. Sign out, then reload the page.
+    embedding:
+      intro: The signing form and the template builder can be placed on StevensED websites. Copy the examples below into a page on an allowed site.
+      allowed_sites: Allowed sites
+      allowed_sites_hint: Only these sites may show the signing form or the builder. The list is set on the server with the EMBED_ALLOWED_ORIGINS variable.
+      signing_form: Signing form
+      signing_form_hint: Use the signing link of a recipient. The form adjusts its height to the page and reports when the recipient signs or declines.
+      share_link_hint: A template share link may be used instead. Contact details can be filled in for the recipient in advance.
+      attribute: Attribute
+      description: Description
+      attr_src: Signing link (/s/...) or template share link (/d/...) from this application. Required.
+      attr_prefill: Fills in the email address, name or phone number on the start page of a share link.
+      attr_language: Language of the form, for example en or es.
+      attr_height: Height of the signing form while documents are shown, and the initial height of shorter pages. The default is the height of the browser window.
+      events_hint: 'The element dispatches these events: init, load, completed and declined. The completed event includes the submitter id, the submitter slug and a download link that returns the signed documents for 40 minutes.'
+      template_builder: Template builder
+      template_builder_hint: The builder lets an admin or editor place fields on one template without signing in to this application. Your server creates a token for each page view.
+      token_hint: 'Create the token on your server, never in the browser. Sign it with HS256 using the API token of the user who will edit the template (Settings, API). Include user_email, template_id or external_id, and exp no more than one hour ahead.'
+      token_security_hint: The token opens the builder for that one template only. The builder session ends when the token expires. Keep API tokens on the server and rotate a token if it may have been exposed.
+      html_templates: Templates from HTML
+      html_templates_hint: 'Create a template from HTML with the API or from the Create menu. Field tags become fields: text-field, signature-field, initials-field, date-field and checkbox-field, each with name, role, required and style attributes.'
+    html_templates:
+      title: Create a template from HTML
+      create_from_html: Create a template from HTML
+      or_create_from_html: or create a template from HTML
+      intro: Paste the document HTML. The HTML is converted to PDF and its field tags become fields that recipients complete.
+      html_placeholder: '<p>Parent name: <text-field name="Parent name" role="Parent"></text-field></p>'
+      header_and_footer: Header and footer (optional)
+      header: Header HTML, repeated at the top of every page
+      footer: Footer HTML, repeated at the bottom of every page
+      paper_size: Paper size
+      converting: Converting
+      tags_hint: 'Field tags: text-field, signature-field, initials-field, date-field and checkbox-field. Attributes: name, role, required ("true" or "false") and style with width and height. Scripts are removed. Images must be embedded as data: URLs.'
     email:
       # Subjects
       view_subject: 'StevensED: "%{name}" has been shared with you'

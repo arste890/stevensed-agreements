@@ -1849,6 +1849,9 @@ export default {
       this.isCompleted = true
       this.isFormVisible = true
 
+      // StevensED: lets the embed bridge (/js/frame.js) notify the host page.
+      window.dispatchEvent(new CustomEvent('stevensed:form-completed', { detail: { slug: this.submitter.slug } }))
+
       if (this.nativePlatform) {
         window.webkit?.messageHandlers?.native?.postMessage({ type: 'stale' })
       }

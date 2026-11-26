@@ -41,6 +41,7 @@ Rails.application.routes.draw do
         resources :emails, only: %i[create], controller: 'submissions', as: :submissions_emails
       end
     end
+    resources :html_templates, only: %i[create], path: 'templates/html', controller: 'templates_html' # StevensED
     resources :templates, only: %i[update show index destroy] do
       resources :clone, only: %i[create], controller: 'templates_clone'
       resources :submissions, only: %i[index create]
@@ -93,6 +94,7 @@ Rails.application.routes.draw do
   resources :webhook_hmac, only: %i[show]
   resources :webhook_preferences, only: %i[update]
   resource :templates_upload, only: %i[create]
+  resource :templates_html, only: %i[new create], controller: 'templates_html', path: 'templates/html' # StevensED
   authenticated do
     resource :templates_upload, only: %i[show], path: 'new'
   end
@@ -211,6 +213,7 @@ Rails.application.routes.draw do
     resource :personalization, only: %i[show create], controller: 'personalization_settings'
     resource :logo, only: %i[create destroy], controller: 'account_logos' # StevensED
     resource :offices, only: %i[show create], controller: 'offices_settings' # StevensED: Send as office list
+    resources :embedding, only: %i[index], controller: 'embedding_settings' # StevensED
     resources :webhooks, only: %i[index show new create update destroy], controller: 'webhook_settings' do
       post :resend
 
@@ -232,6 +235,8 @@ Rails.application.routes.draw do
   match '/mcp', to: 'mcp#call', via: %i[get post]
 
   get '/js/:filename', to: 'embed_scripts#show', as: :embed_script
+  get '/embed/builder', to: 'embed_builder#show', as: :embed_builder # StevensED embedded builder
+  post '/embed/builder', to: 'embed_builder#create' # StevensED embedded builder
 
   ActiveSupport.run_load_hooks(:routes, self)
 end

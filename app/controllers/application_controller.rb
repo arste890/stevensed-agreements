@@ -28,6 +28,8 @@ class ApplicationController < ActionController::Base
 
   impersonates :user, with: ->(uuid) { User.find_by(uuid:) }
 
+  prepend StevensedEmbedBuilderAuthentication # StevensED: scoped session for the embedded builder
+
   rescue_from Pagy::RangeError do
     redirect_to request.path
   end
@@ -175,6 +177,7 @@ class ApplicationController < ActionController::Base
       policy.manifest_src :self
       policy.media_src :self
       policy.frame_src :self
+      policy.frame_ancestors :self # StevensED: embeddable responses widen this (StevensedEmbeddable)
       policy.worker_src :self, :blob
       policy.connect_src :self
 

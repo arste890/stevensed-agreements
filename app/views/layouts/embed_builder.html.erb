@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html data-theme="docuseal" lang="<%= I18n.locale %>">
+  <head>
+    <%= render 'layouts/head_tags' %>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <%= csrf_meta_tags %>
+    <%= stevensed_embed_meta_tag(template: @template) %>
+    <script src="/js/frame.js" type="text/javascript" defer></script>
+    <%= javascript_pack_tag 'application', defer: true %>
+    <%= stylesheet_pack_tag 'application', media: 'all', data: { turbo_track: 'dynamic' } %>
+  </head>
+  <body>
+    <main>
+      <%= yield %>
+    </main>
+    <turbo-frame id="modal"></turbo-frame>
+  </body>
+</html>
