@@ -41,7 +41,6 @@ class SubmissionsPreviewDownloadController < ApplicationController
 
   private
 
-
   def current_user_submission?(submission)
     current_user && current_ability.can?(:read, submission)
   end
