@@ -55,6 +55,7 @@ import RequiredCheckboxGroup from './elements/required_checkbox_group'
 import PageContainer from './elements/page_container'
 import EmailEditor from './elements/email_editor'
 import MarkdownEditor from './elements/markdown_editor'
+import EmailTemplateEditor from './elements/email_template_editor' // StevensED
 import HtmlEditor from './elements/html_editor'
 import MountOnClick from './elements/mount_on_click'
 import RemoveOnEvent from './elements/remove_on_event'
@@ -183,6 +184,7 @@ safeRegisterElement('required-checkbox-group', RequiredCheckboxGroup)
 safeRegisterElement('page-container', PageContainer)
 safeRegisterElement('email-editor', EmailEditor)
 safeRegisterElement('markdown-editor', MarkdownEditor)
+safeRegisterElement('email-template-editor', EmailTemplateEditor) // StevensED
 safeRegisterElement('html-editor', HtmlEditor)
 safeRegisterElement('mount-on-click', MountOnClick)
 safeRegisterElement('remove-on-event', RemoveOnEvent)

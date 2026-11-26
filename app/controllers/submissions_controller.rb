@@ -164,9 +164,18 @@ class SubmissionsController < ApplicationController
     raise Submissions::CreateFromSubmitters::BaseError, I18n.t('stevensed.bulk_empty')
   end
 
+  # StevensED: "Save as default template message" stores the subject and introduction as template email parts.
   def save_template_message(template, params)
-    template.preferences['request_email_subject'] = params[:subject] if params[:subject].present?
-    template.preferences['request_email_body'] = params[:body] if params[:body].present?
+    key = Stevensed::EmailParts::INVITATION
+    variant = Stevensed::EmailParts.variant_for_template(key, template, nil)
+    current = Stevensed::EmailParts.effective_fields(key, account: template.account, template:, scope: :template)
+
+    submitted = current.merge(
+      { Stevensed::EmailParts.field_name('subject', variant) => params[:subject].presence,
+        Stevensed::EmailParts.field_name('intro', variant) => params[:body].presence }.compact
+    )
+
+    Stevensed::EmailParts.apply_template_fields(template, key, submitted)
 
     template.save!
   end

@@ -7,10 +7,11 @@
   <% append_link = !@body.match?(ReplaceEmailVariables::SUBMITTER_LINK) && !@body.match?(ReplaceEmailVariables::SUBMITTER_ID) && !@body.match?(ReplaceEmailVariables::SUBMISSION_LINK) && !@body.match?(ReplaceEmailVariables::TEMPLATE_ID) && !@submitter.submission.source.in?(%w[api embed]) %>
   <%= render 'custom_body', body: @body, submitter: @submitter, link_url: (view_url if append_link), link_label: t('stevensed.email.view_document') %>
 <% else %>
-  <%= render 'shared/email_heading', title: t('stevensed.email.view_title', name: document_name) %>
+  <%= render 'shared/email_heading', title: ReplaceEmailVariables.call(@email_parts.parts['heading'], submitter: @submitter) %>
   <%= render 'shared/email_greeting', name: @submitter.name %>
-  <p><%= t('stevensed.email.view_intro') %></p>
+  <%= render 'email_text', text: @email_parts.parts['intro'], submitter: @submitter %>
   <%= render 'shared/email_details', rows: [[t('stevensed.email.document'), document_name], [t('stevensed.email.shared_by'), render('shared/email_requester', submission: @submitter.submission)], [t('stevensed.email.action'), t('stevensed.email.view_only')]] %>
   <%= render 'shared/email_button', url: view_url, label: t('stevensed.email.view_document') %>
+  <%= render 'email_text', text: @email_parts.parts['closing'], submitter: @submitter %>
   <p><%= t('stevensed.email.questions_html', email: Stevensed::CONTACT_EMAIL) %></p>
 <% end %>

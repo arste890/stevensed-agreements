@@ -26,6 +26,10 @@ module ReplaceEmailVariables
   SUBMITTERS_N_FIELD_VALUE = /\{+submitters\[(?<index>\d+)\]\.(?<field_name>[^}]+)\}+/i
   DOCUMENTS_LINKS = /\{+documents\.links\}+/i
   DOCUMENTS_LINK = /\{+documents\.link\}+/i
+  # StevensED: readable variables for the email template editor.
+  DOCUMENT_NAME = /\{+document\.name\}+/i
+  REQUESTER_NAME = /\{+requester\.name\}+/i
+  REQUESTER_OFFICE = /\{+requester\.office\}+/i
 
   ESCAPED_BRACES = "\u{E000}\u{E001}"
 
@@ -40,6 +44,15 @@ module ReplaceEmailVariables
     end
     text = replace(text, SUBMISSION_NAME, html_escape:) do
       submitter.submission.name.presence || submitter.submission.template&.name
+    end
+    text = replace(text, DOCUMENT_NAME, html_escape:) do
+      submitter.submission.name.presence || submitter.submission.template&.name
+    end
+    text = replace(text, REQUESTER_NAME, html_escape:) do
+      Stevensed::Requesters.label(Stevensed::Requesters.for_submission(submitter.submission))
+    end
+    text = replace(text, REQUESTER_OFFICE, html_escape:) do
+      Stevensed::Requesters.for_submission(submitter.submission)['office'].presence || Stevensed::ORGANIZATION
     end
     text = replace(text, TEMPLATE_ID, html_escape:) { submitter.template.id }
     text = replace(text, SUBMITTER_ID, html_escape:) { submitter.id }

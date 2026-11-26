@@ -5,12 +5,13 @@
 <% if @body.present? %>
   <%= render 'custom_body', body: @body, submitter: @submitter %>
 <% else %>
-  <%= render 'shared/email_heading', eyebrow: t('stevensed.email.completed_eyebrow'), tone: :success, title: t('stevensed.email.completed_title', name: document_name) %>
+  <%= render 'shared/email_heading', eyebrow: t('stevensed.email.completed_eyebrow'), tone: :success, title: ReplaceEmailVariables.call(@email_parts.parts['heading'], submitter: @submitter) %>
   <%= render 'shared/email_greeting', name: @user&.first_name %>
-  <p><%= t('stevensed.email.completed_intro') %></p>
+  <%= render 'email_text', text: @email_parts.parts['intro'], submitter: @submitter %>
   <%= render 'shared/email_details', rows: [[t('stevensed.email.document'), document_name], [t('stevensed.email.completed_by'), submitters], [t('stevensed.email.completed_on'), (l(@submitter.completed_at.in_time_zone(@current_account.timezone), format: :long) if @submitter.completed_at)]] %>
   <% if attachments.any? %>
     <p><%= t('stevensed.email.completed_attachments') %></p>
   <% end %>
   <%= render 'shared/email_button', url: submission_url(@submitter.submission), label: t('stevensed.email.view_submission') %>
+  <%= render 'email_text', text: @email_parts.parts['closing'], submitter: @submitter %>
 <% end %>

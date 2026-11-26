@@ -1,0 +1,106 @@
+<%# StevensED: parts-based email editor (subject, heading, introduction, closing note) with preview and test send. %>
+<%# Locals: key, groups ([{ party:, label:, name_prefix:, variants:, values: }], the first is used for all parties), template (optional), legacy_body (optional). %>
+<% editor_id = "email_editor_#{key}_#{SecureRandom.hex(3)}" %>
+<% groups = local_assigns[:groups] %>
+<% template = local_assigns[:template] %>
+<% variables = Stevensed::EmailParts.variables(key) %>
+<% preview_params = { template_id: template&.id }.compact %>
+<email-template-editor class="block space-y-4" data-preview-url="<%= settings_email_template_preview_path(key, preview_params) %>" data-test-url="<%= settings_email_template_test_path(key, preview_params) %>" data-preview-failed="<%= t('stevensed.email_templates.preview_failed') %>" data-link-prompt="<%= t('stevensed.email_templates.link_prompt') %>">
+  <p class="text-sm text-base-content/70 px-1"><%= t('stevensed.email_templates.intro') %></p>
+  <% if local_assigns[:legacy_body].present? %>
+    <div class="rounded-lg border border-base-300 bg-white p-4 space-y-2" role="note">
+      <p class="text-sm"><%= t('stevensed.email_templates.legacy_note') %></p>
+      <details>
+        <summary class="text-sm font-medium cursor-pointer"><%= t('stevensed.email_templates.legacy_body') %></summary>
+        <pre class="mt-2 whitespace-pre-wrap text-sm font-sans"><%= local_assigns[:legacy_body] %></pre>
+      </details>
+    </div>
+  <% end %>
+  <% if groups.size > 1 %>
+    <div class="form-control">
+      <label for="<%= editor_id %>_party" class="label"><%= t('stevensed.email_templates.party') %></label>
+      <select id="<%= editor_id %>_party" class="base-select" data-role="party" aria-describedby="<%= editor_id %>_party_hint">
+        <% groups.each do |group| %>
+          <option value="<%= group[:party] %>"><%= group[:label] %></option>
+        <% end %>
+      </select>
+      <p id="<%= editor_id %>_party_hint" class="text-sm text-base-content/70 mt-1 px-1"><%= t('stevensed.email_templates.party_hint') %></p>
+    </div>
+  <% end %>
+  <% groups.each_with_index do |group, group_index| %>
+    <% group_id = "#{editor_id}_#{group_index}" %>
+    <div class="space-y-4" data-party="<%= group[:party] %>" <%= 'hidden' unless group_index.zero? %>>
+      <% if group[:variants].size > 1 %>
+        <fieldset>
+          <legend class="label"><%= t('stevensed.email_templates.version') %></legend>
+          <div class="flex flex-wrap gap-x-5 gap-y-1 px-1">
+            <% group[:variants].each_with_index do |variant, index| %>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" class="radio radio-sm" name="<%= group_id %>_variant" value="<%= variant %>" data-role="variant" <%= 'checked' if index.zero? %>>
+                <span><%= t("stevensed.email_templates.versions.#{variant}") %></span>
+              </label>
+            <% end %>
+          </div>
+        </fieldset>
+      <% end %>
+      <% group[:variants].each_with_index do |variant, index| %>
+        <div class="space-y-4" data-variant="<%= variant %>" <%= 'hidden' unless index.zero? %>>
+          <% %w[subject heading intro].each do |part| %>
+            <% field = Stevensed::EmailParts.field_name(part, variant) %>
+            <% field_id = "#{group_id}_#{field}" %>
+            <div class="form-control">
+              <label for="<%= field_id %>" class="label"><%= t("stevensed.email_templates.fields.#{part}") %><%= " (#{t("stevensed.email_templates.versions.#{variant}").downcase_first})" if group[:variants].size > 1 %></label>
+              <% if part == 'intro' %>
+                <textarea id="<%= field_id %>" name="<%= group[:name_prefix] %>[<%= field %>]" rows="4" class="base-textarea !rounded-lg w-full text-base" dir="auto" data-field="<%= field %>" placeholder="<%= group.dig(:placeholders, field) %>" aria-describedby="<%= field_id %>_hint <%= editor_id %>_formatting"><%= group[:values][field] %></textarea>
+              <% else %>
+                <input id="<%= field_id %>" type="text" name="<%= group[:name_prefix] %>[<%= field %>]" value="<%= group[:values][field] %>" placeholder="<%= group.dig(:placeholders, field) %>" class="base-input w-full" dir="auto" autocomplete="off" data-field="<%= field %>" <%= %(aria-describedby="#{field_id}_hint") if part == 'heading' %>>
+              <% end %>
+              <% if part.in?(%w[heading intro]) %>
+                <p id="<%= field_id %>_hint" class="text-sm text-base-content/70 mt-1 px-1"><%= t("stevensed.email_templates.hints.#{part}") %></p>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+      <div class="form-control">
+        <label for="<%= group_id %>_closing" class="label"><%= t('stevensed.email_templates.fields.closing') %></label>
+        <textarea id="<%= group_id %>_closing" name="<%= group[:name_prefix] %>[closing]" rows="2" class="base-textarea !rounded-lg w-full text-base" dir="auto" data-field="closing" placeholder="<%= group.dig(:placeholders, 'closing') %>" aria-describedby="<%= group_id %>_closing_hint <%= editor_id %>_formatting"><%= group[:values]['closing'] %></textarea>
+        <p id="<%= group_id %>_closing_hint" class="text-sm text-base-content/70 mt-1 px-1"><%= t('stevensed.email_templates.hints.closing') %></p>
+      </div>
+    </div>
+  <% end %>
+  <div class="flex flex-wrap items-end gap-2">
+    <button type="button" class="white-button btn-sm normal-case" data-role="bold" aria-label="<%= t('stevensed.email_templates.bold') %>"><strong><%= t('stevensed.email_templates.bold') %></strong></button>
+    <button type="button" class="white-button btn-sm normal-case" data-role="link"><%= t('stevensed.email_templates.link') %></button>
+    <% if variables.any? %>
+      <div class="flex flex-col">
+        <label for="<%= editor_id %>_variable" class="sr-only"><%= t('stevensed.email_templates.add_variable') %></label>
+        <select id="<%= editor_id %>_variable" class="select select-bordered select-sm bg-white font-normal" data-role="variable">
+          <option value=""><%= t('stevensed.email_templates.add_variable') %></option>
+          <% variables.each do |variable| %>
+            <option value="{<%= variable %>}"><%= Stevensed::EmailParts.variable_label(variable) %></option>
+          <% end %>
+        </select>
+      </div>
+    <% end %>
+  </div>
+  <p id="<%= editor_id %>_formatting" class="text-sm text-base-content/70 px-1"><%= t('stevensed.email_templates.hints.formatting') %></p>
+  <div class="flex flex-wrap items-center gap-2">
+    <button type="button" class="white-button normal-case" data-role="preview" aria-haspopup="dialog"><%= t('stevensed.email_templates.preview') %></button>
+    <button type="button" class="white-button normal-case" data-role="test" aria-describedby="<%= editor_id %>_test_hint"><%= t('stevensed.email_templates.send_test') %></button>
+  </div>
+  <p id="<%= editor_id %>_test_hint" class="text-sm text-base-content/70 px-1"><%= t('stevensed.email_templates.test_hint', email: current_user.email) %></p>
+  <p class="text-sm px-1 empty:hidden" role="status" aria-live="polite" data-role="status"></p>
+  <dialog class="modal" data-role="dialog" aria-labelledby="<%= editor_id %>_preview_title">
+    <div class="modal-box w-11/12 max-w-3xl p-0 overflow-hidden bg-white">
+      <div class="flex items-center justify-between gap-4 px-5 py-3 border-b border-base-300">
+        <div class="min-w-0">
+          <h3 id="<%= editor_id %>_preview_title" class="font-semibold"><%= t('stevensed.email_templates.preview_title') %></h3>
+          <p class="text-sm text-base-content/70 truncate" data-role="preview-subject"></p>
+        </div>
+        <button type="button" class="white-button btn-sm normal-case" data-role="close"><%= t('stevensed.email_templates.close') %></button>
+      </div>
+      <iframe title="<%= t('stevensed.email_templates.preview_title') %>" sandbox="" class="w-full block" style="height: 70vh;" data-role="frame"></iframe>
+    </div>
+  </dialog>
+</email-template-editor>

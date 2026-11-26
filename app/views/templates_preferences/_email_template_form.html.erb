@@ -1,0 +1,28 @@
+<%# StevensED: template-level email template, prefilled from the account version (see Stevensed::EmailParts). Locals: key; the block adds the email's other settings. %>
+<% parts = Stevensed::EmailParts %>
+<% customized = parts.template_customized?(@template, key) %>
+<% form_id = "#{key}_template_form" %>
+<% alert_id = "#{key}_saved_alert" %>
+<% groups = [{ party: '', label: t('stevensed.email_templates.all_parties'), name_prefix: 'email_parts', variants: parts.variants(key), values: parts.effective_fields(key, account: current_account, template: @template, scope: :template) }] %>
+<% if key == parts::INVITATION && @template.submitters.size > 1 && @template.submitters.size < 11 %>
+  <% @template.submitters.each do |submitter| %>
+    <% variant = parts.variant_for_template(key, @template, submitter['uuid']) %>
+    <% groups << { party: submitter['uuid'], label: submitter['name'], name_prefix: "email_parts_by_submitter[#{submitter['uuid']}]", variants: [variant], values: parts.role_parts(key, @template, submitter['uuid']), placeholders: groups.first[:values] } %>
+  <% end %>
+<% end %>
+<div id="<%= key %>_form">
+  <%= form_with url: template_preferences_path(@template), method: :post, id: form_id, html: { autocomplete: 'off', class: 'mt-1 flex flex-col gap-4' }, data: { close_on_submit: false } do %>
+    <toggle-on-submit data-element-id="<%= alert_id %>"></toggle-on-submit>
+    <%= hidden_field_tag :email_key, key, id: nil %>
+    <p class="text-sm px-1"><%= t(customized ? 'stevensed.email_templates.using_template' : 'stevensed.email_templates.using_account') %></p>
+    <%= render 'personalization_settings/email_parts_editor', key:, groups:, template: @template, legacy_body: parts.legacy_template_body(key, @template) %>
+  <% end %>
+  <%= yield %>
+  <div class="flex flex-wrap items-center gap-2 pt-2">
+    <%= button_tag button_title(title: t('stevensed.email_templates.save'), disabled_with: t('stevensed.email_templates.saving')), form: form_id, class: 'base-button normal-case' %>
+    <% if customized %>
+      <%= button_to t('stevensed.email_templates.reset_template'), template_preferences_path(@template), method: :delete, class: 'white-button normal-case', params: { config_key: key }, data: { turbo_confirm: t('stevensed.email_templates.reset_template_confirm') }, form: { data: { close_on_submit: false } } %>
+    <% end %>
+    <span id="<%= alert_id %>" class="text-sm invisible font-normal" role="status"><%= t('stevensed.email_templates.saved') %></span>
+  </div>
+</div>

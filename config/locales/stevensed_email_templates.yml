@@ -1,0 +1,78 @@
+# StevensED: email template editor (Settings > Personalization and Template preferences).
+en:
+  stevensed:
+    email_templates:
+      heading: Email templates
+      intro: Edit the wording of each email. The letterhead, details table, action button, e-signature statement, contact line and footer are added automatically and cannot be removed.
+      sample_document: Sample enrollment agreement
+      names:
+        submitter_invitation_email: Signature request
+        submitter_view_invitation_email: View-only invitation
+        submitter_invitation_reminder_email: Reminder
+        submitter_completed_email: Completion notice to the sender
+        submitter_documents_copy_email: Documents copy to the signer
+      descriptions:
+        submitter_invitation_email: Sent to each recipient with a link to review and sign or complete the document.
+        submitter_view_invitation_email: Sent to recipients who only need to review the document.
+        submitter_invitation_reminder_email: Sent when a recipient has not yet acted on a request.
+        submitter_completed_email: Sent to the person who sent the request once all parties have completed it.
+        submitter_documents_copy_email: Sent to each signer with their copy once all parties have completed it.
+      fields:
+        subject: Subject
+        heading: Heading
+        intro: Introduction
+        closing: Closing note (optional)
+      hints:
+        heading: Shown in bold above the greeting.
+        intro: Shown after the greeting and before the details table.
+        closing: Shown after the action button and before the contact line.
+        formatting: Variables are replaced for each recipient. Use **bold** for emphasis and [link text](https://example.org) for links.
+      version: Version
+      versions:
+        sign: Documents with signature fields
+        submit: Forms without signature fields
+      party: Applies to
+      all_parties: All parties
+      party_hint: Leave a field blank to use the text for all parties, shown in grey.
+      add_variable: Add variable
+      choose_variable: Choose a variable
+      bold: Bold
+      link: Link
+      link_prompt: Link address
+      preview: Preview
+      send_test: Send a test to me
+      test_hint: The test goes only to %{email}, with sample data and "[Test]" before the subject.
+      test_sent: A test was sent to %{email}.
+      test_failed: The test could not be sent. Check the email settings and try again.
+      test_rate_limited: Too many tests in a short time. Please wait a few minutes and try again.
+      preview_title: Email preview
+      preview_failed: The preview could not be loaded.
+      close: Close
+      save: Save
+      saving: Saving
+      saved: Changes have been saved.
+      reset: Reset to StevensED default
+      reset_confirm: Remove the saved text for this email and use the StevensED default?
+      reset_done: The StevensED default has been restored.
+      reset_template: Reset to account version
+      reset_template_confirm: Remove the text saved for this template and use the account version?
+      using_default: Using the StevensED default.
+      using_saved: Using text saved for the account.
+      using_account: Using the account version.
+      using_template: Using text saved for this template.
+      legacy_note: This email currently uses a free-form message saved earlier, which replaces the standard layout. It is shown below for reference. Saving this form switches to the standard layout with the text in the fields.
+      legacy_body: Free-form message saved earlier
+      send_dialog_message: Message (replaces the introduction)
+      variables:
+        document_name: Document name
+        submitter_name: Recipient name
+        submitter_first_name: Recipient first name
+        requester_name: Requested by
+        requester_office: Requesting office
+        submission_expire_at: Response due date
+        submission_submitters: All parties
+        account_name: Account name
+        template_name: Template name
+        submitter_link: Signing link
+        submission_link: Submission link
+        documents_link: Documents link

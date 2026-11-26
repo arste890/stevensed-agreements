@@ -4,6 +4,7 @@ class PersonalizationSettingsController < ApplicationController
   ALLOWED_KEYS = [
     AccountConfig::FORM_COMPLETED_BUTTON_KEY,
     AccountConfig::SUBMITTER_INVITATION_EMAIL_KEY,
+    AccountConfig::SUBMITTER_VIEW_INVITATION_EMAIL_KEY,
     AccountConfig::SUBMITTER_INVITATION_REMINDER_EMAIL_KEY,
     AccountConfig::SUBMITTER_DOCUMENTS_COPY_EMAIL_KEY,
     AccountConfig::SUBMITTER_COMPLETED_EMAIL_KEY,
@@ -23,6 +24,11 @@ class PersonalizationSettingsController < ApplicationController
     if @account_config.value.is_a?(Hash)
       @account_config.value = @account_config.value.reject do |_, v|
         v.blank? && v != false
+      end
+
+      # StevensED: email parts equal to the StevensED default are not stored; a legacy free-form body is dropped.
+      if Stevensed::EmailParts::KEYS.include?(@account_config.key)
+        @account_config.value = Stevensed::EmailParts.clean_account_value(@account_config.key, @account_config.value)
       end
     end
 
