@@ -14,7 +14,7 @@ STEVENSED_OIDC_OPTIONS = {
   scope: %i[openid email profile],
   response_type: :code,
   pkce: true,
-  client_auth_method: :basic,
+  client_auth_method: ENV['OIDC_CLIENT_SECRET'].present? ? :basic : :none, # none: public client with PKCE
   client_options: {
     identifier: ENV.fetch('OIDC_CLIENT_ID', nil),
     secret: ENV.fetch('OIDC_CLIENT_SECRET', nil),
