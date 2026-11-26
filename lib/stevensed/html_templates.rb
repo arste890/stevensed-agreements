@@ -145,8 +145,10 @@ module Stevensed
           'border-bottom:1px solid #6b7280;'
         end
 
-      "display:inline-block;position:relative;vertical-align:bottom;box-sizing:border-box;#{border}" \
-        "#{field.style.gsub(/[<>]/, '')};width:#{field.width};height:#{field.height};"
+      # Position, size and overflow come last so that the markers stay at the corners of the box.
+      "display:inline-block;vertical-align:bottom;box-sizing:border-box;#{border}" \
+        "#{field.style.gsub(/[<>]/, '')};position:relative;overflow:visible;" \
+        "width:#{field.width};height:#{field.height};"
     end
 
     def marker(doc, text, position)
