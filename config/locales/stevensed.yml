@@ -33,4 +33,5 @@ en:
     signing_request_note: Received a signing request? Open the link in the email. You do not need to sign in to sign a document.
     invite_subject: 'StevensED: please review and sign "%{name}"'
     redirecting_to_sso: Taking you to StevensED sign-in. If nothing happens, choose the button below.
+    dashboard: Dashboard
   client: Client

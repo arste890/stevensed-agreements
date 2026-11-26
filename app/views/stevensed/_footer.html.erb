@@ -14,7 +14,11 @@
         <h2 class="se-footer-heading">Agreements</h2>
         <ul>
           <li><a href="<%= root_path %>#how">How signing works</a></li>
-          <li><a href="<%= Stevensed::Sso.oidc_enabled? ? new_user_session_path : new_user_session_path(local: 1) %>"><%= t('sign_in') %></a></li>
+          <% if respond_to?(:signed_in?) && signed_in? %>
+            <li><a href="<%= current_user.role == User::CLIENT_ROLE ? my_agreements_path : root_path %>"><%= current_user.role == User::CLIENT_ROLE ? t('stevensed.my_agreements') : t('stevensed.dashboard') %></a></li>
+          <% else %>
+            <li><a href="<%= new_user_session_path %>"><%= t('sign_in') %></a></li>
+          <% end %>
           <li><a href="<%= stevensed_accessibility_path %>">Accessibility</a></li>
           <li><a href="<%= legal_notices_path %>">Legal notices</a></li>
         </ul>
