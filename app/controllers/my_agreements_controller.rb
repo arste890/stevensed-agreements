@@ -12,7 +12,8 @@ class MyAgreementsController < ApplicationController
                .where(declined_at: nil)
                .joins(:submission).where(submissions: { archived_at: nil })
                .preload(submission: :template)
-               .order(Arel.sql('submitters.completed_at IS NULL DESC, submitters.completed_at DESC, submitters.created_at DESC'))
+               .order(Arel.sql('submitters.completed_at IS NULL DESC, submitters.completed_at DESC, ' \
+                               'submitters.created_at DESC'))
                .limit(500)
   end
 end

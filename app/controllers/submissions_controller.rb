@@ -130,7 +130,9 @@ class SubmissionsController < ApplicationController
   # StevensED: bulk send. Each row becomes a submission in the API's submitters format.
   def create_bulk_submissions(template, params)
     rows = JSON.parse(params[:submissions_json].to_s)
-    raise Submissions::CreateFromSubmitters::BaseError, I18n.t('stevensed.bulk_empty') unless rows.is_a?(Array) && rows.any?
+    unless rows.is_a?(Array) && rows.any?
+      raise Submissions::CreateFromSubmitters::BaseError, I18n.t('stevensed.bulk_empty')
+    end
     raise Submissions::CreateFromSubmitters::BaseError, I18n.t('stevensed.bulk_too_many') if rows.size > 2_000
 
     submissions_attrs = rows.map { |row| ActionController::Parameters.new(row).permit!.to_h.with_indifferent_access }

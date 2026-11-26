@@ -59,6 +59,17 @@ module Stevensed
     # Returns the signed-in user or raises Error with a message safe to show.
     def find_or_create_user(auth)
       info = auth.info || {}
+      email, role = validate!(auth, info)
+
+      account = Account.order(:id).first
+      raise Error, 'This service is not set up yet.' unless account
+
+      user = User.find_by(email:)
+
+      user ? update_user(user, auth, info, role) : create_user(account, auth, info, email, role)
+    end
+
+    def validate!(auth, info)
       raw = auth.extra&.raw_info.to_h
 
       email = info['email'].to_s.downcase.strip
@@ -67,39 +78,46 @@ module Stevensed
       verified = raw.key?('email_verified') ? ActiveModel::Type::Boolean.new.cast(raw['email_verified']) : true
       raise Error, 'Your email address is not verified.' unless verified
 
-      idp_role = raw['role'] || Array(auth.extra&.response_object&.attributes&.multi(:role)).first
-      role = map_role(idp_role)
+      role = map_role(raw['role'] || saml_role(auth))
       raise Error, 'Your account does not have access to this service.' if role.nil?
 
-      account = Account.order(:id).first
-      raise Error, 'This service is not set up yet.' unless account
+      [email, role]
+    end
 
-      user = User.find_by(email:)
+    def saml_role(auth)
+      response = auth.extra&.response_object
+      return unless response.respond_to?(:attributes)
 
-      if user
-        raise Error, 'Your account is not active.' if user.archived_at?
+      Array(response.attributes.multi(:role)).first
+    end
 
-        link = user.user_configs.find_or_initialize_by(key: CONFIG_KEY)
-        # A local account signing in by SSO for the first time is linked and keeps its role.
-        managed = link.persisted? && link.value.is_a?(Hash) && link.value['managed'] == true
-        link.value = { 'provider' => auth.provider, 'sub' => auth.uid, 'managed' => managed }
-        user.role = role if managed
+    def update_user(user, auth, info, role)
+      raise Error, 'Your account is not active.' if user.archived_at?
 
-        user.first_name = info['first_name'].presence || user.first_name
-        user.last_name = info['last_name'].presence || user.last_name
-        user.save!
-        link.save!
-      else
-        user = account.users.create!(
-          email:,
-          first_name: info['first_name'].presence || info['name'].to_s.split.first,
-          last_name: info['last_name'].presence || info['name'].to_s.split[1..]&.join(' '),
-          role:,
-          password: SecureRandom.base58(40)
-        )
-        user.user_configs.create!(key: CONFIG_KEY,
-                                  value: { 'provider' => auth.provider, 'sub' => auth.uid, 'managed' => true })
-      end
+      link = user.user_configs.find_or_initialize_by(key: CONFIG_KEY)
+      # A local account signing in by SSO for the first time is linked and keeps its role.
+      managed = link.persisted? && link.value.is_a?(Hash) && link.value['managed'] == true
+      link.value = { 'provider' => auth.provider, 'sub' => auth.uid, 'managed' => managed }
+      user.role = role if managed
+
+      user.first_name = info['first_name'].presence || user.first_name
+      user.last_name = info['last_name'].presence || user.last_name
+      user.save!
+      link.save!
+
+      user
+    end
+
+    def create_user(account, auth, info, email, role)
+      names = info['name'].to_s.split
+
+      user = account.users.create!(email:,
+                                   first_name: info['first_name'].presence || names.first,
+                                   last_name: info['last_name'].presence || names.drop(1).join(' ').presence,
+                                   role:,
+                                   password: SecureRandom.base58(40))
+      user.user_configs.create!(key: CONFIG_KEY,
+                                value: { 'provider' => auth.provider, 'sub' => auth.uid, 'managed' => true })
 
       user
     end

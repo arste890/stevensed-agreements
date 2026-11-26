@@ -32,16 +32,19 @@ class UploadSpreadsheetsController < ApplicationController
       book = Roo::Excelx.new(file.tempfile.path, file_warning: :ignore)
 
       book.sheets.map do |name|
-        sheet = book.sheet(name)
-        rows = sheet.last_row.to_i.zero? ? [] : (sheet.first_row..[sheet.last_row, sheet.first_row + MAX_ROWS].min).map do |i|
-          sheet.row(i).map { |v| cell_text(v) }
-        end
-
-        [name, rows]
+        [name, sheet_rows(book.sheet(name))]
       end
     else
       raise ArgumentError, 'unsupported'
     end
+  end
+
+  def sheet_rows(sheet)
+    return [] if sheet.last_row.to_i.zero?
+
+    last = [sheet.last_row, sheet.first_row + MAX_ROWS].min
+
+    (sheet.first_row..last).map { |i| sheet.row(i).map { |v| cell_text(v) } }
   end
 
   def cell_text(value)

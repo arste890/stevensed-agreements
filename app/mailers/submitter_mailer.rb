@@ -51,7 +51,8 @@ class SubmitterMailer < ApplicationMailer
   # StevensED: reminder uses the reminder template (template preferences, then account settings).
   def reminder_email_configured?(submitter)
     submitter.template&.preferences&.dig('invitation_reminder_email_body').present? ||
-      AccountConfig.exists?(account: submitter.account, key: AccountConfig::SUBMITTER_INVITATION_REMINDER_EMAIL_KEY)
+      AccountConfig.exists?(account: submitter.account,
+                            key: AccountConfig::SUBMITTER_INVITATION_REMINDER_EMAIL_KEY)
   end
 
   def reminder_email(submitter)
