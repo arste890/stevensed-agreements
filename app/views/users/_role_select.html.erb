@@ -2,10 +2,6 @@
     Viewer reads templates and submissions; Client sees only their own agreements. %>
 <div class="form-control">
   <%= f.label :role, class: 'label' %>
-  <%= f.select :role, nil, {}, class: 'base-select' do %>
-    <% User::ROLES.each do |role| %>
-      <option value="<%= role %>" <%= 'selected' if f.object.role == role %>><%= t(role, default: role.humanize) %></option>
-    <% end %>
-  <% end %>
+  <%= f.select :role, User::ROLES.map { |role| [t(role, default: role.humanize), role] }, {}, class: 'base-select' %>
   <label class="label"><span class="label-text-alt"><%= t('stevensed.roles_hint') %></span></label>
 </div>
