@@ -1,12 +1,118 @@
-<!DOCTYPE html>
-<html>
+<%# StevensED: formal email layout with navy header and footer bands. Email-safe table markup with inline styles (640px, Outlook, Gmail, Apple Mail, dark mode). %>
+<%# Keep this layout ASCII-only and free of href attributes before the body: specs read the first href and the first <b> of the message. %>
+<%# Anything between the "start text/html" and "end text/html" comments is left out of the plain-text part (see HtmlToPlainText). %>
+<% content = yield %>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" lang="<%= I18n.locale.to_s.split('-').first %>">
   <head>
-    <title></title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <style></style>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="x-apple-disable-message-reformatting">
+    <meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
+    <meta name="color-scheme" content="light dark">
+    <meta name="supported-color-schemes" content="light dark">
+    <!-- start text/html -->
+    <title><%= Stevensed::PRODUCT_NAME %></title>
+    <!--[if mso]>
+    <noscript><xml><o:OfficeDocumentSettings><o:AllowPNG/><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript>
+    <style>.se-serif, .se-serif p { font-family: Georgia, 'Times New Roman', serif !important; } .se-sans, .se-sans p, .se-sans a, .se-sans span, .se-sans td { font-family: Arial, Helvetica, sans-serif !important; }</style>
+    <![endif]-->
+    <style>
+      @font-face { font-family: 'Cormorant Garamond'; font-style: normal; font-weight: 300 700; src: url('https://agreements.stevensed.org/stevensed/fonts/cormorant-garamond-latin-wght-normal.woff2') format('woff2'); }
+      @font-face { font-family: 'Inter'; font-style: normal; font-weight: 100 900; src: url('https://agreements.stevensed.org/stevensed/fonts/inter-latin-wght-normal.woff2') format('woff2'); }
+      :root { color-scheme: light dark; supported-color-schemes: light dark; }
+      body { margin: 0 !important; padding: 0 !important; width: 100% !important; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+      table { border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+      img { border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; }
+      a[x-apple-data-detectors] { color: inherit !important; text-decoration: none !important; font-size: inherit !important; font-family: inherit !important; font-weight: inherit !important; line-height: inherit !important; }
+      .se-content p { margin: 0 0 16px 0; }
+      .se-content a { color: #2F3E68; text-decoration: underline; }
+      @media only screen and (max-width: 660px) {
+        .se-container { width: 100% !important; }
+        .se-pad { padding-left: 22px !important; padding-right: 22px !important; }
+        .se-band { padding-top: 20px !important; padding-bottom: 20px !important; }
+        .se-stack { display: block !important; width: 100% !important; text-align: left !important; }
+        .se-stack-gap { padding-top: 12px !important; }
+        .se-button { width: 100% !important; }
+        .se-button a { display: block !important; text-align: center !important; }
+        .se-detail-label { width: 38% !important; }
+      }
+      @media (prefers-color-scheme: dark) {
+        .se-bg { background-color: #141A2E !important; }
+        .se-text, .se-content, .se-content p, .se-strong { color: #E9E3D8 !important; }
+        .se-title { color: #F7F5F1 !important; }
+        .se-muted { color: #B7C0CC !important; }
+        .se-rule { border-color: #3A4670 !important; }
+        .se-panel { background-color: #1C2440 !important; border-color: #3A4670 !important; }
+        .se-cell { border-color: #3A4670 !important; }
+        .se-label-cell { background-color: #1C2440 !important; }
+        .se-content a, .se-link { color: #F2C4C6 !important; }
+        .se-button td { background-color: #F7F5F1 !important; }
+        .se-button a { background-color: #F7F5F1 !important; border-color: #F7F5F1 !important; color: #1F2948 !important; }
+        .se-code { background-color: #1C2440 !important; color: #F7F5F1 !important; border-color: #3A4670 !important; }
+      }
+    </style>
+    <!-- end text/html -->
   </head>
-  <body dir="<%= TextUtils.rtl?(yield) ? 'rtl' : 'auto' %>">
-    <%= yield %>
-    <%= render partial: 'shared/mailer_attribution' %>
+  <body dir="<%= TextUtils.rtl?(content) ? 'rtl' : 'auto' %>" class="se-bg" style="margin:0;padding:0;width:100%;background-color:#FFFFFF;">
+    <!-- start text/html -->
+    <% if content_for?(:preheader) %>
+      <div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;color:#FFFFFF;"><%= yield(:preheader) %>&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;</div>
+    <% end %>
+    <!-- end text/html -->
+    <table role="presentation" class="se-bg" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;background-color:#FFFFFF;">
+      <tr>
+        <td align="center" style="padding:24px 0 32px 0;">
+          <!--[if mso]><table role="presentation" width="640" cellpadding="0" cellspacing="0" border="0" align="center"><tr><td><![endif]-->
+          <table role="presentation" class="se-container" width="640" cellpadding="0" cellspacing="0" border="0" align="center" style="width:640px;max-width:640px;">
+            <!-- start text/html -->
+            <tr>
+              <td class="se-pad se-band" bgcolor="#2F3E68" style="padding:24px 36px;background-color:#2F3E68;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;">
+                  <tr>
+                    <td class="se-stack" valign="middle" style="vertical-align:middle;">
+                      <img src="https://agreements.stevensed.org/stevensed/wordmark-email-reverse.png" width="190" height="62" alt="StevensED" style="display:block;width:190px;height:auto;border:0;">
+                    </td>
+                    <td class="se-stack se-stack-gap se-sans" valign="middle" align="right" style="vertical-align:middle;text-align:right;font-family:Inter, 'Helvetica Neue', Helvetica, Arial, sans-serif;font-size:10px;line-height:15px;letter-spacing:1.2px;text-transform:uppercase;color:#C9D0DE;">
+                      <span style="font-family:'Cormorant Garamond', Georgia, 'Times New Roman', serif;font-size:20px;line-height:24px;font-weight:600;letter-spacing:0;text-transform:none;color:#FFFFFF;"><%= Stevensed::PRODUCT_NAME %></span><br><%= safe_join(Stevensed::OFFICE.sub(/\s+and\s+/, ' & ').split(/\s+(?=&\s)/, 2), tag.br) %>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td height="4" bgcolor="#C13F44" style="height:4px;line-height:4px;font-size:4px;background-color:#C13F44;">&nbsp;</td>
+            </tr>
+            <!-- end text/html -->
+            <% if content_for?(:meta) %>
+              <tr>
+                <td class="se-pad" style="padding:22px 36px 0 36px;">
+                  <%= yield(:meta) %>
+                </td>
+              </tr>
+            <% end %>
+            <tr>
+              <td class="se-pad se-content se-text se-serif" style="padding:22px 36px 4px 36px;font-family:Georgia, 'Times New Roman', serif;font-size:16px;line-height:26px;color:#1F2948;">
+                <%= content %>
+              </td>
+            </tr>
+            <% if content_for?(:personal_link_notice) %>
+              <tr>
+                <td class="se-pad" style="padding:6px 36px 0 36px;">
+                  <%= yield(:personal_link_notice) %>
+                </td>
+              </tr>
+            <% end %>
+            <tr>
+              <td style="padding:30px 0 0 0;">
+                <%= render 'shared/mailer_attribution' %>
+              </td>
+            </tr>
+          </table>
+          <!--[if mso]></td></tr></table><![endif]-->
+        </td>
+      </tr>
+    </table>
   </body>
 </html>

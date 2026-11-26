@@ -1,7 +1,9 @@
-<p><%= @user.first_name.present? ? t('hello_name', name: @user.first_name) : t('hi_there') %>,</p>
-<p><%= t('you_have_been_invited_to_account_name_product_name_please_sign_up_using_the_link_below_', account_name: @user.account.name, product_name: Docuseal.product_name) %></p>
-<p><%= link_to t('sign_up'), invitation_url(reset_password_token: @token) %></p>
-<p><%= t('please_contact_us_by_replying_to_this_email_if_you_have_any_questions') %></p>
-<p>
-  <%= t('thanks') %>,<br><%= @current_account.name %>
-</p>
+<% content_for(:preheader, t('stevensed.email.user_invite_preheader', product_name: Stevensed::PRODUCT_NAME)) %>
+<% content_for(:meta) { render 'shared/email_meta', account: @current_account } %>
+<% content_for(:personal_link_notice) { render 'shared/email_personal_link_notice', account: true } %>
+<%= render 'shared/email_heading', title: t('stevensed.email.user_invite_title', product_name: Stevensed::PRODUCT_NAME) %>
+<%= render 'shared/email_greeting', name: @user.first_name %>
+<p><%= t('stevensed.email.user_invite_intro', product_name: Stevensed::PRODUCT_NAME) %></p>
+<%= render 'shared/email_details', rows: [[t('stevensed.email.organization'), @user.account.name], [t('stevensed.email.account'), @user.email]] %>
+<%= render 'shared/email_button', url: invitation_url(reset_password_token: @token), label: t('stevensed.email.set_up_account') %>
+<p><%= t('stevensed.email.user_invite_not_expected_html', email: Stevensed::CONTACT_EMAIL) %></p>

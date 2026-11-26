@@ -1,0 +1,2 @@
+<%# StevensED: formal salutation. Locals: name (optional). %>
+<p><%= local_assigns[:name].present? ? t('stevensed.email.dear_name', name: local_assigns[:name]) : t('stevensed.email.greeting') %></p>

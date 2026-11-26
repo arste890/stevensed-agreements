@@ -9,6 +9,7 @@ class ProfileController < ApplicationController
 
   def update_contact
     if current_user.update(contact_params)
+      update_office
       if current_user.try(:pending_reconfirmation?) && current_user.previous_changes.key?(:unconfirmed_email)
         SendConfirmationInstructionsJob.perform_async('user_id' => current_user.id)
 
@@ -32,6 +33,17 @@ class ProfileController < ApplicationController
   end
 
   private
+
+  # StevensED: the sender's default "Send as" office (one of the admin-managed offices).
+  def update_office
+    return unless params.key?(:office)
+
+    office = params[:office].to_s.squish
+    office = nil unless Stevensed::Requesters.offices(current_account).include?(office)
+    config = current_user.user_configs.find_or_initialize_by(key: UserConfig::OFFICE_KEY)
+
+    office ? config.update!(value: office) : (config.persisted? && config.destroy!)
+  end
 
   def contact_params
     params.require(:user).permit(:first_name, :last_name, :email)

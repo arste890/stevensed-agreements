@@ -5,6 +5,7 @@ en:
     logo_invalid: The logo must be a PNG, JPEG or WebP image of 2 MB or less.
     logo_hint: PNG, JPEG or WebP, 2 MB or less. Shown on signing pages and in the dashboard.
     reminder_prefix: 'Reminder:'
+    reminder_subject_prefix: 'StevensED reminder:'
     sso_failed: Single sign-on did not complete. Try again or contact legal@stevensed.org.
     sign_in_with_stevensed: Sign in with StevensED
     sign_in_with_saml: Sign in with single sign-on
@@ -34,4 +35,117 @@ en:
     invite_subject: 'StevensED: please review and sign "%{name}"'
     redirecting_to_sso: Taking you to StevensED sign-in. If nothing happens, choose the button below.
     dashboard: Dashboard
+    office: Default office
+    office_none: None (StevensED)
+    office_hint: Preselected under "Send as" when you send a signature request. Offices are managed in Settings, Offices.
+    offices: Offices
+    offices_intro: Offices that staff can choose under "Send as" when sending a signature request. The choice is shown as the requester in the email and in its From line.
+    offices_label: One office per line
+    offices_hint: Renaming or removing an office does not change requests that were already sent.
+    send_as: Send as
+    send_as_with_name: With your name
+    send_as_office_only: Office only
+    email:
+      # Subjects
+      view_subject: 'StevensED: "%{name}" has been shared with you'
+      submit_subject: 'StevensED: please complete "%{name}"'
+      completed_subject: 'StevensED: "{submission.name}" has been completed'
+      declined_subject: 'StevensED: "%{name}" was declined by %{submitter}'
+      copy_subject: 'StevensED: your copy of "%{name}"'
+      otp_subject: 'StevensED Agreements: your verification code'
+      user_invite_subject: 'Your %{product_name} account invitation'
+      smtp_subject: '%{product_name}: email delivery confirmed'
+      # Shared
+      confidentiality_html: Confidential. This message is intended only for the named recipient. If you received it in error, please notify %{email} and delete it.
+      reminder_intro_submit: This is a reminder that you have been asked to review and complete the document below.
+      reminder_intro_sign: This is a reminder that you have been asked to review and sign the agreement below.
+      user_invite_intro: You have been invited to join %{product_name}.
+      copy_intro: Thank you. All parties have completed the agreement below.
+      declined_intro: 'A recipient has declined to sign the agreement below and gave this reason:'
+      completed_intro: All parties have completed the agreement below.
+      view_intro: You have been asked to review the document below. No signature is required.
+      invitation_intro_submit: You have been asked to review and complete the document below.
+      invitation_intro_sign: You have been asked to review and sign the agreement below.
+      organization: Organization
+      signed_by: Signed by
+      declined_by: Declined by
+      view_only: Review only. No signature is required.
+      action: Action requested
+      recipient: Recipient
+      reference: Reference
+      date: Date
+      greeting: Hello,
+      dear_name: Dear %{name},
+      document: Document
+      requested_by: Requested by
+      shared_by: Shared by
+      respond_by: Respond by
+      account: Account
+      completed_by: Completed by
+      completed_on: Completed on
+      reason_given: Reason given
+      review_and_sign: Review and sign
+      review_and_submit: Review and complete
+      view_document: View document
+      view_submission: View submission
+      download_copy: Download your copy
+      set_up_account: Set up your account
+      change_password: Choose a new password
+      button_fallback: 'If the button does not work, use this address:'
+      questions_html: Questions may be sent by reply or to <a href="mailto:%{email}">%{email}</a>.
+      personal_link_title: This link is personal to you.
+      personal_link_body: Please do not forward this email; anyone with the link may be able to act in your name.
+      personal_link_body_account: Please do not forward this email; anyone with the link may be able to access your account.
+      copy_link_expires: The download link expires %{duration} after this email was sent. Reply to this email to request a new one.
+      footer_privacy: Privacy
+      footer_terms: Terms
+      footer_esign_consent: Electronic Records and Signature Consent
+      # Invitation and reminder
+      reminder_eyebrow: Reminder
+      invitation_title_sign: 'Re: Request for electronic signature, %{name}'
+      invitation_title_submit: 'Re: Request to complete %{name}'
+      invitation_preheader_sign: '"%{name}" is ready for your review and signature.'
+      invitation_preheader_submit: '"%{name}" is ready for you to complete.'
+      esign_statement_html: Please read the entire document before signing. By signing electronically, you agree to the <a href="%{consent_url}">Electronic Records and Signature Consent</a> and that your electronic signature is the legal equivalent of your handwritten signature.
+      # Viewer invitation
+      view_title: 'Re: Document shared for your review, %{name}'
+      view_preheader: '"%{name}" has been shared with you for review.'
+      # Completed (to staff)
+      completed_eyebrow: Completed
+      completed_title: 'Re: Agreement completed, %{name}'
+      completed_preheader: '"%{name}" has been completed by all parties.'
+      completed_attachments: The completed documents are attached where file size permits and remain available on the submission page.
+      # Declined (to staff)
+      declined_eyebrow: Declined
+      declined_title: 'Re: Signature declined, %{name}'
+      declined_preheader: '%{submitter} declined "%{name}".'
+      declined_next_steps: Please review the submission to decide how to proceed.
+      # Documents copy (to signer)
+      copy_title: 'Re: Your copy of the completed agreement, %{name}'
+      copy_preheader: Your copy of "%{name}" is ready.
+      copy_attached: A copy is attached for your records.
+      # One-time code
+      otp_title: 'Re: Verification code'
+      otp_preheader: Use this code to verify your email address.
+      otp_intro_html: 'Use this code to verify your email address and open <strong>"%{name}"</strong>:'
+      otp_do_not_share: Enter it on the page where it was requested, and do not share it with anyone.
+      otp_not_requested_html: If you did not request this code, please notify <a href="mailto:%{email}">%{email}</a>.
+      # User invitation
+      user_invite_title: 'Re: Invitation to %{product_name}'
+      user_invite_preheader: Set up your %{product_name} account.
+      user_invite_not_expected_html: If you were not expecting this invitation, please notify <a href="mailto:%{email}">%{email}</a>.
+      # Password reset
+      reset_title: 'Re: Password reset request'
+      reset_preheader: Use the link in this email to choose a new password.
+      reset_intro: We received a request to reset your %{product_name} password.
+      reset_unchanged: Your password will not change until you set a new one using the link above.
+      reset_not_requested_html: If you did not make this request, you may disregard this email or notify <a href="mailto:%{email}">%{email}</a>.
+      # SMTP test
+      smtp_title: 'Re: Email delivery confirmed'
+      smtp_preheader: '%{product_name} can send email with the configured settings.'
+      smtp_intro: '%{product_name} can send email using the SMTP settings that were just saved. No further action is required.'
   client: Client
+  devise:
+    mailer:
+      reset_password_instructions:
+        subject: 'StevensED Agreements: password reset instructions'

@@ -1,0 +1,13 @@
+<%# StevensED: document details table. Locals: rows (array of [label, value]); blank values are skipped. %>
+<% rows = local_assigns[:rows].to_a.select { |(_, value)| value.present? } %>
+<% if rows.any? %>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="se-sans" style="width:100%;margin:4px 0 24px 0;border:1px solid #D8D0C1;">
+    <% rows.each_with_index do |(label, value), index| %>
+      <% border = index < rows.size - 1 ? 'border-bottom:1px solid #E9E3D8;' : '' %>
+      <tr>
+        <td class="se-label-cell se-cell se-muted se-detail-label" width="34%" style="width:34%;padding:10px 14px;background-color:#F7F5F1;<%= border %>font-family:Inter, 'Helvetica Neue', Helvetica, Arial, sans-serif;font-size:13px;line-height:20px;color:#59697A;vertical-align:top;"><%= label %></td>
+        <td class="se-cell se-strong" style="padding:10px 14px;<%= border %>font-family:Inter, 'Helvetica Neue', Helvetica, Arial, sans-serif;font-size:14px;line-height:20px;color:#1F2948;vertical-align:top;<%= 'font-weight:600;' if index.zero? %>"><%= value %></td>
+      </tr>
+    <% end %>
+  </table>
+<% end %>

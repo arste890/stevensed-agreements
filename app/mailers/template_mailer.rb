@@ -19,6 +19,6 @@ class TemplateMailer < ApplicationMailer
         default_params[:from]
       end
 
-    mail(to: email, from:, subject: I18n.t('email_verification'))
+    mail(to: email, from:, subject: I18n.t('stevensed.email.otp_subject'))
   end
 end

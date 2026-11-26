@@ -1,4 +1,18 @@
-<p><%= t('hi_there') %>,</p>
-<p><%= t('name_declined_by_submitter_with_the_following_reason', name: @submitter.submission.name || @submitter.submission.template&.name, submitter: @submitter.name || @submitter.email || @submitter.phone) %></p>
-<%= simple_format(h(@submitter.submission_events.find_by(event_type: :decline_form).data['reason']), {}, sanitize: false) %>
-<p><%= link_to submission_url(@submitter.submission), submission_url(@submitter.submission) %></p>
+<% document_name = @submitter.submission.name.presence || @submitter.submission.template&.name %>
+<% submitter_name = @submitter.name || @submitter.email || @submitter.phone %>
+<% content_for(:preheader, t('stevensed.email.declined_preheader', name: document_name, submitter: submitter_name)) %>
+<% content_for(:meta) { render 'shared/email_meta', submission: @submitter.submission, account: @current_account } %>
+<%= render 'shared/email_heading', eyebrow: t('stevensed.email.declined_eyebrow'), tone: :danger, title: t('stevensed.email.declined_title', name: document_name) %>
+<%= render 'shared/email_greeting', name: @user&.first_name %>
+<p><%= t('stevensed.email.declined_intro') %></p>
+<%= render 'shared/email_details', rows: [[t('stevensed.email.document'), document_name], [t('stevensed.email.declined_by'), submitter_name]] %>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:0 0 24px 0;">
+  <tr>
+    <td class="se-panel" style="background-color:#F7F5F1;border-left:3px solid #C13F44;padding:14px 18px 0 18px;">
+      <p class="se-muted" style="margin:0 0 6px 0;font-family:Inter, 'Helvetica Neue', Helvetica, Arial, sans-serif;font-size:10px;line-height:16px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#59697A;"><%= t('stevensed.email.reason_given') %></p>
+      <%= simple_format(h(@submitter.submission_events.find_by(event_type: :decline_form).data['reason']), {}, sanitize: false) %>
+    </td>
+  </tr>
+</table>
+<p><%= t('stevensed.email.declined_next_steps') %></p>
+<%= render 'shared/email_button', url: submission_url(@submitter.submission), label: t('stevensed.email.view_submission') %>

@@ -71,6 +71,8 @@ class SubmissionsController < ApplicationController
 
     raise Submissions::CreateFromSubmitters::BaseError, 'Invalid email address' if submissions.blank?
 
+    assign_requester(submissions, params[:send_as])
+
     WebhookUrls.enqueue_events(submissions, 'submission.created')
 
     Submissions.send_signature_requests(submissions)
@@ -109,6 +111,17 @@ class SubmissionsController < ApplicationController
   end
 
   private
+
+  # StevensED: "Send as" requester chosen in the send dialog.
+  def assign_requester(submissions, value)
+    requester = Stevensed::Requesters.build(current_user, value)
+
+    return unless requester
+
+    submissions.each do |submission|
+      submission.update!(preferences: submission.preferences.merge('requester' => requester))
+    end
+  end
 
   def create_submissions(template, submissions_params, params)
     normalize_message_submitter_uuids!(params)

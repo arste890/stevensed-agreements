@@ -1,0 +1,22 @@
+<% content_for(:native_title, t('stevensed.offices')) if turbo_native_app? %>
+<div class="flex flex-wrap space-y-4 md:flex-nowrap md:space-y-0">
+  <%= render 'shared/settings_nav' %>
+  <div class="flex-grow max-w-xl mx-auto">
+    <h1 class="text-3xl md:text-4xl font-bold mb-4">
+      <%= t('stevensed.offices') %>
+    </h1>
+    <p class="mb-4 text-base-content/80"><%= t('stevensed.offices_intro') %></p>
+    <%= form_tag settings_offices_path, method: :post, class: 'space-y-4' do %>
+      <div class="form-control">
+        <%= label_tag :offices, t('stevensed.offices_label'), class: 'label' %>
+        <%= text_area_tag :offices, Stevensed::Requesters.offices(current_account).join("\n"), rows: 10, class: 'base-input w-full !h-auto py-2', dir: 'auto', disabled: cannot?(:manage, @account_config) %>
+        <label class="label"><span class="label-text-alt"><%= t('stevensed.offices_hint') %></span></label>
+      </div>
+      <% if can?(:manage, @account_config) %>
+        <div class="form-control pt-2">
+          <%= button_tag button_title(title: t('save'), disabled_with: t('updating')), class: 'base-button' %>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+</div>
