@@ -8,29 +8,22 @@ class SubmitterMailer < ApplicationMailer
   NO_REPLY_REGEXP = /no-?reply@/i
   STEVENSED_SUBJECT_PREFIX = 'StevensED: '
 
+  # StevensED: the subject, heading, introduction and closing note come from Stevensed::EmailParts (per-send
+  # message, then template role, template, account, StevensED defaults); the rest of each email is fixed in
+  # the views. See lib/stevensed/email_parts.rb for the precedence and the legacy free-form bodies.
   def invitation_email(submitter, reminder: false)
     @current_account = submitter.submission.account
     @submitter = submitter
     @reminder = reminder
 
-    return reminder_email(submitter) if reminder && reminder_email_configured?(submitter)
-
     if submitter.preferences['email_message_uuid']
       @email_message = submitter.account.email_messages.find_by(uuid: submitter.preferences['email_message_uuid'])
     end
 
-    template_submitters_index = @email_message.blank? ? build_submitter_preferences_index(@submitter) : {}
+    key = reminder ? AccountConfig::SUBMITTER_INVITATION_REMINDER_EMAIL_KEY : AccountConfig::SUBMITTER_INVITATION_EMAIL_KEY
 
-    @body = @email_message&.normalized_body.presence ||
-            template_submitters_index.dig(@submitter.uuid, 'request_email_body').presence ||
-            @submitter.template&.preferences&.dig('request_email_body').presence
-
-    @subject = @email_message&.subject.presence ||
-               template_submitters_index.dig(@submitter.uuid, 'request_email_subject').presence ||
-               @submitter.template&.preferences&.dig('request_email_subject').presence
-
-    @email_config = AccountConfigs.find_for_account(@current_account, AccountConfig::SUBMITTER_INVITATION_EMAIL_KEY)
-    @body ||= fetch_config_email_body(@email_config, @submitter)
+    @email_config = AccountConfigs.find_for_account(@current_account, key)
+    @email_config ||= AccountConfigs.find_for_account(@current_account, AccountConfig::SUBMITTER_INVITATION_EMAIL_KEY)
 
     assign_message_metadata('submitter_invitation', @submitter)
 
@@ -39,45 +32,15 @@ class SubmitterMailer < ApplicationMailer
     maybe_set_custom_domain(@submitter)
 
     I18n.with_locale(@current_account.locale) do
-      subject = build_invite_subject(@subject, @email_config, submitter)
-      subject = build_reminder_subject(subject) if reminder
+      assign_email_parts(key, @email_message)
+
+      subject = ReplaceEmailVariables.call(@email_parts.subject, submitter:)
+      subject = build_reminder_subject(subject) if reminder && @email_parts.subject_from_message
 
       mail(
         to: @submitter.friendly_name,
         from: from_address_for_submitter(submitter),
         subject:,
-        reply_to:
-      )
-    end
-  end
-
-  # StevensED: reminder uses the reminder template (template preferences, then account settings).
-  def reminder_email_configured?(submitter)
-    submitter.template&.preferences&.dig('invitation_reminder_email_body').present? ||
-      AccountConfig.exists?(account: submitter.account,
-                            key: AccountConfig::SUBMITTER_INVITATION_REMINDER_EMAIL_KEY)
-  end
-
-  def reminder_email(submitter)
-    @reminder = true
-    @email_config = AccountConfigs.find_for_account(@current_account,
-                                                    AccountConfig::SUBMITTER_INVITATION_REMINDER_EMAIL_KEY)
-
-    @subject = submitter.template&.preferences&.dig('invitation_reminder_email_subject').presence
-    @body = submitter.template&.preferences&.dig('invitation_reminder_email_body').presence ||
-            fetch_config_email_body(@email_config, submitter)
-
-    assign_message_metadata('submitter_invitation', submitter)
-
-    reply_to = build_submitter_reply_to(submitter, email_config: @email_config)
-
-    maybe_set_custom_domain(submitter)
-
-    I18n.with_locale(@current_account.locale) do
-      mail(
-        to: submitter.friendly_name,
-        from: from_address_for_submitter(submitter),
-        subject: build_invite_subject(@subject, @email_config, submitter),
         reply_to:,
         template_name: 'invitation_email'
       )
@@ -92,18 +55,7 @@ class SubmitterMailer < ApplicationMailer
       @email_message = submitter.account.email_messages.find_by(uuid: submitter.preferences['email_message_uuid'])
     end
 
-    template_submitters_index = @email_message.blank? ? build_submitter_preferences_index(@submitter) : {}
-
-    @body = @email_message&.normalized_body.presence ||
-            @submitter.template&.preferences&.dig('invitation_view_email_body').presence ||
-            template_submitters_index.dig(@submitter.uuid, 'request_email_body').presence
-
-    @subject = @email_message&.subject.presence ||
-               @submitter.template&.preferences&.dig('invitation_view_email_subject').presence ||
-               template_submitters_index.dig(@submitter.uuid, 'request_email_subject').presence
-
     @email_config = AccountConfigs.find_for_account(@current_account, AccountConfig::SUBMITTER_VIEW_INVITATION_EMAIL_KEY)
-    @body ||= fetch_config_email_body(@email_config, @submitter)
 
     assign_message_metadata('submitter_view_invitation', @submitter)
 
@@ -112,12 +64,12 @@ class SubmitterMailer < ApplicationMailer
     maybe_set_custom_domain(@submitter)
 
     I18n.with_locale(@current_account.locale) do
-      subject = build_invite_subject(@subject, @email_config, submitter)
+      assign_email_parts(AccountConfig::SUBMITTER_VIEW_INVITATION_EMAIL_KEY, @email_message)
 
       mail(
         to: @submitter.friendly_name,
         from: from_address_for_submitter(submitter),
-        subject:,
+        subject: ReplaceEmailVariables.call(@email_parts.subject, submitter:),
         reply_to:
       )
     end
@@ -141,21 +93,14 @@ class SubmitterMailer < ApplicationMailer
                       template_preferences['completed_notification_email_attach_audit'] != false
     )
 
-    @subject = template_preferences['completed_notification_email_subject'].presence
-    @subject ||= @email_config.value['subject'] if @email_config
-
-    @body = template_preferences['completed_notification_email_body'].presence
-    @body ||= fetch_config_email_body(@email_config, @submitter)
-
     assign_message_metadata('submitter_completed', @submitter)
 
     I18n.with_locale(@current_account.locale) do
-      subject =
-        ReplaceEmailVariables.call(@subject.presence || I18n.t('stevensed.email.completed_subject'), submitter:)
+      assign_email_parts(AccountConfig::SUBMITTER_COMPLETED_EMAIL_KEY)
 
       mail(from: from_address_for_submitter(submitter),
            to: to || normalize_user_email(user),
-           subject:)
+           subject: ReplaceEmailVariables.call(@email_parts.subject, submitter:))
     end
   end
 
@@ -194,30 +139,18 @@ class SubmitterMailer < ApplicationMailer
                       (@email_config.nil? || @email_config.value['attach_audit_log'] != false)
     )
 
-    @subject = template_preferences['documents_copy_email_subject'].presence
-    @subject ||= @email_config.value['subject'] if @email_config
-
-    @body = template_preferences['documents_copy_email_body'].presence
-    @body ||= fetch_config_email_body(@email_config, @submitter)
-
     assign_message_metadata('submitter_documents_copy', @submitter)
     reply_to = build_submitter_reply_to(submitter, email_config: @email_config, documents_copy_email: true)
 
     maybe_set_custom_domain(@submitter)
 
     I18n.with_locale(@current_account.locale) do
-      subject =
-        if @subject.present?
-          ReplaceEmailVariables.call(@subject, submitter:)
-        else
-          I18n.t('stevensed.email.copy_subject',
-                 name: @submitter.submission.name.presence || @submitter.template&.name)
-        end
+      assign_email_parts(AccountConfig::SUBMITTER_DOCUMENTS_COPY_EMAIL_KEY)
 
       mail(from: from_address_for_submitter(submitter),
            to: to || @submitter.friendly_name,
            reply_to:,
-           subject:)
+           subject: ReplaceEmailVariables.call(@email_parts.subject, submitter:))
     end
   end
 
@@ -244,6 +177,17 @@ class SubmitterMailer < ApplicationMailer
 
   private
 
+  # @body is the legacy free-form body (rendered in place of the frame); @email_parts holds the parts.
+  def assign_email_parts(key, email_message = nil)
+    @email_parts = Stevensed::EmailParts.resolve(key, @submitter, email_message:,
+                                                                  preview: params.to_h[:email_preview])
+    @body = @email_parts.legacy_body
+  end
+
+  def email_preview?
+    params.to_h[:email_preview].present?
+  end
+
   def build_submitter_reply_to(submitter, email_config: nil, documents_copy_email: nil)
     reply_to = submitter.preferences['reply_to'].presence
     reply_to ||= submitter.template&.preferences&.dig('documents_copy_email_reply_to').presence if documents_copy_email
@@ -258,6 +202,9 @@ class SubmitterMailer < ApplicationMailer
   end
 
   def add_completed_email_attachments!(submitter, with_audit_log: true, with_documents: true)
+    # StevensED: previews and test sends of the editor use sample data and attach nothing.
+    return [] if email_preview?
+
     documents = with_documents ? select_completed_documents(submitter) : []
 
     filename_format = AccountConfig.find_or_initialize_by(account_id: submitter.account_id,
@@ -299,33 +246,8 @@ class SubmitterMailer < ApplicationMailer
     user.role == 'integration' ? user.friendly_name.sub(/\+\w+@/, '@') : user.friendly_name
   end
 
-  def build_invite_subject(subject, email_config, submitter)
-    if email_config || subject
-      ReplaceEmailVariables.call(subject || email_config.value['subject'], submitter:)
-    else
-      name = submitter.submission.name.presence || submitter.template&.name
-
-      if submitter.viewer?
-        I18n.t('stevensed.email.view_subject', name:)
-      elsif submitter.with_signature_fields?
-        I18n.t('stevensed.invite_subject', name:)
-      else
-        I18n.t('stevensed.email.submit_subject', name:)
-      end
-    end
-  end
-
-  # StevensED: "StevensED: please review..." becomes "StevensED reminder: please review...".
   def build_reminder_subject(subject)
-    if subject.start_with?(STEVENSED_SUBJECT_PREFIX)
-      "#{I18n.t('stevensed.reminder_subject_prefix')} #{subject.delete_prefix(STEVENSED_SUBJECT_PREFIX)}"
-    else
-      "#{I18n.t('stevensed.reminder_prefix')} #{subject}"
-    end
-  end
-
-  def build_submitter_preferences_index(submitter)
-    submitter.template&.preferences&.dig('submitters').to_a.index_by { |e| e['uuid'] }
+    Stevensed::EmailParts.reminder_subject(subject)
   end
 
   def select_completed_documents(submitter)
@@ -367,10 +289,6 @@ class SubmitterMailer < ApplicationMailer
       # StevensED: From shows the "Send as" requester at the office address, never a personal address.
       Stevensed::Requesters.from_address(Stevensed::Requesters.for_submission(submitter.submission))
     end
-  end
-
-  def fetch_config_email_body(email_config, _submitter = nil)
-    email_config ? email_config.value['body'].presence : nil
   end
 
   def maybe_set_custom_domain(submitter)

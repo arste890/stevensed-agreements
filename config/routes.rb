@@ -213,6 +213,12 @@ Rails.application.routes.draw do
     resources :integration_users, only: %i[index], path: 'users/:status', controller: 'users',
                                   defaults: { status: :integration }
     resource :personalization, only: %i[show create], controller: 'personalization_settings'
+    # StevensED: email template editor (preview, test send to the signed-in user, reset to the StevensED default)
+    scope 'personalization/emails/:key', controller: 'email_templates', as: :email_template do
+      post :preview
+      post :test, action: :test_email
+      delete :reset
+    end
     resource :logo, only: %i[create destroy], controller: 'account_logos' # StevensED
     resources :imported_records, only: %i[index show], path: 'imported-records' # StevensED
     resources :esign_consents, only: %i[index create update], path: 'consents' # StevensED

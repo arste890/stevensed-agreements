@@ -1,0 +1,62 @@
+<%# StevensED: account-level email template (see Stevensed::EmailParts). Locals: key. %>
+<% keys = Stevensed::EmailParts %>
+<% config = current_account.account_configs.find_by(key:) || AccountConfigs.find_for_account(current_account, key) %>
+<% settings = config&.value.is_a?(Hash) ? config.value : {} %>
+<% saved = keys.account_parts(key, current_account) %>
+<% legacy_body = keys.legacy_account_body(key, current_account) %>
+<% can_reply_to = can?(:manage, :reply_to) || can?(:manage, :personalization_advanced) %>
+<%= render layout: 'personalization_settings/email_template_collapse', locals: { key: } do %>
+  <%= form_with url: settings_personalization_path, method: :post, scope: :account_config, html: { autocomplete: 'off', class: 'flex flex-col gap-4' } do |f| %>
+    <%= f.hidden_field :key, value: key %>
+    <p class="text-sm px-1"><%= t(saved.present? ? 'stevensed.email_templates.using_saved' : 'stevensed.email_templates.using_default') %></p>
+    <%= render 'personalization_settings/email_parts_editor', key:, legacy_body:, groups: [{ party: '', label: t('stevensed.email_templates.all_parties'), name_prefix: 'account_config[value]', variants: keys.variants(key), values: keys.effective_fields(key, account: current_account) }] %>
+    <%= f.fields_for :value do |ff| %>
+      <% if key.in?([keys::INVITATION, keys::VIEW, keys::REMINDER, keys::COPY]) %>
+        <% if can_reply_to %>
+          <div class="form-control">
+            <%= ff.label :reply_to, t('reply_to'), class: 'label', for: "#{key}_reply_to" %>
+            <%= ff.email_field :reply_to, value: settings['reply_to'], id: "#{key}_reply_to", class: 'base-input', dir: 'auto', placeholder: Stevensed::CONTACT_EMAIL %>
+          </div>
+        <% elsif settings['reply_to'].present? %>
+          <%= ff.hidden_field :reply_to, value: settings['reply_to'] %>
+        <% end %>
+      <% end %>
+      <% if key.in?([keys::COPY, keys::COMPLETED]) %>
+        <div class="space-y-3.5">
+          <div class="flex items-center justify-between mx-1">
+            <label for="<%= key %>_attach_documents"><%= t('attach_documents') %></label>
+            <%= ff.check_box :attach_documents, { checked: settings['attach_documents'] != false, class: 'toggle', id: "#{key}_attach_documents" }, 'true', 'false' %>
+          </div>
+          <div class="flex items-center justify-between mx-1">
+            <label for="<%= key %>_attach_audit_log"><%= t('attach_audit_log_pdf') %></label>
+            <%= ff.check_box :attach_audit_log, { checked: settings['attach_audit_log'] != false, class: 'toggle', id: "#{key}_attach_audit_log" }, 'true', 'false' %>
+          </div>
+          <% if key == keys::COPY %>
+            <% unless Docuseal.multitenant? %>
+              <div class="flex items-center justify-between mx-1">
+                <label for="<%= key %>_bcc_recipients"><%= t('bcc_recipients') %></label>
+                <%= ff.check_box :bcc_recipients, { checked: settings['bcc_recipients'] == true, class: 'toggle', id: "#{key}_bcc_recipients" }, 'true', 'false' %>
+              </div>
+            <% end %>
+            <% if !Docuseal.multitenant? || can?(:manage, :personalization_advanced) %>
+              <div class="flex items-center justify-between mx-1">
+                <label for="<%= key %>_enabled"><%= t('send_emails_automatically_on_completion') %></label>
+                <%= ff.check_box :enabled, { checked: settings['enabled'] != false, class: 'toggle', id: "#{key}_enabled" }, 'true', 'false' %>
+              </div>
+            <% end %>
+          <% end %>
+        </div>
+      <% end %>
+    <% end %>
+    <div class="flex flex-wrap items-center gap-2 pt-2">
+      <%= f.button button_title(title: t('stevensed.email_templates.save'), disabled_with: t('stevensed.email_templates.saving')), class: 'base-button normal-case' %>
+      <% if saved.present? || legacy_body.present? %>
+        <button type="submit" form="<%= key %>_reset_form" class="white-button normal-case"><%= t('stevensed.email_templates.reset') %></button>
+      <% end %>
+    </div>
+  <% end %>
+  <% if saved.present? || legacy_body.present? %>
+    <%= form_with url: settings_email_template_reset_path(key), method: :delete, id: "#{key}_reset_form", data: { turbo_confirm: t('stevensed.email_templates.reset_confirm') } do %>
+    <% end %>
+  <% end %>
+<% end %>
