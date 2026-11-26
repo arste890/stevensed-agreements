@@ -44,6 +44,7 @@ en:
       test_hint: The test goes only to %{email}, with sample data and "[Test]" before the subject.
       test_sent: A test was sent to %{email}.
       test_failed: The test could not be sent. Check the email settings and try again.
+      test_unavailable: Email is not set up, so no test was sent. Set up email under Settings, Email.
       test_rate_limited: Too many tests in a short time. Please wait a few minutes and try again.
       preview_title: Email preview
       preview_failed: The preview could not be loaded.

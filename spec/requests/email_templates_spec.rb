@@ -119,7 +119,19 @@ describe 'Email template editor' do
       expect(response.parsed_body['subject']).to eq("StevensED: please review and sign \"#{sample}\"")
     end
 
+    it 'refuses a test when email delivery is not set up' do
+      allow(Accounts).to receive(:can_send_emails?).and_return(false)
+
+      expect do
+        post settings_email_template_test_path(invitation_key), params: { parts:, variant: 'submit' }
+      end.not_to change(ActionMailer::Base.deliveries, :count)
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body['error']).to include('Email is not set up')
+    end
+
     it 'sends the test only to the signed-in user' do
+      allow(Accounts).to receive(:can_send_emails?).and_return(true)
       ActionMailer::Base.deliveries.clear
 
       expect do

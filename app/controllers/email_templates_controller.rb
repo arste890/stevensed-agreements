@@ -22,6 +22,11 @@ class EmailTemplatesController < ApplicationController
   end
 
   def test_email
+    # StevensED: say so when email delivery is not set up, instead of reporting a test that was never sent.
+    unless Accounts.can_send_emails?(current_account)
+      return render json: { error: I18n.t('stevensed.email_templates.test_unavailable') }, status: :unprocessable_content
+    end
+
     message = build_message
 
     Stevensed::EmailPreviews.deliver_test(message, current_user)

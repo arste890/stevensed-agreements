@@ -29,7 +29,7 @@ en:
     webhook_security: Webhook security
   stevensed:
     imported_records: Imported records
-    imported_records_intro: Signed agreements imported from the former DocuSeal cloud account on November 26, 2026. Each document was checked against the SHA-256 value in its audit log. Records keep the retention period that applied when they were signed.
+    imported_records_intro: Signed agreements imported on November 26, 2026 from the cloud e-signature service StevensED used before StevensED Agreements. Each document was checked against the SHA-256 value in its audit log. Records keep the retention period that applied when they were signed.
     no_imported_records: No imported records.
     completed_on: Completed %{date}
     imported_records_verified: Verified against the original audit log, envelope %{id}
