@@ -476,7 +476,7 @@ module Submissions
             event.data['phone'] || active_version&.phone || submitter.phone
           else
             active_version&.name || active_version&.email || active_version&.phone ||
-              submitter.name || submitter.email || submitter.phone
+              Stevensed::SignerName.for(submitter) || submitter.email || submitter.phone
           end
 
         submitter_name = TextUtils.maybe_rtl_reverse(submitter_name.to_s.squish)
@@ -670,22 +670,23 @@ module Submissions
         tsa_host && [t(:time_stamp_authority), tsa_host]
       ].compact
 
-      section_heading(composer, t(:signing_certificate))
-
-      composer.table(
+      layout = composer.document.layout
+      table = layout.table_box(
         rows.map do |label, value|
-          [composer.document.layout.text_box(label.to_s.upcase, style: :eyebrow, padding: [2, 0, 0, 0]),
-           composer.document.layout.text_box(value.to_s)]
+          [layout.text_box(label.to_s.upcase, style: :eyebrow, padding: [2, 0, 0, 0]), layout.text_box(value.to_s)]
         end,
         column_widths: [130, -1],
         cell_style: { padding: [0, 0, 5, 0], border: { width: 0 } }
       )
-
-      composer.formatted_text(
+      note = layout.formatted_text_box(
         ["#{t(:verification)} ", { link: Stevensed::PKI_URL, text: Stevensed::PKI_URL.delete_suffix('/'),
                                    style: :link }, '.'],
         fill_color: MUTED, padding: [6, 0, 0, 0]
       )
+
+      section_heading(composer, t(:signing_certificate), keep: [table, note])
+      composer.draw_box(table)
+      composer.draw_box(note)
     end
 
     def add_footers(document, submission, with_signature_id)
