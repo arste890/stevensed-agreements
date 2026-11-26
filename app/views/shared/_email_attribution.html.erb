@@ -1,12 +1,4 @@
-<p>
-  ---
-</p>
-<p>
-  <% if @current_account&.testing? %>
-    <%= t('sent_using_product_name_in_testing_mode_html', product_url: "#{Docuseal::PRODUCT_EMAIL_URL}/start", product_name: Docuseal.product_name) %>
-  <% elsif Docuseal.multitenant? %>
-    <%= t('sent_using_product_name_free_document_signing_html', product_url: "#{Docuseal::PRODUCT_EMAIL_URL}/start", product_name: Docuseal.product_name) %>
-  <% else %>
-    <%= t('sent_using_product_name_open_source_software_html', product_url: "#{Docuseal::PRODUCT_EMAIL_URL}/open", product_name: Docuseal.product_name) %>
-  <% end %>
+<%# StevensED: institutional email footer. %>
+<p style="color:#59697a;font-size:12px;line-height:18px;margin-top:24px">
+  StevensED LLC · <%= Stevensed::OFFICE %> · <a href="mailto:<%= Stevensed::CONTACT_EMAIL %>" style="color:#59697a"><%= Stevensed::CONTACT_EMAIL %></a>
 </p>

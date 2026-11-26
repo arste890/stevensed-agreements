@@ -1,0 +1,6 @@
+# StevensED fork strings (English; other locales fall back to en).
+en:
+  stevensed:
+    legal_notices: Legal notices
+    logo_invalid: The logo must be a PNG, JPEG or WebP image of 2 MB or less.
+    logo_hint: PNG, JPEG or WebP, 2 MB or less. Shown on signing pages and in the dashboard.

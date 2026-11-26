@@ -1,49 +1,45 @@
-name: Build Docker Images
+name: Build StevensED Agreements image
 
+# StevensED fork: builds linux/arm64 for the Oracle Ampere VM and publishes to GHCR.
+# Upstream's Docker Hub workflow is replaced; no repository secrets are required.
 on:
   push:
-    tags:
-      - "*.*.*"
+    branches: [stevensed/main]
+    tags: ["stevensed-*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
 
 jobs:
   build:
     runs-on: ubuntu-24.04-arm
-    timeout-minutes: 30
-
+    timeout-minutes: 45
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-      with:
-        submodules: recursive
-
-    - name: Docker meta
-      id: meta
-      uses: docker/metadata-action@v4
-      with:
-        images: docuseal/docuseal
-        tags: type=semver,pattern={{version}}
-
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
-
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-
-    - name: Create .version file
-      env:
-        REF_NAME: ${{ github.ref_name }}
-      run: echo "$REF_NAME" > .version
-
-    - name: Login to Docker Hub
-      uses: docker/login-action@v3
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v6
-      with:
-        context: .
-        push: true
-        platforms: linux/amd64,linux/arm64
-        tags: ${{ steps.meta.outputs.tags }}
+      - uses: actions/checkout@v4
+      - name: Version file
+        run: echo "3.4.0-stevensed+$(git rev-parse --short HEAD)" > .version
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/arste890/stevensed-agreements
+          tags: |
+            type=sha,prefix=,format=short
+            type=raw,value=main,enable=${{ github.ref == 'refs/heads/stevensed/main' }}
+            type=ref,event=tag
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          platforms: linux/arm64
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

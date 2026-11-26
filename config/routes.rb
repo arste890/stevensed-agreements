@@ -10,6 +10,8 @@ Rails.application.routes.draw do
   end
 
   root 'dashboard#index'
+  get '/account_logo/:uuid', to: 'account_logos#show', as: :account_logo # StevensED
+  get '/legal', to: 'legal_notices#show', as: :legal_notices # StevensED
 
   get 'up' => 'rails/health#show'
   get 'manifest' => 'pwa#manifest'
@@ -202,6 +204,7 @@ Rails.application.routes.draw do
     resources :integration_users, only: %i[index], path: 'users/:status', controller: 'users',
                                   defaults: { status: :integration }
     resource :personalization, only: %i[show create], controller: 'personalization_settings'
+    resource :logo, only: %i[create destroy], controller: 'account_logos' # StevensED
     resources :webhooks, only: %i[index show new create update destroy], controller: 'webhook_settings' do
       post :resend
 

@@ -1,1 +1,14 @@
-<%= render 'logo_placeholder' %>
+<%# StevensED: company logo upload (replaces the Pro placeholder). %>
+<div class="space-y-3">
+  <div class="flex items-center space-x-4">
+    <img src="<%= Stevensed.logo_url(current_account) %>" alt="<%= t('company_logo') %>" class="h-16 w-auto max-w-[16rem] object-contain bg-white rounded p-1">
+    <% if current_account.logo.attached? %>
+      <%= button_to t('remove'), settings_logo_path, method: :delete, class: 'btn btn-sm btn-outline', form: { data: { turbo_confirm: t('are_you_sure_') } } %>
+    <% end %>
+  </div>
+  <%= form_with url: settings_logo_path, method: :post, multipart: true, class: 'flex items-center space-x-2' do |f| %>
+    <%= f.file_field :logo, accept: 'image/png,image/jpeg,image/webp', required: true, class: 'file-input file-input-bordered file-input-sm w-full' %>
+    <%= f.button t('upload'), class: 'btn btn-sm btn-neutral text-white' %>
+  <% end %>
+  <p class="text-sm text-base-content/70"><%= t('stevensed.logo_hint') %></p>
+</div>
