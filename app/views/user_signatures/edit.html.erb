@@ -1,5 +1,5 @@
 <%= render 'shared/turbo_modal', title: t('update_signature') do %>
-  <% options = [[t('draw'), 'draw'], [t('upload'), 'upload']] %>
+  <% options = [[t('draw'), 'draw'], [t('type'), 'type'], [t('upload'), 'upload']] %>
   <toggle-visible data-element-ids="<%= options.map(&:last).to_json %>" class="relative text-center block <%= turbo_native_app? ? ('mt-1.5' if turbo_native_android?) : 'mt-4' %>">
     <div class="join">
       <% options.each_with_index do |(label, value), index| %>
@@ -22,6 +22,19 @@
           <%= f.button button_title(title: t('save'), disabled_with: t('saving')), class: 'base-button', data: { target: 'signature-form.button' } %>
         </div>
       </signature-form>
+    <% end %>
+  </div>
+  <%# StevensED: typed signature option %>
+  <div id="type" class="hidden mt-3" style="<%= 'padding-inline: 18px' if turbo_native_app? %>">
+    <%= form_for @user_config, url: user_signature_path, method: :put, data: { turbo_frame: :_top }, html: { autocomplete: :off, enctype: 'multipart/form-data' } do |f| %>
+      <typed-signature-form class="relative block">
+        <input type="text" class="base-input w-full" data-target="typed-signature-form.text" placeholder="<%= t('type_here_') %>" autocomplete="off" aria-label="<%= t('type') %>">
+        <div class="mt-3"><canvas data-target="typed-signature-form.canvas" class="bg-white border border-base-300 w-full rounded"></canvas></div>
+        <input name="file" class="hidden" data-target="typed-signature-form.input" type="file" accept="image/png">
+        <div class="form-control mt-4">
+          <%= f.button button_title(title: t('save'), disabled_with: t('saving')), class: 'base-button', data: { target: 'typed-signature-form.button' } %>
+        </div>
+      </typed-signature-form>
     <% end %>
   </div>
   <div id="upload" class="hidden mt-3" style="<%= 'padding-inline: 18px' if turbo_native_app? %>">

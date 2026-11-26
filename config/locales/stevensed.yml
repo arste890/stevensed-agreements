@@ -149,3 +149,5 @@ en:
     mailer:
       reset_password_instructions:
         subject: 'StevensED Agreements: password reset instructions'
+  type: Type
+  type_here_: Type your name or initials
