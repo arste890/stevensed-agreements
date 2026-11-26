@@ -1,5 +1,5 @@
 <%= render 'shared/navbar_warning' %>
-<%= render 'shared/mobile_app_alert' if signed_in? && cookies[:mobile_app_alert].blank? && (browser_os == 'ios' || browser_os == 'android') %>
+<%= render 'shared/mobile_app_alert' if Stevensed::SHOW_UPSTREAM_LINKS && signed_in? && cookies[:mobile_app_alert].blank? && (browser_os == 'ios' || browser_os == 'android') %>
 <%# StevensED: institutional header, matching stevensed.org and the public pages. %>
 <header class="se-site-header se-app-header <%= local_assigns[:header_class] %>">
 <nav class="se-wrap se-site-header__inner justify-between <%= 'se-wrap--wide' if content_for?(:stevensed_page_title) %>">
