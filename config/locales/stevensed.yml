@@ -52,6 +52,29 @@ en:
     send_as: Send as
     send_as_with_name: With your name
     send_as_office_only: Office only
+    audit_log:
+      document: Document
+      completed: Completed
+      issued_by: Issued by
+      verify: Verify
+      documents: Documents
+      signers: Signers
+      ip_address: IP address
+      session_id: Session ID
+      user_agent: User agent
+      time_zone: Time zone
+      time: Time
+      event: Event
+      signing_certificate: Signing certificate
+      signed_by: Signed by
+      certificate_issuer: Issuer
+      root_certificate: Root certificate
+      serial_number: Serial number
+      valid: Valid
+      sha256_fingerprint: SHA-256 fingerprint
+      time_stamp_authority: Time-stamp authority
+      verification: This log and the documents it describes are signed with the certificate above. To confirm a signature, open the document in Adobe Acrobat or Reader and compare the certificate fingerprints with those published at
+      page_number_of_total: Page %{number} of %{total}
     embed:
       unavailable: The template builder is not available
       invalid_token: The access token is invalid or has expired. Reload the page to request a new one.

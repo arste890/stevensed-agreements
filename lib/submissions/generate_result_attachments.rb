@@ -167,38 +167,22 @@ module Submissions
         pdfs_index.each_value do |pdf|
           next if pdf.trailer.info[:DocumentID].present?
 
-          font = pdf.fonts.add(FONT_NAME)
-
           document_id = Digest::MD5.hexdigest(submitter.submission.slug).upcase
 
           pdf.trailer.info[:DocumentID] = document_id
-          pdf.pages.each do |page|
-            font_size = [(([page.box.width, page.box.height].min / A4_SIZE[0].to_f) * 9).to_i, 4].max
-            cnv = page.canvas(type: :overlay)
 
-            text =
-              if submitter.account.testing?
-                if with_signature_id
-                  "#{TESTING_FOOTER} | ID: #{document_id}"
-                else
-                  TESTING_FOOTER
-                end
+          # StevensED: the per-page line matches the audit log footer (see Stevensed::SignatureStamp).
+          text =
+            I18n.with_locale(submitter.metadata.fetch('lang', submitter.account.locale)) do
+              if submitter.account.testing? && !with_signature_id
+                TESTING_FOOTER
               else
-                "#{I18n.t('document_id',
-                          locale: submitter.metadata.fetch('lang', submitter.account.locale))}: #{document_id}"
+                Stevensed::SignatureStamp.footer_text(document_id, testing: submitter.account.testing?)
               end
+            end
 
-            text = HexaPDF::Layout::TextFragment.create(
-              text, font:, font_size:, underlays: [
-                lambda do |canv, box|
-                  canv.fill_color('white').rectangle(-1, 0, box.width + 2, box.height).fill
-                end
-              ]
-            )
-
-            HexaPDF::Layout::TextLayouter.new(font:, font_size:)
-                                         .fit([text], page.box.width, page.box.height)
-                                         .draw(cnv, 1, font_size * 1.37)
+          pdf.pages.each do |page|
+            Stevensed::SignatureStamp.draw_footer(page, pdf, text, fallback: FONT_NAME)
           end
         end
       end
@@ -364,113 +348,37 @@ module Submissions
                 end
               end
 
-            base_font_size = (font_size / 1.8).to_i
-
-            result = nil
-
             area_x = area['x'] * width
             area_y = area['y'] * height
             area_w = area['w'] * width
             area_h = area['h'] * height
 
+            # StevensED: the stamp text is drawn by Stevensed::SignatureStamp. In a wide box the signature takes
+            # the left half and the stamp the right half; otherwise the signature sits above the stamp.
             if area_h.positive? && (area_w.to_f / area_h) > 4.5
               half_width = area_w / 2.0
-              scale = [half_width / image.width, area_h / image.height].min
-              image_width = image.width * scale
-              image_height = image.height * scale
-              image_x = area_x + ((half_width - image_width) / 2.0)
-              image_y = height - area_y - image_height
-
-              io =
-                StringIO.new(image.resize([scale * 4, 1].select(&:positive?).min).write_to_buffer('.png', strip: true))
-
-              canvas.image(io, at: [image_x, image_y], width: image_width, height: image_height)
-
-              id_string = "ID: #{attachment.uuid}".upcase
-
-              loop do
-                text = HexaPDF::Layout::TextFragment.create(id_string, font:, font_size: base_font_size)
-
-                result = layouter.fit([text], half_width, base_font_size / 0.65)
-
-                break if result.status == :success
-
-                id_string = "#{id_string.delete_suffix('...')[0..-2]}..."
-
-                break if id_string.length < 8
-              end
-
-              string = [id_string, reason_string].join("\n")
-
-              loop do
-                text = HexaPDF::Layout::TextFragment.create(string, font:, font_size: base_font_size)
-
-                result = layouter.fit([text], half_width, area_h)
-
-                break if result.status == :success
-
-                base_font_size *= 0.9
-
-                break if base_font_size < 2
-              end
-
-              text = HexaPDF::Layout::TextFragment.create(string, font:, font_size: base_font_size)
-
-              text_x = area_x + half_width
-              text_y = height - area_y
-
-              layouter.fit([text], half_width, area_h).draw(canvas, text_x + TEXT_LEFT_MARGIN, text_y)
+              image_box = [area_x, height - area_y, half_width, area_h]
+              stamp_box = { left: area_x + half_width + 2, top: height - area_y, width: half_width - 2, height: area_h }
             else
-              reason_text = HexaPDF::Layout::TextFragment.create(reason_string,
-                                                                 font:,
-                                                                 font_size: base_font_size)
-
-              id_string = "ID: #{attachment.uuid}".upcase
-
-              loop do
-                text = HexaPDF::Layout::TextFragment.create(id_string,
-                                                            font:,
-                                                            font_size: base_font_size)
-
-                result = layouter.fit([text], area_w, base_font_size / 0.65)
-
-                break if result.status == :success
-
-                id_string = "#{id_string.delete_suffix('...')[0..-2]}..."
-
-                break if id_string.length < 8
-              end
-
-              reason_result = layouter.fit([reason_text], area_w, height)
-              text_height = result.lines.sum(&:height) + reason_result.lines.sum(&:height)
-
-              image_height = area_h - text_height
-              image_height = area_h / 2 if image_height < area_h / 2
-
-              scale = [area_w / image.width, image_height / image.height].min
-
-              io =
-                StringIO.new(image.resize([scale * 4, 1].select(&:positive?).min).write_to_buffer('.png', strip: true))
-
-              layouter.fit([text], area_w, base_font_size / 0.65)
-                      .draw(canvas, area_x + TEXT_LEFT_MARGIN,
-                            height - area_y - TEXT_TOP_MARGIN - image_height)
-
-              layouter.fit([reason_text], area_w, reason_result.lines.sum(&:height))
-                      .draw(canvas, area_x + TEXT_LEFT_MARGIN,
-                            height - area_y - TEXT_TOP_MARGIN -
-                            result.lines.sum(&:height) - image_height)
-
-              canvas.image(
-                io,
-                at: [
-                  area_x + (area_w / 2) - ((image.width * scale) / 2),
-                  height - area_y - (image.height * scale / 2) - (image_height / 2)
-                ],
-                width: image.width * scale,
-                height: image.height * scale
-              )
+              image_h = area_h * 0.6
+              image_box = [area_x, height - area_y, area_w, image_h]
+              stamp_box = { left: area_x + TEXT_LEFT_MARGIN, top: height - area_y - image_h,
+                            width: area_w - TEXT_LEFT_MARGIN, height: area_h - image_h }
             end
+
+            box_x, box_top, box_w, box_h = image_box
+            scale = [box_w / image.width, box_h / image.height].min
+            image_width = image.width * scale
+            image_height = image.height * scale
+
+            io =
+              StringIO.new(image.resize([scale * 4, 1].select(&:positive?).min).write_to_buffer('.png', strip: true))
+
+            canvas.image(io, at: [box_x + ((box_w - image_width) / 2.0), box_top - ((box_h + image_height) / 2.0)],
+                             width: image_width, height: image_height)
+
+            Stevensed::SignatureStamp.draw(canvas, pdf, **stamp_box,
+                                           id: attachment.uuid, lines: reason_string.split("\n"), fallback: FONT_NAME)
           when 'image', 'signature', 'initials', 'stamp', 'kba'
             attachment = submitter.attachments.find { |a| a.uuid == value }
 
