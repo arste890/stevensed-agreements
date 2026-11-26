@@ -103,6 +103,11 @@ class SubmitFormController < ApplicationController
   def completed
     raise ActionController::RoutingError, I18n.t('not_found') if @submitter.account.archived_at?
 
+    # StevensED: a signer who has not finished yet goes back to the form (the page needs a completion time).
+    unless @submitter.completed_at? || (@submitter.viewer? && @submitter.submission.completed_at?)
+      return redirect_to submit_form_path(params[:submit_form_slug], lang:)
+    end
+
     return if Submitters::AuthorizedForForm.call(@submitter, current_user, request)
 
     redirect_to submit_form_path(params[:submit_form_slug], lang:)
