@@ -239,6 +239,7 @@ safeRegisterElement('template-builder', class extends HTMLElement {
       withVerification: ['true', 'false'].includes(this.dataset.withVerification) ? this.dataset.withVerification === 'true' : null,
       withKba: ['true', 'false'].includes(this.dataset.withKba) ? this.dataset.withKba === 'true' : null,
       withLogo: this.dataset.withLogo !== 'false',
+      headerTarget: this.dataset.headerTarget && document.querySelector(this.dataset.headerTarget) ? this.dataset.headerTarget : null, // StevensED
       embedded: this.dataset.embedded === 'true',
       withFieldsDetection: this.dataset.withFieldsDetection === 'true',
       withDetectExistingFields: this.dataset.withDetectExistingFields === 'true',

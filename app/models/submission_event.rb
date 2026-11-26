@@ -66,7 +66,8 @@ class SubmissionEvent < ApplicationRecord
     complete_form: 'complete_form',
     decline_form: 'decline_form',
     delegate_form: 'delegate_form',
-    api_complete_form: 'api_complete_form'
+    api_complete_form: 'api_complete_form',
+    accept_esign_consent: 'accept_esign_consent' # StevensED: ESIGN Act consent before signing
   }, scope: false
 
   private

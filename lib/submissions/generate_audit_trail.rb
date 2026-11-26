@@ -265,6 +265,8 @@ module Submissions
 
         verify_phone_event = submission_events.find(&:phone_verified?)
 
+        esign_consent_event = submission_events.find(&:accept_esign_consent?)
+
         is_id_verified = submission_events.any?(&:complete_verification?)
 
         complete_kba_event = submission_events.find(&:complete_kba?) || SubmissionEvent.new
@@ -302,6 +304,9 @@ module Submissions
                 },
                 complete_kba_event.persisted? && {
                   text: "#{I18n.t('knowledge_based_authentication')}: #{I18n.t('passed')}#{kba_score}\n"
+                },
+                esign_consent_event && {
+                  text: "Electronic records consent (FRM-102): accepted #{esign_consent_event.event_timestamp.utc.iso8601}\n"
                 },
                 completed_event.data['ip'] && { text: "IP: #{completed_event.data['ip']}\n" },
                 completed_event.data['sid'] && { text: "#{I18n.t('session_id')}: #{completed_event.data['sid']}\n" },

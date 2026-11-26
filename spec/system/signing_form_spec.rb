@@ -84,6 +84,7 @@ RSpec.describe 'Signing Form' do
       # Submit's email step
       fill_in 'Email', with: 'john.dou@example.com'
       click_button 'Start'
+      accept_esign_consent
 
       # Text step
       fill_in 'First Name', with: 'John'
@@ -171,6 +172,7 @@ RSpec.describe 'Signing Form' do
       fill_in 'Name', with: 'John Doe'
       fill_in 'Phone', with: '+17732298825'
       click_button 'Start'
+      accept_esign_consent
 
       # Text step
       fill_in 'First Name', with: 'John'
@@ -271,6 +273,7 @@ RSpec.describe 'Signing Form' do
       fill_in 'one_time_code', with: code
 
       click_button 'Submit'
+      accept_esign_consent
 
       fill_in 'First Name', with: 'John'
       click_button 'next'
@@ -445,7 +448,7 @@ RSpec.describe 'Signing Form' do
       fill_in 'First Name', with: 'Mary'
       find('#submit_form_button').click
 
-      expect(page).to have_content('Form has been completed!')
+      expect(page).to have_content('You have finished signing.')
 
       submitter.reload
 
@@ -470,7 +473,7 @@ RSpec.describe 'Signing Form' do
       fill_in 'First Name', with: 'Very long text'
       find('#submit_form_button').click
 
-      expect(page).to have_content('Form has been completed!')
+      expect(page).to have_content('You have finished signing.')
 
       submitter.reload
 
@@ -496,7 +499,7 @@ RSpec.describe 'Signing Form' do
       fill_in 'Birthday', with: I18n.l(25.years.ago, format: '%Y-%m-%d')
       find('#submit_form_button').click
 
-      expect(page).to have_content('Form has been completed!')
+      expect(page).to have_content('You have finished signing.')
 
       submitter.reload
 
@@ -519,7 +522,7 @@ RSpec.describe 'Signing Form' do
 
       find('#submit_form_button').click
 
-      expect(page).to have_content('Form has been completed!')
+      expect(page).to have_content('You have finished signing.')
 
       submitter.reload
 
@@ -541,7 +544,7 @@ RSpec.describe 'Signing Form' do
       check 'Do you agree?'
       find('#submit_form_button').click
 
-      expect(page).to have_content('Form has been completed!')
+      expect(page).to have_content('You have finished signing.')
 
       submitter.reload
 
@@ -565,7 +568,7 @@ RSpec.describe 'Signing Form' do
       choose 'Boy'
       find('#submit_form_button').click
 
-      expect(page).to have_content('Form has been completed!')
+      expect(page).to have_content('You have finished signing.')
 
       submitter.reload
 
@@ -672,7 +675,7 @@ RSpec.describe 'Signing Form' do
       fill_in 'House number', with: '4'
       find('#submit_form_button').click
 
-      expect(page).to have_content('Form has been completed!')
+      expect(page).to have_content('You have finished signing.')
 
       submitter.reload
 
@@ -694,7 +697,7 @@ RSpec.describe 'Signing Form' do
       %w[Red Green].each { |color| check color }
       find('#submit_form_button').click
 
-      expect(page).to have_content('Form has been completed!')
+      expect(page).to have_content('You have finished signing.')
 
       submitter.reload
 
@@ -717,7 +720,7 @@ RSpec.describe 'Signing Form' do
 
       find('#submit_form_button').click
 
-      expect(page).to have_content('Form has been completed!')
+      expect(page).to have_content('You have finished signing.')
 
       submitter.reload
 
@@ -799,7 +802,7 @@ RSpec.describe 'Signing Form' do
       find('input[type="file"]', visible: false).attach_file(Rails.root.join('spec/fixtures/sample-image.png'))
       find('#submit_form_button').click
 
-      expect(page).to have_content('Form has been completed!')
+      expect(page).to have_content('You have finished signing.')
 
       submitter.reload
 
@@ -823,7 +826,7 @@ RSpec.describe 'Signing Form' do
       find('input[type="file"]', visible: false).attach_file(Rails.root.join('spec/fixtures/sample-document.pdf'))
       find('#submit_form_button').click
 
-      expect(page).to have_content('Form has been completed!')
+      expect(page).to have_content('You have finished signing.')
 
       submitter.reload
 
@@ -850,7 +853,7 @@ RSpec.describe 'Signing Form' do
       fill_in 'Cell code', with: '456'
       find('#submit_form_button').click
 
-      expect(page).to have_content('Form has been completed!')
+      expect(page).to have_content('You have finished signing.')
 
       submitter.reload
 
@@ -969,7 +972,7 @@ RSpec.describe 'Signing Form' do
       fill_in 'Comment', with: 'This is a comment'
       find('#submit_form_button').click
 
-      expect(page).to have_content('Form has been completed!')
+      expect(page).to have_content('You have finished signing.')
 
       submitter.reload
 
@@ -994,7 +997,7 @@ RSpec.describe 'Signing Form' do
       fill_in 'Comment', with: 'This is a comment'
       find('#submit_form_button').click
 
-      expect(page).to have_content('Form has been completed!')
+      expect(page).to have_content('You have finished signing.')
 
       submitter.reload
 
@@ -1017,7 +1020,7 @@ RSpec.describe 'Signing Form' do
       fill_in 'Phone (optional)', with: ''
       find('#submit_form_button').click
 
-      expect(page).to have_content('Form has been completed!')
+      expect(page).to have_content('You have finished signing.')
 
       submitter.reload
 
@@ -1040,7 +1043,7 @@ RSpec.describe 'Signing Form' do
       fill_in 'Phone (optional)', with: '+1 (773) 229-8825'
       find('#submit_form_button').click
 
-      expect(page).to have_content('Form has been completed!')
+      expect(page).to have_content('You have finished signing.')
 
       submitter.reload
 
@@ -1160,6 +1163,30 @@ RSpec.describe 'Signing Form' do
     end
   end
 
+  context 'when the signer has not accepted the electronic records consent' do
+    let(:template) { create(:template, account:, author:, only_field_types: %w[text]) }
+    let(:submission) { create(:submission, template:) }
+    let(:submitter) do
+      create(:submitter, submission:, uuid: template.submitters.first['uuid'], account:, esign_consent: false)
+    end
+
+    it 'records the consent before the form can be signed' do
+      visit submit_form_path(slug: submitter.slug)
+
+      expect(page).to have_content('Please review and sign these documents')
+      expect(page).to have_button('Continue', disabled: true)
+
+      accept_esign_consent
+
+      expect(submitter.submission_events.where(event_type: :accept_esign_consent).count).to eq(1)
+
+      fill_in 'First Name', with: 'Mary'
+      find('#submit_form_button').click
+
+      expect(page).to have_content('You have finished signing.')
+    end
+  end
+
   context 'when decline is enabled' do
     let(:template) { create(:template, account:, author:, only_field_types: %w[text]) }
     let(:submission) { create(:submission, template:) }
@@ -1168,6 +1195,7 @@ RSpec.describe 'Signing Form' do
     it 'declines the form and shows the declined page' do
       visit submit_form_path(slug: submitter.slug)
 
+      find('.se-other-actions').click
       find('#decline_button').click
       fill_in 'reason', with: 'I do not agree with the terms'
       within('dialog[open]') { click_button 'Decline' }
@@ -1192,6 +1220,7 @@ RSpec.describe 'Signing Form' do
     it 'delegates the form to another email and shows the delegated page' do
       visit submit_form_path(slug: submitter.slug)
 
+      find('.se-other-actions').click
       find('#delegate_button').click
       fill_in 'email', with: 'delegate@example.com'
       within('dialog[open]') { click_button 'Delegate' }
@@ -1232,7 +1261,7 @@ RSpec.describe 'Signing Form' do
       fill_in 'First Name', with: 'Mary'
       find('#submit_form_button').click
 
-      expect(page).to have_content('Form has been completed!')
+      expect(page).to have_content('You have finished signing.')
 
       submitter.reload
 
@@ -1267,7 +1296,7 @@ RSpec.describe 'Signing Form' do
       fill_in 'First Name', with: 'Mary'
       find('#submit_form_button').click
 
-      expect(page).to have_content('Form has been completed!')
+      expect(page).to have_content('You have finished signing.')
 
       submitter.reload
 
@@ -1310,7 +1339,7 @@ RSpec.describe 'Signing Form' do
 
       find('#complete_button_container button').click
 
-      expect(page).to have_content('Form has been completed!')
+      expect(page).to have_content('You have finished signing.')
 
       submitter.reload
 

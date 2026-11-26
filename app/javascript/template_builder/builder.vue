@@ -203,47 +203,98 @@
         </div>
       </div>
     </div>
-    <div
-      v-if="($slots.buttons || withTitle) && !nativeView"
-      id="title_container"
-      class="flex justify-between py-1.5 items-center pr-4 top-0 z-10 title-container"
-      :class="{ sticky: withStickySubmitters || isBreakpointLg, hidden: !!nativePlatform }"
-      :style="{ backgroundColor }"
+    <Teleport
+      :to="headerTarget || 'body'"
+      :disabled="!headerTarget"
     >
-      <div class="flex items-center space-x-3">
-        <a
-          v-if="withLogo"
-          href="/"
-        >
-          <Logo />
-        </a>
-        <Contenteditable
-          v-if="withTitle"
-          :model-value="template.name"
-          :editable="editable"
-          class="text-xl md:text-3xl font-semibold focus:text-clip template-name"
-          :icon-stroke-width="2.3"
-          @update:model-value="updateName"
-        />
-      </div>
-      <div class="flex items-center gap-3 flex-shrink-0">
-        <slot
-          v-if="$slots.buttons"
-          name="buttons"
-        />
-        <template v-else>
-          <form-prompt
-            v-if="!!nativePlatform && editable"
-            data-refresh="false"
+      <div
+        v-if="($slots.buttons || withTitle) && !nativeView"
+        id="title_container"
+        class="flex justify-between items-center title-container"
+        :class="headerTarget ? 'gap-4 w-full min-w-0' : ['py-1.5 pr-4 top-0 z-10', { sticky: withStickySubmitters || isBreakpointLg, hidden: !!nativePlatform }]"
+        :style="headerTarget ? {} : { backgroundColor }"
+      >
+        <div class="flex items-center space-x-3 min-w-0">
+          <a
+            v-if="withLogo && !headerTarget"
+            href="/"
           >
+            <Logo />
+          </a>
+          <Contenteditable
+            v-if="withTitle"
+            :model-value="template.name"
+            :editable="editable"
+            class="text-xl md:text-3xl font-semibold focus:text-clip template-name"
+            :icon-stroke-width="2.3"
+            @update:model-value="updateName"
+          />
+        </div>
+        <div class="flex items-center gap-3 flex-shrink-0">
+          <slot
+            v-if="$slots.buttons"
+            name="buttons"
+          />
+          <template v-else>
+            <form-prompt
+              v-if="!!nativePlatform && editable"
+              data-refresh="false"
+            >
+              <native-action
+                data-placement="title"
+                :data-label="t('name')"
+              >
+                <form
+                  class="hidden"
+                  method="post"
+                  :action="`/templates/${template.id}`"
+                >
+                  <input
+                    type="hidden"
+                    name="_method"
+                    value="put"
+                    autocomplete="off"
+                  >
+                  <input
+                    type="hidden"
+                    name="authenticity_token"
+                    :value="authenticityToken"
+                    autocomplete="off"
+                  >
+                  <label for="template_name_prompt">{{ t('name') }}</label>
+                  <input
+                    id="template_name_prompt"
+                    type="hidden"
+                    name="template[name]"
+                    :value="template.name"
+                    autocomplete="off"
+                  >
+                </form>
+              </native-action>
+            </form-prompt>
             <native-action
-              data-placement="title"
-              :data-label="t('name')"
+              v-if="withSendButton && !!nativePlatform"
+              :data-label="t('send')"
+              data-icon="send"
+            >
+              <a
+                :href="`/templates/${template.id}/submissions/new?with_link=true`"
+                data-turbo-frame="modal"
+                @click="maybeShowErrorTemplateAlert"
+              />
+            </native-action>
+            <native-action
+              v-if="withSignYourselfButton && undefinedSubmitters.length < 2 && (!template.variables_schema || Object.keys(template.variables_schema).length === 0)"
+              :data-label="t('sign_yourself')"
+              data-icon="writing"
             >
               <form
-                class="hidden"
+                :target="!!nativePlatform ? null : '_blank'"
+                :data-turbo="!!nativePlatform ? null : 'false'"
+                class="inline"
                 method="post"
-                :action="`/templates/${template.id}`"
+                :action="`/start_form_self/${template.id}`"
+                @submit="maybeShowErrorTemplateAlert"
               >
                 <input
                   type="hidden"
@@ -257,56 +308,31 @@
                   :value="authenticityToken"
                   autocomplete="off"
                 >
-                <label for="template_name_prompt">{{ t('name') }}</label>
-                <input
-                  id="template_name_prompt"
-                  type="hidden"
-                  name="template[name]"
-                  :value="template.name"
-                  autocomplete="off"
+                <button
+                  class="btn btn-primary btn-ghost text-base hidden md:flex"
+                  type="submit"
                 >
+                  <IconWritingSign
+                    width="22"
+                    class="inline"
+                  />
+                  <span class="hidden md:inline">
+                    {{ t('sign_yourself') }}
+                  </span>
+                </button>
               </form>
             </native-action>
-          </form-prompt>
-          <native-action
-            v-if="withSendButton && !!nativePlatform"
-            :data-label="t('send')"
-            data-icon="send"
-          >
-            <a
-              :href="`/templates/${template.id}/submissions/new?with_link=true`"
-              data-turbo-frame="modal"
-              @click="maybeShowErrorTemplateAlert"
-            />
-          </native-action>
-          <native-action
-            v-if="withSignYourselfButton && undefinedSubmitters.length < 2 && (!template.variables_schema || Object.keys(template.variables_schema).length === 0)"
-            :data-label="t('sign_yourself')"
-            data-icon="writing"
-          >
-            <form
-              :target="!!nativePlatform ? null : '_blank'"
-              :data-turbo="!!nativePlatform ? null : 'false'"
-              class="inline"
-              method="post"
-              :action="`/start_form_self/${template.id}`"
-              @submit="maybeShowErrorTemplateAlert"
+            <native-action
+              v-else-if="withSignYourselfButton"
+              :data-label="t('sign_yourself')"
+              data-icon="writing"
             >
-              <input
-                type="hidden"
-                name="_method"
-                value="put"
-                autocomplete="off"
-              >
-              <input
-                type="hidden"
-                name="authenticity_token"
-                :value="authenticityToken"
-                autocomplete="off"
-              >
-              <button
+              <a
+                id="sign_yourself_button"
+                :href="`/templates/${template.id}/submissions/new?selfsign=true`"
                 class="btn btn-primary btn-ghost text-base hidden md:flex"
-                type="submit"
+                data-turbo-frame="modal"
+                @click="maybeShowErrorTemplateAlert"
               >
                 <IconWritingSign
                   width="22"
@@ -315,211 +341,190 @@
                 <span class="hidden md:inline">
                   {{ t('sign_yourself') }}
                 </span>
-              </button>
-            </form>
-          </native-action>
-          <native-action
-            v-else-if="withSignYourselfButton"
-            :data-label="t('sign_yourself')"
-            data-icon="writing"
-          >
-            <a
-              id="sign_yourself_button"
-              :href="`/templates/${template.id}/submissions/new?selfsign=true`"
-              class="btn btn-primary btn-ghost text-base hidden md:flex"
-              data-turbo-frame="modal"
-              @click="maybeShowErrorTemplateAlert"
-            >
-              <IconWritingSign
-                width="22"
-                class="inline"
-              />
-              <span class="hidden md:inline">
-                {{ t('sign_yourself') }}
-              </span>
-            </a>
-          </native-action>
-          <native-action
-            v-if="withSendButton && !nativePlatform"
-            :data-label="t('send')"
-            data-icon="users_plus"
-            data-placement="bar"
-          >
-            <a
-              id="send_button"
-              :href="`/templates/${template.id}/submissions/new?with_link=true`"
-              :data-turbo-frame="!nativePlatform && isMobile && isBreakpointLg ? '_top' : 'modal'"
-              class="white-button md:!px-6"
-              @click="maybeShowErrorTemplateAlert"
-            >
-              <IconUsersPlus
-                width="20"
-                class="inline"
-              />
-              <span class="hidden md:inline">
-                {{ t('send') }}
-              </span>
-            </a>
-          </native-action>
-          <span
-            v-if="editable"
-            id="save_button_container"
-            class="flex"
-          >
+              </a>
+            </native-action>
             <native-action
-              :data-label="t('save')"
-              data-icon="check"
+              v-if="withSendButton && !nativePlatform"
+              :data-label="t('send')"
+              data-icon="users_plus"
               data-placement="bar"
             >
-              <button
-                class="base-button"
-                :class="{ disabled: isSaving, '!rounded-r-none !pr-2': !embedded }"
-                v-bind="isSaving ? { disabled: true } : {}"
-                @click.prevent="onSaveClick"
+              <a
+                id="send_button"
+                :href="`/templates/${template.id}/submissions/new?with_link=true`"
+                :data-turbo-frame="!nativePlatform && isMobile && isBreakpointLg ? '_top' : 'modal'"
+                class="white-button md:!px-6"
+                @click="maybeShowErrorTemplateAlert"
               >
-                <IconInnerShadowTop
-                  v-if="isSaving"
-                  width="22"
-                  class="animate-spin"
-                />
-                <IconDeviceFloppy
-                  v-else
-                  width="22"
+                <IconUsersPlus
+                  width="20"
+                  class="inline"
                 />
                 <span class="hidden md:inline">
-                  {{ t('save') }}
+                  {{ t('send') }}
                 </span>
-              </button>
+              </a>
             </native-action>
-            <div
-              v-if="!embedded"
-              class="dropdown dropdown-end"
-              :class="{ 'dropdown-open': isDownloading || isPreviewLoading }"
+            <span
+              v-if="editable"
+              id="save_button_container"
+              class="flex"
             >
-              <label
-                tabindex="0"
-                class="base-button !rounded-l-none !pl-1 !pr-2 !border-l-neutral-500"
+              <native-action
+                :data-label="t('save')"
+                data-icon="check"
+                data-placement="bar"
               >
-                <span class="text-sm align-text-top">
-                  <IconChevronDown class="w-5 h-5 flex-shrink-0" />
-                </span>
-              </label>
-              <ul
-                tabindex="0"
-                class="dropdown-content p-2 mt-2 shadow menu text-base bg-base-100 rounded-box text-right"
+                <button
+                  class="base-button"
+                  :class="{ disabled: isSaving, '!rounded-r-none !pr-2': !embedded }"
+                  v-bind="isSaving ? { disabled: true } : {}"
+                  @click.prevent="onSaveClick"
+                >
+                  <IconInnerShadowTop
+                    v-if="isSaving"
+                    width="22"
+                    class="animate-spin"
+                  />
+                  <IconDeviceFloppy
+                    v-else
+                    width="22"
+                  />
+                  <span class="hidden md:inline">
+                    {{ t('save') }}
+                  </span>
+                </button>
+              </native-action>
+              <div
+                v-if="!embedded"
+                class="dropdown dropdown-end"
+                :class="{ 'dropdown-open': isDownloading || isPreviewLoading }"
               >
-                <native-action
-                  :data-label="t('save_and_preview')"
-                  data-icon="eye"
+                <label
+                  tabindex="0"
+                  class="base-button !rounded-l-none !pl-1 !pr-2 !border-l-neutral-500"
                 >
-                  <li>
-                    <a
-                      :href="`/templates/${template.id}/form`"
-                      :data-native-actions="template.submitters.length > 1 ? 'users' : null"
-                      data-turbo-prefetch="false"
-                      class="flex items-center justify-center space-x-2"
-                      @click.exact="onSaveAndPreviewClick"
-                    >
-                      <IconInnerShadowTop
-                        v-if="isPreviewLoading"
-                        class="animate-spin w-6 h-6 flex-shrink-0"
-                      />
-                      <IconEye
-                        v-else
-                        class="w-6 h-6 flex-shrink-0"
-                      />
-                      <span class="whitespace-nowrap">{{ t('save_and_preview') }}</span>
-                    </a>
-                  </li>
-                </native-action>
-                <native-action
-                  :data-label="t('preferences')"
-                  data-icon="adjustments_horizontal"
+                  <span class="text-sm align-text-top">
+                    <IconChevronDown class="w-5 h-5 flex-shrink-0" />
+                  </span>
+                </label>
+                <ul
+                  tabindex="0"
+                  class="dropdown-content p-2 mt-2 shadow menu text-base bg-base-100 rounded-box text-right"
                 >
-                  <li>
-                    <a
-                      :href="`/templates/${template.id}/preferences`"
-                      :data-turbo-frame="!nativePlatform && isMobile && isBreakpointLg ? '_top' : 'modal'"
-                      class="flex space-x-2"
-                      @click="closeDropdown"
-                    >
-                      <IconAdjustments class="w-6 h-6 flex-shrink-0" />
-                      <span class="whitespace-nowrap">{{ t('preferences') }}</span>
-                    </a>
-                  </li>
-                </native-action>
-                <native-action
-                  v-if="withRevisionsMenu"
-                  :data-label="t('revisions')"
-                  data-icon="history"
-                >
-                  <li>
-                    <button
-                      class="flex space-x-2"
-                      @click.prevent="openRevisionsModal"
-                      @mouseenter="preloadRevisions"
-                    >
-                      <span class="w-6 h-6 flex-shrink-0 flex items-center justify-center">
-                        <IconHistory class="w-5 h-5" />
-                      </span>
-                      <span class="whitespace-nowrap">{{ t('revisions') }}</span>
-                    </button>
-                  </li>
-                </native-action>
-                <native-action
-                  v-if="withDownload"
-                  :data-label="t('download')"
-                  data-icon="download"
-                >
-                  <li>
-                    <button
-                      class="flex space-x-2"
-                      :disabled="isDownloading"
-                      @click.stop.prevent="download"
-                    >
-                      <IconInnerShadowTop
-                        v-if="isDownloading"
-                        class="animate-spin w-6 h-6 flex-shrink-0"
-                      />
-                      <IconDownload
-                        v-else
-                        class="w-6 h-6 flex-shrink-0"
-                      />
-                      <span
-                        v-if="isDownloading"
-                        class="whitespace-nowrap"
-                      >{{ t('downloading_') }}</span>
-                      <span
-                        v-else
-                        class="whitespace-nowrap"
-                      >{{ t('download') }}</span>
-                    </button>
-                  </li>
-                </native-action>
-              </ul>
-            </div>
-          </span>
-          <a
-            v-else
-            :href="`/templates/${template.id}`"
-            class="base-button"
-          >
-            <IconX
-              width="20"
-              class="md:hidden stroke-2"
-            />
-            <span class="hidden md:inline">
-              {{ t('back') }}
+                  <native-action
+                    :data-label="t('save_and_preview')"
+                    data-icon="eye"
+                  >
+                    <li>
+                      <a
+                        :href="`/templates/${template.id}/form`"
+                        :data-native-actions="template.submitters.length > 1 ? 'users' : null"
+                        data-turbo-prefetch="false"
+                        class="flex items-center justify-center space-x-2"
+                        @click.exact="onSaveAndPreviewClick"
+                      >
+                        <IconInnerShadowTop
+                          v-if="isPreviewLoading"
+                          class="animate-spin w-6 h-6 flex-shrink-0"
+                        />
+                        <IconEye
+                          v-else
+                          class="w-6 h-6 flex-shrink-0"
+                        />
+                        <span class="whitespace-nowrap">{{ t('save_and_preview') }}</span>
+                      </a>
+                    </li>
+                  </native-action>
+                  <native-action
+                    :data-label="t('preferences')"
+                    data-icon="adjustments_horizontal"
+                  >
+                    <li>
+                      <a
+                        :href="`/templates/${template.id}/preferences`"
+                        :data-turbo-frame="!nativePlatform && isMobile && isBreakpointLg ? '_top' : 'modal'"
+                        class="flex space-x-2"
+                        @click="closeDropdown"
+                      >
+                        <IconAdjustments class="w-6 h-6 flex-shrink-0" />
+                        <span class="whitespace-nowrap">{{ t('preferences') }}</span>
+                      </a>
+                    </li>
+                  </native-action>
+                  <native-action
+                    v-if="withRevisionsMenu"
+                    :data-label="t('revisions')"
+                    data-icon="history"
+                  >
+                    <li>
+                      <button
+                        class="flex space-x-2"
+                        @click.prevent="openRevisionsModal"
+                        @mouseenter="preloadRevisions"
+                      >
+                        <span class="w-6 h-6 flex-shrink-0 flex items-center justify-center">
+                          <IconHistory class="w-5 h-5" />
+                        </span>
+                        <span class="whitespace-nowrap">{{ t('revisions') }}</span>
+                      </button>
+                    </li>
+                  </native-action>
+                  <native-action
+                    v-if="withDownload"
+                    :data-label="t('download')"
+                    data-icon="download"
+                  >
+                    <li>
+                      <button
+                        class="flex space-x-2"
+                        :disabled="isDownloading"
+                        @click.stop.prevent="download"
+                      >
+                        <IconInnerShadowTop
+                          v-if="isDownloading"
+                          class="animate-spin w-6 h-6 flex-shrink-0"
+                        />
+                        <IconDownload
+                          v-else
+                          class="w-6 h-6 flex-shrink-0"
+                        />
+                        <span
+                          v-if="isDownloading"
+                          class="whitespace-nowrap"
+                        >{{ t('downloading_') }}</span>
+                        <span
+                          v-else
+                          class="whitespace-nowrap"
+                        >{{ t('download') }}</span>
+                      </button>
+                    </li>
+                  </native-action>
+                </ul>
+              </div>
             </span>
-          </a>
-        </template>
+            <a
+              v-else
+              :href="`/templates/${template.id}`"
+              class="base-button"
+            >
+              <IconX
+                width="20"
+                class="md:hidden stroke-2"
+              />
+              <span class="hidden md:inline">
+                {{ t('back') }}
+              </span>
+            </a>
+          </template>
+        </div>
       </div>
-    </div>
+    </Teleport>
     <div
       v-if="!nativeView"
       id="main_container"
       class="flex main-container"
-      :class="($slots.buttons || withTitle) && !nativePlatform ? (isMobile ? 'max-h-[calc(100%_-_60px)]' : 'md:max-h-[calc(100%_-_60px)]') : (isMobile ? 'max-h-[100%]' : 'md:max-h-[100%]')"
+      :class="($slots.buttons || withTitle) && !nativePlatform && !headerTarget ? (isMobile ? 'max-h-[calc(100%_-_60px)]' : 'md:max-h-[calc(100%_-_60px)]') : (isMobile ? 'max-h-[100%]' : 'md:max-h-[100%]')"
     >
       <div
         v-if="withDocumentsList && !withDocumentsDrawer"
@@ -1250,6 +1255,11 @@ export default {
       type: Boolean,
       required: false,
       default: true
+    },
+    headerTarget: {
+      type: String,
+      required: false,
+      default: null
     },
     embedded: {
       type: Boolean,

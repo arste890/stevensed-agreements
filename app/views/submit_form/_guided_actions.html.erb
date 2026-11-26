@@ -1,0 +1,52 @@
+<%# StevensED: signing actions in the institutional header: progress, Finish (filled by the form) and Other actions. %>
+<% can_act = !submitter.viewer? %>
+<span id="se_signing_progress" class="se-signing-progress" aria-live="polite"></span>
+<span id="se_finish_container" class="se-finish"></span>
+<div class="dropdown dropdown-end">
+  <label tabindex="0" class="btn btn-sm se-other-actions" aria-haspopup="menu">
+    <span class="se-other-actions__label"><%= t('other_actions', default: 'Other actions') %></span>
+    <%= svg_icon('chevron_down', class: 'w-4 h-4 stroke-2') %>
+  </label>
+  <ul tabindex="0" class="dropdown-content menu z-[60] mt-2 p-2 shadow-lg bg-base-100 rounded-box se-other-actions__menu" role="menu">
+    <% if form_configs[:with_partial_download] %>
+      <li role="none">
+        <download-button role="menuitem" tabindex="0" data-src="<%= submit_form_download_index_path(submitter.slug) %>" class="flex items-center gap-2">
+          <span class="flex items-center gap-2" data-target="download-button.defaultButton">
+            <%= svg_icon('download', class: 'w-5 h-5') %><span><%= t('download') %></span>
+          </span>
+          <span class="flex items-center gap-2 hidden" data-target="download-button.loadingButton">
+            <%= svg_icon('loader', class: 'w-5 h-5 animate-spin') %><span><%= t('downloading') %></span>
+          </span>
+        </download-button>
+      </li>
+    <% end %>
+    <% if form_configs[:with_delegate] && can_act %>
+      <li role="none">
+        <modal-button data-target="<%= delegate_modal_id %>" class="flex">
+          <button id="delegate_button" type="button" role="menuitem" class="flex items-center gap-2 w-full">
+            <%= svg_icon('user_share', class: 'w-5 h-5') %><span><%= t('assign_to_someone_else', default: 'Assign to someone else') %></span>
+          </button>
+        </modal-button>
+      </li>
+    <% end %>
+    <% if form_configs[:with_decline] && can_act %>
+      <li role="none">
+        <modal-button data-target="<%= decline_modal_id %>" class="flex">
+          <button id="decline_button" type="button" role="menuitem" class="flex items-center gap-2 w-full">
+            <%= svg_icon('x', class: 'w-5 h-5') %><span><%= t('decline_to_sign', default: 'Decline to sign') %></span>
+          </button>
+        </modal-button>
+      </li>
+    <% end %>
+    <li role="none">
+      <a role="menuitem" href="https://policies.stevensed.org/#/doc/e-signature-consent" target="_blank" rel="noopener" class="flex items-center gap-2">
+        <%= svg_icon('file_text', class: 'w-5 h-5') %><span>Electronic records consent</span>
+      </a>
+    </li>
+    <li role="none">
+      <a role="menuitem" href="/legal" target="_blank" rel="noopener" class="flex items-center gap-2">
+        <%= svg_icon('info_circle', class: 'w-5 h-5') %><span>Help and legal notices</span>
+      </a>
+    </li>
+  </ul>
+</div>

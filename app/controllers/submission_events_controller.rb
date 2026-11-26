@@ -20,7 +20,8 @@ class SubmissionEventsController < ApplicationController
     'delegate_form' => 'user_share',
     'start_verification' => 'player_play',
     'complete_verification' => 'check',
-    'invite_party' => 'user_plus'
+    'invite_party' => 'user_plus',
+    'accept_esign_consent' => 'circle_check'
   }.freeze
 
   load_and_authorize_resource :submission

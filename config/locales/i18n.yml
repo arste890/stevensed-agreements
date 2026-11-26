@@ -1068,6 +1068,7 @@ en: &en
     phone_verified_by_html: '<b>Phone verified</b> by %{submitter_name}'
     email_verified_by_html: '<b>Email verified</b> by %{submitter_name}'
     start_form_by_html: '<b>Submission started</b> by %{submitter_name}'
+    accept_esign_consent_by_html: '<b>Electronic records and signature consent accepted</b> by %{submitter_name}'
     view_form_by_html: '<b>Form viewed</b> by %{submitter_name}'
     invite_party_by_html: '<b>Invited</b> %{invited_submitter_name} by %{submitter_name}'
     complete_form_by_html: '<b>Submission completed</b> by %{submitter_name}'
@@ -2228,6 +2229,7 @@ es: &es
     phone_verified_by_html: '<b>Teléfono verificado</b> por %{submitter_name}'
     email_verified_by_html: '<b>Correo electrónico verificado</b> por %{submitter_name}'
     start_form_by_html: '<b>Envío iniciado</b> por %{submitter_name}'
+    accept_esign_consent_by_html: '<b>Consentimiento de registros y firmas electrónicos aceptado</b> por %{submitter_name}'
     view_form_by_html: '<b>Formulario visto</b> por %{submitter_name}'
     invite_party_by_html: '<b>Invitado</b> %{invited_submitter_name} por %{submitter_name}'
     complete_form_by_html: '<b>Envío completado</b> por %{submitter_name}'
@@ -3402,6 +3404,7 @@ it: &it
     phone_verified_by_html: '<b>Telefono verificato</b> da %{submitter_name}'
     email_verified_by_html: '<b>Email verificata</b> da %{submitter_name}'
     start_form_by_html: '<b>Invio iniziato</b> da %{submitter_name}'
+    accept_esign_consent_by_html: '<b>Electronic records and signature consent accepted</b> by %{submitter_name}'
     view_form_by_html: '<b>Modulo visualizzato</b> da %{submitter_name}'
     invite_party_by_html: '<b>Invitato</b> %{invited_submitter_name} da %{submitter_name}'
     complete_form_by_html: '<b>Invio completato</b> da %{submitter_name}'
@@ -4559,6 +4562,7 @@ fr: &fr
     phone_verified_by_html: "<b>Téléphone vérifié</b> par %{submitter_name}"
     email_verified_by_html: "<b>E‑mail vérifié</b> par %{submitter_name}"
     start_form_by_html: "<b>Soumission démarrée</b> par %{submitter_name}"
+    accept_esign_consent_by_html: '<b>Electronic records and signature consent accepted</b> by %{submitter_name}'
     view_form_by_html: "<b>Formulaire consulté</b> par %{submitter_name}"
     invite_party_by_html: "<b>Invité</b> %{invited_submitter_name} par %{submitter_name}"
     complete_form_by_html: "<b>Soumission terminée</b> par %{submitter_name}"
@@ -5732,6 +5736,7 @@ pt: &pt
     phone_verified_by_html: '<b>Telefone verificado</b> por %{submitter_name}'
     email_verified_by_html: '<b>Email verificado</b> por %{submitter_name}'
     start_form_by_html: '<b>Submissão iniciada</b> por %{submitter_name}'
+    accept_esign_consent_by_html: '<b>Electronic records and signature consent accepted</b> by %{submitter_name}'
     view_form_by_html: '<b>Formulário visualizado</b> por %{submitter_name}'
     invite_party_by_html: '<b>Convidado</b> %{invited_submitter_name} por %{submitter_name}'
     complete_form_by_html: '<b>Submissão concluída</b> por %{submitter_name}'
@@ -6905,6 +6910,7 @@ de: &de
     phone_verified_by_html: '<b>Telefon verifiziert</b> von %{submitter_name}'
     email_verified_by_html: '<b>E-Mail verifiziert</b> von %{submitter_name}'
     start_form_by_html: '<b>Einreichung gestartet</b> von %{submitter_name}'
+    accept_esign_consent_by_html: '<b>Electronic records and signature consent accepted</b> by %{submitter_name}'
     view_form_by_html: '<b>Formular angesehen</b> von %{submitter_name}'
     invite_party_by_html: '<b>Eingeladen</b> %{invited_submitter_name} durch %{submitter_name}'
     complete_form_by_html: '<b>Einreichung abgeschlossen</b> von %{submitter_name}'
@@ -8602,6 +8608,7 @@ nl: &nl
     phone_verified_by_html: "<b>Telefoon geverifieerd</b> door %{submitter_name}"
     email_verified_by_html: "<b>E-mail geverifieerd</b> door %{submitter_name}"
     start_form_by_html: "<b>Inzending gestart</b> door %{submitter_name}"
+    accept_esign_consent_by_html: '<b>Electronic records and signature consent accepted</b> by %{submitter_name}'
     view_form_by_html: "<b>Formulier bekeken</b> door %{submitter_name}"
     invite_party_by_html: "<b>Uitgenodigd</b> %{invited_submitter_name} door %{submitter_name}"
     complete_form_by_html: "<b>Inzending voltooid</b> door %{submitter_name}"

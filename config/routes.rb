@@ -158,6 +158,7 @@ Rails.application.routes.draw do
     resources :download, only: %i[index], controller: 'submit_form_download'
     resources :documents, only: %i[index], controller: 'submit_form_completed_download'
     resources :decline, only: %i[create], controller: 'submit_form_decline'
+    resources :esign_consent, only: %i[create], controller: 'submit_form_esign_consent' # StevensED
     resources :delegate, only: %i[create], controller: 'submit_form_delegate'
     resources :invite, only: %i[create], controller: 'submit_form_invite'
     resources :metadata, only: %i[index], controller: 'submit_form_metadata'

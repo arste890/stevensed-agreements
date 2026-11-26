@@ -1,0 +1,10 @@
+<%# StevensED: page title and actions placed in the institutional header (content_for :stevensed_page_title and :stevensed_page_actions). %>
+<% if content_for?(:stevensed_page_title) %>
+  <div class="se-page-zone">
+    <span class="se-page-zone__rule" aria-hidden="true"></span>
+    <div class="se-page-zone__title"><%= yield :stevensed_page_title %></div>
+    <% if content_for?(:stevensed_page_actions) %>
+      <div class="se-page-zone__actions"><%= yield :stevensed_page_actions %></div>
+    <% end %>
+  </div>
+<% end %>

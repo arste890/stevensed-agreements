@@ -3,12 +3,13 @@
 <% content_for(:stevensed_header, 'rendered') %>
 <a class="se-skip" href="#main">Skip to main content</a>
 <header class="se-site-header <%= local_assigns[:header_class] %>">
-  <div class="se-wrap se-site-header__inner">
+  <div class="se-wrap se-site-header__inner <%= 'se-wrap--wide' if content_for?(:stevensed_page_title) %>">
     <a class="se-brand" href="<%= root_path %>" aria-label="StevensED Agreements home">
       <img class="se-brand__logo" src="/stevensed/book-mark.svg" alt="" width="65" height="48" decoding="async">
-      <span><span class="se-brand__name">StevensED</span><span class="se-brand__tag">Agreements</span></span>
+      <span class="se-brand__text"><span class="se-brand__name">StevensED</span><span class="se-brand__tag">Agreements</span></span>
     </a>
-    <nav class="se-nav" aria-label="Primary">
+    <%= render 'stevensed/header_page_zone' %>
+    <nav class="se-nav <%= 'se-nav--hidden' if content_for?(:stevensed_page_title) %>" aria-label="Primary">
       <a href="<%= root_path %>#how">How signing works</a>
       <a href="https://policies.stevensed.org/#/doc/e-signature-consent">E-signature consent</a>
       <a href="https://policies.stevensed.org" rel="noopener">Policy Library &#8599;</a>

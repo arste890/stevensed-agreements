@@ -11,6 +11,7 @@ import PageContainer from './elements/page_container'
 import SubmitForm from './elements/submit_form'
 import ModalButton from './elements/modal_button'
 import NativeAction from './elements/native_action'
+import EsignConsent from './elements/esign_consent'
 
 const safeRegisterElement = (name, element, options = {}) => !window.customElements.get(name) && window.customElements.define(name, element, options)
 
@@ -22,6 +23,7 @@ safeRegisterElement('page-container', PageContainer)
 safeRegisterElement('submit-form', SubmitForm)
 safeRegisterElement('modal-button', ModalButton)
 safeRegisterElement('native-action', NativeAction)
+safeRegisterElement('esign-consent', EsignConsent)
 safeRegisterElement('submission-form', class extends HTMLElement {
   connectedCallback () {
     this.appElem = document.createElement('div')
@@ -63,7 +65,11 @@ safeRegisterElement('submission-form', class extends HTMLElement {
       attachments: reactive(JSON.parse(this.dataset.attachments)),
       fields: JSON.parse(this.dataset.fields),
       completeButtonContainer: document.getElementById('complete_button_container'),
-      completeButtonScrollContainer: document.getElementById('complete_button_container_scroll')
+      completeButtonScrollContainer: document.getElementById('complete_button_container_scroll'),
+      // StevensED: guided signing (Finish button, progress and guide tags in the institutional header)
+      completeButtonToRef: document.getElementById('se_finish_container'),
+      progressContainer: document.getElementById('se_signing_progress'),
+      guidedSigning: !!document.getElementById('se_finish_container')
     })
 
     this.app.mount(this.appElem)

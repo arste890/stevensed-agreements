@@ -90,7 +90,7 @@
         class="btn btn-sm btn-neutral text-white px-4 w-full flex justify-center btn-disabled pointer-events-auto"
         @click="[isFormVisible = true, !isCompleted && goToStep(stepFields.indexOf(emptyValueRequiredStep), true, false)]"
       >
-        {{ t('complete') }}
+        {{ t('finish') }}
       </button>
     </span>
     <button
@@ -110,7 +110,7 @@
           aria-hidden="true"
         />
         <span>
-          {{ t('complete') }}
+          {{ t('finish') }}
         </span>
       </span>
     </button>
@@ -139,6 +139,28 @@
         </span>
       </span>
     </button>
+  </Teleport>
+  <Teleport
+    v-if="guideTarget"
+    :key="guideTarget.key"
+    :to="guideTarget.selector"
+  >
+    <button
+      type="button"
+      class="se-guide-tag"
+      :style="{ top: guideTarget.top }"
+      @click.prevent="goToGuide"
+    >
+      {{ guideTarget.label }}
+    </button>
+  </Teleport>
+  <Teleport
+    v-if="progressContainer && requiredFieldsCount"
+    :to="progressContainer"
+  >
+    <span class="se-signing-progress__text">
+      {{ t('n_of_m_required_fields').replace('{n}', filledRequiredFieldsCount).replace('{m}', requiredFieldsCount) }}
+    </span>
   </Teleport>
   <form
     v-if="!isCompleted && !isInvite"
@@ -848,6 +870,16 @@ export default {
       type: Object,
       required: false,
       default: null
+    },
+    progressContainer: {
+      type: Object,
+      required: false,
+      default: null
+    },
+    guidedSigning: {
+      type: Boolean,
+      required: false,
+      default: false
     },
     schema: {
       type: Array,
@@ -1840,6 +1872,14 @@ export default {
         this.isSubmitting = false
         this.isSubmittingComplete = false
       })
+    },
+    goToGuide () {
+      const index = this.stepFields.indexOf(this.guideStep)
+
+      if (index === -1) return
+
+      this.isFormVisible = true
+      this.goToStep(index, true, false)
     },
     minimizeForm () {
       this.isFormVisible = false

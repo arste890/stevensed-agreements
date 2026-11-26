@@ -2,13 +2,14 @@
 <%= render 'shared/mobile_app_alert' if signed_in? && cookies[:mobile_app_alert].blank? && (browser_os == 'ios' || browser_os == 'android') %>
 <%# StevensED: institutional header, matching stevensed.org and the public pages. %>
 <header class="se-site-header se-app-header <%= local_assigns[:header_class] %>">
-<nav class="se-wrap se-site-header__inner justify-between">
+<nav class="se-wrap se-site-header__inner justify-between <%= 'se-wrap--wide' if content_for?(:stevensed_page_title) %>">
   <div class="flex items-center space-x-4">
     <a class="se-brand" href="<%= root_path %>" aria-label="StevensED Agreements home">
       <img class="se-brand__logo" src="/stevensed/book-mark.svg" alt="" width="65" height="48" decoding="async">
-      <span><span class="se-brand__name">StevensED</span><span class="se-brand__tag">Agreements</span></span>
+      <span class="se-brand__text"><span class="se-brand__name">StevensED</span><span class="se-brand__tag">Agreements</span></span>
     </a>
   </div>
+  <%= render 'stevensed/header_page_zone' %>
   <% if signed_in? %>
     <div class="space-x-4 flex items-center">
       <% if Docuseal.demo? %>

@@ -2,9 +2,10 @@
 <%# Omitted when the page renders its own header, inside frames (embedding, Turbo frames) and in the native app. %>
 <% framed = request.headers['Sec-Fetch-Dest'] == 'iframe' || request.headers['Turbo-Frame'].present? %>
 <% unless content_for?(:stevensed_header) || framed || turbo_native_app? %>
+  <% header_class = content_for?(:stevensed_header_sticky) ? 'se-site-header--sticky' : 'se-site-header--static' %>
   <% if local_assigns[:app] && signed_in? %>
-    <%= render 'shared/navbar', header_class: 'se-site-header--static' %>
+    <%= render 'shared/navbar', header_class: %>
   <% else %>
-    <%= render 'stevensed/header', show_sign_in: false, header_class: 'se-site-header--static' %>
+    <%= render 'stevensed/header', show_sign_in: false, header_class: %>
   <% end %>
 <% end %>
