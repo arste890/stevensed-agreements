@@ -483,7 +483,7 @@ RSpec.describe 'Signing Form' do
       submitter.reload
 
       expect(submitter.completed_at).to be_present
-      expect(field_value(submitter, 'Birthday')).to eq Time.zone.now.strftime('%Y-%m-%d')
+      expect(field_value(submitter, 'Birthday')).to eq Time.current.in_time_zone('America/Denver').strftime('%Y-%m-%d')
     end
   end
 
