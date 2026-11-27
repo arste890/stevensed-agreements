@@ -57,7 +57,7 @@ describe Submissions::GenerateAuditTrail do
     expect(text.gsub(/\s+/, '')).to include(serial.scan(/../).join(':'))
     expect(text.gsub(/\s+/, '')).to include(OpenSSL::Digest::SHA256.hexdigest(certificate.to_der).upcase
                                                                    .scan(/../).join(':'))
-    expect(text).to include('CERTIFICATE', 'SHA-256 fingerprint', 'How to verify')
+    expect(text).to include('Signing certificate', 'SHA-256 fingerprint', 'How to verify')
     expect(text).not_to match(/PRIVATE KEY|password/i)
   end
 
@@ -78,7 +78,7 @@ describe Submissions::GenerateAuditTrail do
     expect(pages.size).to be > 1
     expect(pages.first).not_to include(header)
     expect(pages.drop(1)).to all(include(header))
-    expect(text).to include('ENVELOPE', 'TIME EVENT', 'CERTIFICATE', 'SIGNER 1 OF 2')
+    expect(text).to include('Summary', 'TIME EVENT', 'Signing certificate', 'SIGNER 1 OF 2')
     expect(text).to include('IP address', 'User agent', 'Time zone')
     expect(text).not_to include('·')
   end
