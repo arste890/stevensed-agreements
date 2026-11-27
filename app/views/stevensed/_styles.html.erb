@@ -28,13 +28,17 @@
     *:has(> .se-archive-menu:focus-within) { z-index: 30 !important; }
     .z-\[1\]:has(.se-download-menu:focus-within) { z-index: 30 !important; }
     /* Hidden tooltip bubbles near the right edge (settings toggles) widened the page on tablets; nothing scrolls sideways. */
-    html { overflow-x: clip; }
+    html, body { overflow-x: clip; }
+    /* Tooltip bubbles take no room until shown, and never exceed the screen. */
+    .tooltip:not(.tooltip-open):not(:hover):not(:focus-within)::before, .tooltip:not(.tooltip-open):not(:hover):not(:focus-within)::after { display: none; }
+    .tooltip::before { max-width: min(20rem, calc(100vw - 2rem)); }
     /* Settings pages: the content column beside the nav may shrink, so wide tables scroll inside it instead of running off the page. */
     .se-settings-nav ~ div { min-width: 0; }
     /* Long option text (time zones) stops before the select arrow. */
     .base-select, .select { padding-right: 2.5rem; text-overflow: ellipsis; }
     /* WCAG AA: secondary text at 50 to 60 percent ink fell to about 3.4:1 on the parchment rows; 80 percent keeps the hierarchy and passes. */
     html .text-base-content\/50, html .text-base-content\/60 { color: rgb(31 41 72 / 0.8); }
+    html .menu-title, html .menu-title > *, html .table :where(thead, tfoot) { color: rgb(31 41 72 / 0.8); }
     html .badge-info.badge-outline { color: var(--navy, #2f3e68); border-color: currentColor; }
     html .btn-outline.btn-error:not(:hover):not(:focus-visible) { color: #a3262c; border-color: #a3262c; }
     .se-page-zone__title, .se-page-zone__title a:not(.btn):not(.white-button):not(.base-button) { display: block; color: var(--ink); text-decoration: none; }

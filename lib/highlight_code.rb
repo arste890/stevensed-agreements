@@ -16,10 +16,10 @@ module HighlightCode
 
   # StevensED: code blocks sit on the navy mockup background; these base16 dark colours were below WCAG AA there.
   NAVY_SAFE_COLOURS = {
-    '#505050' => '#aeb7cb',
-    '#ac4142' => '#f08b8f',
-    '#aa759f' => '#dcaad2',
-    '#6a9fb5' => '#9fcbe0'
+    '#585858' => '#aeb7cb',
+    '#ba8baf' => '#dcaad2',
+    '#7cafc2' => '#a6d0e2',
+    '#a16946' => '#d9a27a'
   }.freeze
 
   def lighten_for_navy(html)
