@@ -824,6 +824,27 @@ module Submissions
       frame.draw(canvas, result) if result.success?
     end
 
+    CURVE_NAMES = { 'secp384r1' => 'P-384', 'prime256v1' => 'P-256', 'secp521r1' => 'P-521' }.freeze
+
+    # StevensED: the issuing CA's signature over the certificate, kept apart from the certificate's own key, e.g.
+    # "StevensED Document Signing CA (ECDSA P-384, SHA-384)" next to "Key: RSA 3072-bit".
+    def certificate_signature_text(certificate, chain, name_part)
+      issuer_cert = chain.find { |c| c.subject.to_der == certificate.issuer.to_der }
+      issuer_name = name_part.call(certificate.issuer, 'CN') || certificate.issuer.to_s
+      algorithm = certificate.signature_algorithm.to_s
+      digest = algorithm[/sha-?(\d{3})/i, 1]&.then { |bits| "SHA-#{bits}" }
+      family =
+        if algorithm.match?(/ecdsa/i)
+          curve = issuer_cert&.public_key.is_a?(OpenSSL::PKey::EC) ? issuer_cert.public_key.group.curve_name : nil
+          ['ECDSA', CURVE_NAMES[curve]].compact.join(' ')
+        elsif algorithm.match?(/rsa/i)
+          'RSA'
+        end
+      details = [family, digest].compact.join(', ')
+
+      details.present? ? "#{issuer_name} (#{details})" : "#{issuer_name} (#{algorithm})"
+    end
+
     def add_certificate_summary(composer, account, timezone, padding: CELL_PADDING, sealed_at: nil)
       # The summary is informational: an account without a signing certificate gets a log without it.
       pkcs = begin
@@ -858,7 +879,8 @@ module Submissions
         sealed_at && [t(:valid_at_sealing),
                       sealed_at.between?(certificate.not_before, certificate.not_after) ? t(:valid_yes) : t(:valid_no)],
         [t(:sha256_fingerprint), hex_bytes(OpenSSL::Digest::SHA256.hexdigest(certificate.to_der)), :hash],
-        [t(:algorithm), "#{key_text} key, #{certificate.signature_algorithm} signature"],
+        [t(:public_key), key_text],
+        [t(:certificate_signed_by), certificate_signature_text(certificate, chain, name_part)],
         [t(:revocation), t(:revocation_note)],
         [t(:time_stamp_authority), tsa_host || t(:no_tsa)]
       ].compact

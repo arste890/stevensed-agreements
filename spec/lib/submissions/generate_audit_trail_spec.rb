@@ -200,4 +200,15 @@ describe Submissions::GenerateAuditTrail do
     expect(text).to include(author.full_name)
     expect(text).not_to include('someone@example.com')
   end
+
+  it 'names the certificate key and the issuing CA signature separately' do
+    certificate = Stevensed::VaultSigning.certificate
+    name_part = ->(name, key) { name.to_a.find { |e| e[0] == key }&.second }
+
+    text = described_class.certificate_signature_text(certificate, Stevensed::VaultSigning.chain, name_part)
+
+    expect(text).to eq('StevensED Document Signing CA (ECDSA P-384, SHA-384)')
+    expect(I18n.t('stevensed.audit_log.public_key')).to eq('Key')
+    expect(I18n.t('stevensed.audit_log.certificate_signed_by')).to eq('Certificate signed by')
+  end
 end

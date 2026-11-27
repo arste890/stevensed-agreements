@@ -180,6 +180,8 @@ en:
       event_sealed: Documents sealed
       event_sealed_detail: with the StevensED signing certificate
       algorithm: Key and algorithm
+      public_key: Key
+      certificate_signed_by: Certificate signed by
       no_tsa: None. Times are recorded by the StevensED Agreements server.
       how_to_verify: How to verify
       record: Record
