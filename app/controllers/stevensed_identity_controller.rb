@@ -40,51 +40,76 @@ class StevensedIdentityController < ActionController::API
 
   def create_envelope
     body = request.request_parameters.with_indifferent_access
-    request_id = body[:request_id].to_s
-    form_key = body[:form_key].to_s
-    guardian_email = body.dig(:guardian, :email).to_s.strip.downcase
-    student_id = body[:student_id].to_s
-    household_id = body[:household_id].to_s
+    problem = envelope_request_problem(body)
 
-    return error('request_id is 8 to 64 letters, digits, - or _') unless request_id.match?(REQUEST_ID)
-    return error('form_key is a StevensED form key such as FRM-108 or FRM-101-M') unless form_key.match?(FORM_KEY)
-    return error('guardian.email is required') unless guardian_email.match?(User::EMAIL_REGEXP)
-    return error('student_id is required') unless student_id.match?(ID)
-    return error('household_id is not valid') if household_id.present? && !household_id.match?(ID)
+    return error(problem) if problem
 
-    if (existing = existing_for(request_id))
+    if (existing = existing_for(body[:request_id].to_s))
       return render json: envelope_json(existing.submission, repeated: true)
     end
 
-    template = current_template(form_key)
+    template = current_template(body[:form_key].to_s)
 
-    return error("no version of #{form_key} is in effect", status: :not_found) unless template
+    return error("no version of #{body[:form_key]} is in effect", status: :not_found) unless template
 
     user = sender(template, body[:sent_by])
 
     return error('no Agreements user can send this envelope', status: :unprocessable_content) unless user
 
-    metadata = { Stevensed::IdentityEvents::STUDENT_ID_KEY => student_id,
-                 Stevensed::IdentityEvents::HOUSEHOLD_ID_KEY => household_id.presence,
-                 Stevensed::IdentityEvents::REQUEST_ID_KEY => request_id,
-                 Stevensed::IdentityEvents::SENT_BY_KEY => body[:sent_by].to_s.strip.downcase.presence }.compact
+    submissions = create_submissions(template, user, body)
 
-    submitters = template.submitters.map do |role|
-      staff = role['name'].to_s.match?(STAFF_ROLE)
+    render json: envelope_json(submissions.first), status: :created
+  rescue Submissions::CreateFromSubmitters::BaseError, Submitters::NormalizeValues::BaseError => e
+    error(e.message, status: :unprocessable_content)
+  end
+
+  private
+
+  def envelope_request_problem(body)
+    household_id = body[:household_id].to_s
+
+    if !body[:request_id].to_s.match?(REQUEST_ID) then 'request_id is 8 to 64 letters, digits, - or _'
+    elsif !body[:form_key].to_s.match?(FORM_KEY) then 'form_key is a StevensED form key such as FRM-108 or FRM-101-M'
+    elsif !guardian_email(body).match?(User::EMAIL_REGEXP) then 'guardian.email is required'
+    elsif !body[:student_id].to_s.match?(ID) then 'student_id is required'
+    elsif household_id.present? && !household_id.match?(ID) then 'household_id is not valid'
+    end
+  end
+
+  def guardian_email(body)
+    body.dig(:guardian, :email).to_s.strip.downcase
+  end
+
+  def link_metadata(body)
+    { Stevensed::IdentityEvents::STUDENT_ID_KEY => body[:student_id].to_s,
+      Stevensed::IdentityEvents::HOUSEHOLD_ID_KEY => body[:household_id].to_s.presence,
+      Stevensed::IdentityEvents::REQUEST_ID_KEY => body[:request_id].to_s,
+      Stevensed::IdentityEvents::SENT_BY_KEY => body[:sent_by].to_s.strip.downcase.presence }.compact
+  end
+
+  def submitter_attrs(template, user, body)
+    metadata = link_metadata(body)
+    family = first_family_role(template)
+
+    template.submitters.map do |role|
       attrs = { role: role['name'], metadata: }
 
-      if staff
+      if role['name'].to_s.match?(STAFF_ROLE)
         attrs[:email] = user.email
         attrs[:name] = user.full_name.presence
-      elsif role == first_family_role(template)
-        attrs.merge!(email: guardian_email, name: body.dig(:guardian, :name).to_s.squish.presence,
-                     values: prefill(template, role, body))
+      elsif role == family
+        attrs[:email] = guardian_email(body)
+        attrs[:name] = body.dig(:guardian, :name).to_s.squish.presence
+        attrs[:values] = prefill(template, role, body)
       end
 
       attrs.compact
     end
+  end
 
-    params_hash = ActionController::Parameters.new(submitters: submitters.reject { |s| s[:email].blank? }).permit!
+  def create_submissions(template, user, body)
+    submitters = submitter_attrs(template, user, body).reject { |s| s[:email].blank? }
+    params_hash = ActionController::Parameters.new(submitters:).permit!
     submissions_attrs, = Submissions::NormalizeParamUtils.normalize_submissions_params!([params_hash], template,
                                                                                         purpose: :api)
 
@@ -95,12 +120,8 @@ class StevensedIdentityController < ActionController::API
     Submissions.send_signature_requests(submissions)
     SearchEntries.enqueue_reindex(submissions)
 
-    render json: envelope_json(submissions.first), status: :created
-  rescue Submissions::CreateFromSubmitters::BaseError, Submitters::NormalizeValues::BaseError => e
-    error(e.message, status: :unprocessable_content)
+    submissions
   end
-
-  private
 
   def verify_signature
     return if Stevensed::IdentityEvents.verify_request(request)
