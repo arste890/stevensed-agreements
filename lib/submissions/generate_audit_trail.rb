@@ -37,20 +37,15 @@ module Submissions
     HEADER_RULE_FROM_TOP = 38
     LABEL_COLUMN_WIDTH = 178
     CELL_PADDING = [5, 8, 4, 8].freeze
-    # Event log date and time columns, measured in Inter at body size with cell padding: "28 September 2026", and
-    # "12:46 AM AKST" or, with seconds, "12:46:05 AM AKST", each on one line.
-    EVENT_DATE_WIDTH = 98
-    EVENT_TIME_WIDTH = 80
-    EVENT_TIME_WITH_SECONDS_WIDTH = 93
     # Every rule in the log is one hairline in one colour.
-    HAIRLINE = 0.5
+    HAIRLINE = 0.75
 
     # One modular type scale (major second, 1.125) built on the 8.5 pt body size.
     TYPE = { label: -2, meta: -1, body: 0, name: 2, section: 5, band: 7, title: 9 }
            .transform_values { |step| (8.5 * (1.125**step)).round(2) }.freeze
 
     # Pagination: a table never opens or closes a page with fewer than this many rows (orphans and widows).
-    MIN_ROWS = 3
+    MIN_ROWS = 4
     # When the last page would be less than this full, the log is set again with tighter vertical spacing and the
     # tighter version is kept if it saves the page.
     SPARSE_LAST_PAGE = 0.4
@@ -157,7 +152,6 @@ module Submissions
       with_audit_values = configs.find { |c| c.key == AccountConfig::WITH_AUDIT_VALUES_KEY }&.value != false
       with_audit_sender = configs.find { |c| c.key == AccountConfig::WITH_AUDIT_SENDER_KEY }&.value == true
       with_submitter_timezone = configs.find { |c| c.key == AccountConfig::WITH_SUBMITTER_TIMEZONE_KEY }&.value == true
-      with_timestamp_seconds = configs.find { |c| c.key == AccountConfig::WITH_TIMESTAMP_SECONDS_KEY }&.value == true
 
       file_links_expire_at = Accounts.link_expires_at(submission.account) if with_file_links
 
@@ -194,30 +188,44 @@ module Submissions
 
       completed_at = last_submitter&.completed_at
 
-      composer.text(account.testing? ? I18n.t('testing_log_not_for_production_use') : I18n.t('audit_log'),
+      composer.text(account.testing? ? I18n.t('testing_log_not_for_production_use') : t(:title),
                     font: [SERIF, { variant: :bold }], font_size: TYPE[:title], fill_color: INK,
                     padding: [0, 0, gap.call(8), 0])
 
       layout = composer.document.layout
-      text = ->(value, **options) { layout.text_box(value.to_s, **options) }
+      cell = ->(value, **options) { layout.text_box(value.to_s, **options) }
       strong = ->(value) { layout.text_box(value.to_s, font: [SANS, { variant: :bold }]) }
 
+      zone = ActiveSupport::TimeZone[timezone.to_s] || ActiveSupport::TimeZone['UTC']
+      sender = submission.created_by_user if with_audit_sender
+      signer_count = submission.submitters.size
+
       summary_rows = [
-        [I18n.t('envelope_id'), text.call(submission.id)],
-        [t(:document), text.call(TextUtils.maybe_rtl_reverse((submission.name || submission.template&.name).to_s))],
-        completed_at && [t(:completed), text.call(format_time(completed_at, timezone, :long))],
-        [t(:issued_by), text.call("#{Stevensed::LEGAL_ENTITY}, #{Stevensed::OFFICE}")]
+        [I18n.t('envelope_id'), cell.call(submission.id)],
+        [t(:document), cell.call(TextUtils.maybe_rtl_reverse((submission.name || submission.template&.name).to_s))],
+        [t(:status), cell.call(t(:status_completed, count: signer_count, total: signer_count))],
+        sender && [t(:sender), cell.call("#{sender.full_name.to_s.squish} (#{sender.email})")],
+        [t(:created), cell.call(format_time(submission.created_at, timezone, :long))],
+        completed_at && [t(:completed), cell.call(format_time(completed_at, timezone, :long))],
+        [t(:signers), cell.call(signers_summary(submission, timezone))],
+        [t(:issued_by), cell.call("#{Stevensed::LEGAL_ENTITY}, #{Stevensed::OFFICE}")],
+        [t(:log_generated), cell.call(format_time(Time.current, timezone, :long))]
       ].compact
 
       if show_verify?(submission)
         summary_rows << [I18n.t('verify'),
-                         layout.formatted_text_box([{ link: Stevensed::PKI_URL, style: :link,
-                                                      text: Stevensed::PKI_URL.delete_suffix('/') }])]
+                         layout.formatted_text_box(["#{t(:verify_note)} ",
+                                                    { link: Stevensed::PKI_URL, style: :link,
+                                                      text: Stevensed::PKI_URL.delete_suffix('/') }, '.'])]
       end
 
-      draw_table(composer, summary_rows.map { |label, value| [text.call(label), value] },
-                 header: [t(:summary), t(:detail)], margin: gap.call(4), padding: cell_padding)
+      draw_table(composer, summary_rows.map { |label, value| [cell.call(label), value] },
+                 header: [t(:envelope), ''], lead: heading_boxes(composer, t(:summary)), padding: cell_padding)
+      offset = zone.at(completed_at || Time.current).formatted_offset
+      composer.text(t(:times_note, zone: zone.tzinfo.name, offset:),
+                    font_size: TYPE[:meta], fill_color: MUTED, padding: [5, 0, gap.call(4), 0])
 
+      single_document = submission.schema_documents.size <= 1
       documents_rows = select_attachments(last_submitter).flat_map do |document|
         original_documents = submission.schema_documents.select do |e|
           e.uuid == (document.metadata['original_uuid'] || document.uuid)
@@ -229,26 +237,32 @@ module Submissions
           end
         end
 
-        original_hashes = original_documents.map { |d| even_halves(d.metadata['sha256'] || d.checksum) }
+        original_hashes = original_documents.map { |attachment| sha256_hex(attachment) }
 
         [
-          [text.call(t(:file_name)), strong.call(TextUtils.maybe_rtl_reverse(document.filename.to_s))],
-          [text.call(t(:original_sha256)), text.call(original_hashes.first(CHECKSUM_LIMIT).join("\n"), style: :hash)],
-          [text.call(t(:result_sha256)),
-           text.call(even_halves(document.metadata['sha256'] || document.checksum), style: :hash)],
-          [text.call(t(:generated)), text.call(format_time(document.created_at, timezone, :long))]
-        ]
+          [cell.call(t(:file_name)), strong.call(TextUtils.maybe_rtl_reverse(document.filename.to_s))],
+          [cell.call(t(:original_sha256)), cell.call(original_hashes.first(CHECKSUM_LIMIT).join("\n\n"), style: :hash)],
+          [cell.call(t(:result_sha256)), cell.call(sha256_hex(document), style: :hash)],
+          (pages = page_count(document)) && [cell.call(t(:pages)), cell.call(pages)],
+          [cell.call(t(:sealed)), cell.call(format_time(document.created_at, timezone, :long))]
+        ].compact
       end
 
       if documents_rows.present?
-        draw_table(composer, documents_rows, header: [t(:document), t(:detail)],
+        documents_header = if select_attachments(last_submitter).one?
+                             t(:document_count, number: 1,
+                                                total: 1)
+                           else
+                             t(:documents)
+                           end
+        draw_table(composer, documents_rows, header: [documents_header, ''],
                                              lead: heading_boxes(composer, t(:documents)), margin: gap.call(4),
                                              padding: cell_padding)
       end
 
       signers_heading = false
 
-      submission.template_submitters.filter_map do |item|
+      submission.template_submitters.each_with_index.filter_map do |item, position|
         submitter = submission.submitters.find { |e| e.uuid == item['uuid'] }
 
         next if submitter.blank?
@@ -285,35 +299,41 @@ module Submissions
         identity_rows = [
           signer_name && [t(:name), strong.call(TextUtils.maybe_rtl_reverse(signer_name.squish))],
           # A zero-width space after the @ lets a long address wrap there rather than mid-word.
-          submitter.email && [t(:email), text.call(submitter.email.squish.sub('@', "@\u200B"))],
-          submitter.phone && [t(:phone), text.call(submitter.phone.squish)],
-          submitter.completed_at && [t(:completed), text.call(format_time(submitter.completed_at, timezone, :long))]
+          submitter.email && [t(:email), cell.call(submitter.email.squish.sub('@', "@\u200B"))],
+          submitter.phone && [t(:phone), cell.call(submitter.phone.squish)],
+          submitter.completed_at && [t(:signed), cell.call(format_time(submitter.completed_at, timezone, :long))]
         ].compact
 
         # The consent record is one or more "Label: value" lines; each becomes a row like the other details.
         consent_rows =
           if esign_consent_event
-            lines = Stevensed::Consents.audit_line(esign_consent_event, timezone:).lines.map(&:strip).compact_blank
+            stamp = ->(time) { format_time(time, timezone, :long) }
+            lines = Stevensed::Consents.audit_line(esign_consent_event, timezone:, stamp:).lines.map(&:strip)
+                                       .compact_blank
             lines.map { |line| line.split(': ', 2) }.map { |label, value| [label, value.to_s.upcase_first] }
           end
 
         detail_rows = [
           *(submitter.viewer? && detail.call(t(:access), I18n.t('view_only'))),
           *(submitter.email && (click_email_event || verify_email_event) &&
-            detail.call(I18n.t('email_verification'), I18n.t('verified'))),
+            detail.call(t(:authentication), verify_email_event ? t(:auth_email_code) : t(:auth_email_link))),
           *(submitter.phone && verify_phone_event && detail.call(I18n.t('phone_verification'), I18n.t('verified'))),
           *(is_id_verified && detail.call(I18n.t('identity_verification'), I18n.t('verified'))),
           *(complete_kba_event.persisted? &&
             detail.call(I18n.t('knowledge_based_authentication'), "#{I18n.t('passed')}#{kba_score}")),
           *consent_rows,
-          *(completed_event.data['ip'] && detail.call(t(:ip_address), completed_event.data['ip'])),
-          *(completed_event.data['sid'] && detail.call(I18n.t('session_id'), completed_event.data['sid'])),
+          *((record = consent_record(submitter)) && detail.call(t(:consent_record), record)),
+          *(completed_event.data['ip'] && detail.call(t(:ip_address), [completed_event.data['ip'], :hash])),
+          *(completed_event.data['sid'] && detail.call(I18n.t('session_id'), [completed_event.data['sid'], :hash])),
+          *(completed_event.data['ua'] && detail.call(t(:browser), browser_summary(completed_event.data['ua']))),
           *(completed_event.data['ua'] && detail.call(t(:user_agent), completed_event.data['ua'].to_s.squish)),
           *(submitter.timezone && detail.call(t(:time_zone), submitter.timezone.to_s.sub('Kiev', 'Kyiv')))
         ].grep(Array)
 
-        signer_rows = identity_rows.map { |label, value| [text.call(label), value] } +
-                      detail_rows.map { |label, value| [text.call(label), text.call(value)] }
+        signer_rows = identity_rows.map { |label, value| [cell.call(label), value] } +
+                      detail_rows.map do |label, (value, style)|
+                        [cell.call(label), style ? cell.call(value, style:) : cell.call(value)]
+                      end
 
         submitter_field_counters = Hash.new { 0 }
         grouped_value_field_names = {}
@@ -369,6 +389,8 @@ module Submissions
 
           label = TextUtils.maybe_rtl_reverse(field_name).presence ||
                   "#{I18n.t("#{field['type']}_field")} #{submitter_field_counters[field['type']]}"
+          page = field.dig('areas', 0, 'page')
+          label = "#{label} (#{t(:page, number: page + 1)})" if page && single_document
 
           [
             layout.text_box(label, text_align: label.match?(RTL_REGEXP) ? :right : :left),
@@ -459,9 +481,12 @@ module Submissions
         lead = signers_heading ? [] : heading_boxes(composer, t(:signers))
         signers_heading = true
         rows = signer_rows
-        rows += [{ header: [t(:field), t(:entry)] }, *field_rows] if field_rows.present?
+        rows += [{ header: [t(:submitted_entries), ''] }, *field_rows] if field_rows.present?
+        signer_heading = t(:signer_heading, number: position + 1, total: submission.template_submitters.size,
+                                            role: TextUtils.maybe_rtl_reverse(item['name'].to_s))
 
-        draw_table(composer, rows, header: [TextUtils.maybe_rtl_reverse(item['name'].to_s), t(:detail)], lead:,
+        draw_table(composer, rows, header: [signer_heading, ''], lead:, keep: true,
+                                   continued: t(:continued, heading: t(:signer_short, number: position + 1)),
                                    margin: gap.call(18), padding: cell_padding)
       end
 
@@ -533,28 +558,44 @@ module Submissions
           end
         end
 
-        time_format = with_timestamp_seconds ? :detailed : :long
+        if event.event_type.in?(%w[send_email send_reminder_email]) && submitter.email.present?
+          text_box = [*text_box, " (#{submitter.email.squish.sub('@', "@\u200B")})"]
+        end
 
-        date, time = format_time(event.event_timestamp, timezone, time_format).split(', ', 2)
+        if event.data['ip'].present?
+          text_box = [*text_box, "\n", { text: "IP #{event.data['ip']}", font: MONO, font_size: TYPE[:meta],
+                                         fill_color: MUTED }]
+        end
 
-        [
-          composer.document.layout.text_box(date, fill_color: MUTED),
-          composer.document.layout.text_box(time.to_s, fill_color: MUTED, text_align: :right),
-          composer.document.layout.formatted_text_box(text_box)
-        ]
+        [event.event_timestamp, composer.document.layout.formatted_text_box(text_box)]
       end
 
-      if events_data.present?
-        # Date and time sit in their own columns so that times line up, right-aligned on the minute.
-        time_width = with_timestamp_seconds ? EVENT_TIME_WITH_SECONDS_WIDTH : EVENT_TIME_WIDTH
+      bold = [SANS, { variant: :bold }]
+      created_text = [{ text: t(:event_created), font: bold }, (" #{t(:by)} #{sender.full_name.to_s.squish}" if sender)]
+      events_data.unshift([submission.created_at, layout.formatted_text_box(created_text.compact)])
 
-        draw_table(composer, events_data, header: [t(:date), t(:time), t(:event)], label_column: false,
-                                          column_widths: [EVENT_DATE_WIDTH, time_width, -1],
-                                          lead: heading_boxes(composer, I18n.t('event_log')), margin: gap.call(18),
-                                          padding: cell_padding)
+      if (sealed_at = select_attachments(last_submitter).map(&:created_at).max)
+        events_data << [sealed_at, layout.formatted_text_box([{ text: t(:event_sealed), font: bold },
+                                                              " #{t(:event_sealed_detail)}"])]
       end
 
-      add_certificate_summary(composer, account, timezone, padding: cell_padding)
+      # One row per event under a row for each day, so that times line up in a single column.
+      clock = lambda do |time|
+        "#{Stevensed.format_datetime(time, timezone, seconds: true).split(', ', 2).last}\n#{utc_time(time)}"
+      end
+      days = events_data.sort_by(&:first).chunk { |time, _| time.in_time_zone(timezone).to_date }
+      event_rows = days.flat_map do |date, events|
+        [{ group: strong.call(Stevensed.format_date(date)) },
+         *events.map { |time, box| [cell.call(clock.call(time)), box] }]
+      end
+
+      if event_rows.present?
+        draw_table(composer, event_rows, header: [t(:time), t(:event)], label_column: false, keep: true,
+                                         lead: heading_boxes(composer, I18n.t('event_log')), margin: gap.call(18),
+                                         padding: cell_padding)
+      end
+
+      add_certificate_summary(composer, account, timezone, padding: cell_padding, sealed_at:)
 
       frame = composer.frame
       fill = 1 - (frame.available_height / frame.height)
@@ -566,16 +607,14 @@ module Submissions
 
     # A section heading and its hairline, kept with whatever is drawn after them.
     def heading_boxes(composer, title)
-      [composer.document.layout.text_box(title, style: :section),
-       HexaPDF::Layout::Box.create(height: HAIRLINE, margin: [0, 0, 10, 0],
-                                   border: { width: [HAIRLINE, 0, 0, 0], color: RULE })]
+      [composer.document.layout.text_box(title, style: :section, margin: [0, 0, 6, 0])]
     end
 
     # Draws a table page by page instead of letting it split anywhere. Rows never split; the navy header row
     # repeats on every page; a page never opens or closes with fewer than MIN_ROWS rows (a shorter table moves
     # whole); and the lead boxes (section heading, signer card) stay with the first rows.
     def draw_table(composer, rows, header:, lead: [], column_widths: [LABEL_COLUMN_WIDTH, -1], label_column: true,
-                   margin: 0, padding: CELL_PADDING)
+                   keep: false, continued: nil, margin: 0, padding: CELL_PADDING)
       layout = composer.document.layout
       header_cells = lambda do |texts|
         texts.map do |value|
@@ -583,18 +622,21 @@ module Submissions
             padding: }
         end
       end
+      continued = [continued || t(:continued, heading: header.first), *header.drop(1)]
       # HexaPDF takes cell hashes apart when it builds a table, so every table gets fresh ones. A row given as
-      # { header: [...] } is a header row inside the table; otherwise the first column is the label column.
-      table = lambda do |indexes, with_header: true, bottom: 0|
+      # { header: [...] } is a header row inside the table, set apart by a gap; { group: box } is a row spanning the
+      # table (the day in the event log). Otherwise the first column is the label column.
+      table = lambda do |indexes, with_header: true, bottom: 0, first: true|
         part = indexes.map do |index|
           row = rows[index]
-          next header_cells.call(row[:header]) if row.is_a?(Hash)
+          next header_cells.call(row[:header]) if row.is_a?(Hash) && row[:header]
+          next [{ content: row[:group], col_span: column_widths.size, background_color: LABEL_CELL }] if row.is_a?(Hash)
 
           label_column ? [{ content: row.first, background_color: LABEL_CELL }, *row.drop(1)] : row
         end
 
         layout.table_box(part, column_widths: column_widths.dup,
-                               header: (->(_t) { [header_cells.call(header)] } if with_header),
+                               header: (->(_t) { [header_cells.call(first ? header : continued)] } if with_header),
                                cell_style: { padding:, border: { width: [0, 0, HAIRLINE, 0], color: RULE } },
                                margin: [0, 0, bottom, 0])
       end
@@ -604,9 +646,21 @@ module Submissions
       lead_height = lead.sum { |box| measure(composer, box) }
 
       index = 0
+      total_height = header_height + heights.sum + lead_height
+
+      # A table kept whole moves to the next page when it fits there; a longer one continues under a repeated
+      # header.
+      if keep && total_height > composer.frame.available_height && total_height <= composer.frame.height
+        composer.new_page
+      end
+
+      day_row = ->(row) { row.is_a?(Hash) && row[:group] }
 
       while index < rows.size
-        room = composer.frame.available_height - header_height - (index.zero? ? lead_height : 0)
+        # On a continuation page, the day row the rows belong to is repeated above them.
+        group = rows[...index].rindex(&day_row) unless index.zero? || rows[index].is_a?(Hash)
+        room = composer.frame.available_height - header_height - (index.zero? ? lead_height : 0) -
+               (group ? heights[group] : 0)
         fit = 0
         total = 0
         heights[index..].each do |height|
@@ -621,8 +675,8 @@ module Submissions
           fit = remaining - MIN_ROWS if remaining - fit < MIN_ROWS
           # A header row inside the table keeps at least MIN_ROWS of its rows (or all of them) on its page.
           if (inner = (index...(index + fit)).to_a.rfind { |i| rows[i].is_a?(Hash) })
-            group = rows[(inner + 1)..].take_while { |row| !row.is_a?(Hash) }.size
-            fit = inner - index if index + fit - inner - 1 < [MIN_ROWS, group].min
+            inner_rows = rows[(inner + 1)..].take_while { |row| !row.is_a?(Hash) }.size
+            fit = inner - index if index + fit - inner - 1 < [MIN_ROWS, inner_rows].min
           end
           fresh = composer.frame.available_height >= composer.frame.height - 1
 
@@ -634,10 +688,17 @@ module Submissions
           fit = fit.clamp(1, remaining)
         end
 
+        # Continuation pages repeat the header row, marked as continued. The part is measured as it will be
+        # drawn, so that HexaPDF never has to split it.
+        part = lambda do |count|
+          table.call([*group, *(index...(index + count))], first: index.zero?,
+                                                           bottom: index + count == rows.size ? margin : 0)
+        end
+        space = composer.frame.available_height - (index.zero? ? lead_height : 0)
+        fit -= 1 while fit > 1 && measure(composer, part.call(fit)) > space
+
         lead.each { |box| composer.draw_box(box) } if index.zero?
-        # A page that opens on a header row inside the table needs no repeated header above it.
-        composer.draw_box(table.call((index...(index + fit)).to_a, with_header: !rows[index].is_a?(Hash),
-                                                                   bottom: index + fit == rows.size ? margin : 0))
+        composer.draw_box(part.call(fit))
         index += fit
         composer.new_page if index < rows.size
       end
@@ -720,7 +781,7 @@ module Submissions
       frame.draw(canvas, result) if result.success?
     end
 
-    def add_certificate_summary(composer, account, timezone, padding: CELL_PADDING)
+    def add_certificate_summary(composer, account, timezone, padding: CELL_PADDING, sealed_at: nil)
       # The summary is informational: an account without a signing certificate gets a log without it.
       pkcs = begin
         Accounts.load_signing_pkcs(account)
@@ -738,43 +799,46 @@ module Submissions
       chain = Array.wrap(pkcs.try(:ca_certs))
       root = chain.last unless chain.last == certificate
 
+      dn = lambda do |name|
+        %w[CN O OU C].filter_map { |part| (value = name_part.call(name, part)) && "#{part}=#{value}" }.join(', ')
+      end
+      key = certificate.public_key
+      key_text = key.is_a?(OpenSSL::PKey::RSA) ? "RSA #{key.n.num_bits}-bit" : key.oid
+
       rows = [
-        [t(:signed_by), [name_part.call(certificate.subject, 'CN'),
-                         name_part.call(certificate.subject, 'O')].compact.join(', ')],
-        [t(:certificate_issuer), name_part.call(certificate.issuer, 'CN') || certificate.issuer.to_s],
-        root && [t(:root_certificate), name_part.call(root.subject, 'CN') || root.subject.to_s],
+        [t(:signed_by), dn.call(certificate.subject)],
+        [t(:certificate_issuer), dn.call(certificate.issuer)],
+        root && [t(:root_certificate), dn.call(root.subject)],
         [t(:serial_number), hex_bytes(certificate.serial.to_s(16)), :hash],
         [t(:valid), "#{Stevensed.format_date(certificate.not_before.in_time_zone(timezone))} to " \
                     "#{Stevensed.format_date(certificate.not_after.in_time_zone(timezone))}"],
+        sealed_at && [t(:valid_at_sealing),
+                      sealed_at.between?(certificate.not_before, certificate.not_after) ? t(:yes) : t(:no)],
         [t(:sha256_fingerprint), hex_bytes(OpenSSL::Digest::SHA256.hexdigest(certificate.to_der)), :hash],
-        tsa_host && [t(:time_stamp_authority), tsa_host]
+        [t(:algorithm), "#{key_text} key, #{certificate.signature_algorithm} signature"],
+        [t(:time_stamp_authority), tsa_host || t(:no_tsa)]
       ].compact
 
       layout = composer.document.layout
-      note = layout.formatted_text_box(
-        ["#{t(:verification)} ", { link: Stevensed::PKI_URL, text: Stevensed::PKI_URL.delete_suffix('/'),
-                                   style: :link, font_size: TYPE[:meta] }, '.'],
-        fill_color: MUTED, font_size: TYPE[:meta]
-      )
+      verify = layout.formatted_text_box(["#{t(:verification)} ",
+                                          { link: Stevensed::PKI_URL, text: Stevensed::PKI_URL.delete_suffix('/'),
+                                            style: :link }, '.'])
 
       table = layout.table_box(
         [
           *rows.map do |label, value, style|
             [layout.text_box(label.to_s), style ? layout.text_box(value.to_s, style:) : layout.text_box(value.to_s)]
           end,
-          [{ content: note, col_span: 2 }]
+          [layout.text_box(t(:how_to_verify)), verify],
+          [layout.text_box(t(:record)), layout.text_box(t(:certification))]
         ],
         column_widths: [LABEL_COLUMN_WIDTH, -1],
         header: lambda do |_table|
-          [[header_cell(layout, t(:certificate), padding), header_cell(layout, t(:detail), padding)]]
+          [[header_cell(layout, t(:certificate), padding), header_cell(layout, '', padding)]]
         end,
         cell_style: lambda do |cell|
           cell.style.update(padding:, border: { width: [0, 0, HAIRLINE, 0], color: RULE })
-          if cell.col_span > 1
-            cell.style.update(background_color: PANEL, padding: [7, 8, 6, 8], border: { width: 0 })
-          elsif cell.column.zero?
-            cell.style.update(background_color: LABEL_CELL)
-          end
+          cell.style.update(background_color: LABEL_CELL) if cell.column.zero?
         end,
         margin: [0, 0, 4, 0]
       )
@@ -786,6 +850,18 @@ module Submissions
 
     def header_cell(layout, text, padding)
       { content: layout.text_box(text.upcase, style: :eyebrow, fill_color: 'FFFFFF'), background_color: NAVY, padding: }
+    end
+
+    # A file's SHA-256 in lowercase hexadecimal, as sha256sum prints it, in groups of eight characters on two lines.
+    # Stored values are URL-safe Base64; a file without one is hashed here.
+    def sha256_hex(attachment)
+      stored = attachment.metadata.to_h['sha256']
+      hex = Base64.urlsafe_decode64(stored).unpack1('H*') if stored.present?
+      hex = Digest::SHA256.hexdigest(attachment.download) unless hex&.length == 64
+
+      hex.scan(/.{8}/).each_slice(4).map { |groups| groups.join(' ') }.join("\n")
+    rescue ArgumentError
+      Digest::SHA256.hexdigest(attachment.download).scan(/.{8}/).each_slice(4).map { |g| g.join(' ') }.join("\n")
     end
 
     # A hexadecimal value as colon-separated bytes, in two even halves.
@@ -870,8 +946,59 @@ module Submissions
       I18n.t(key, scope: 'stevensed.audit_log', **)
     end
 
-    def format_time(time, timezone, format)
-      Stevensed.format_datetime(time, timezone, seconds: format == :detailed)
+    # Every time in the log carries seconds and its zone abbreviation, with the same moment in UTC (ISO 8601).
+    def format_time(time, timezone, _format)
+      "#{Stevensed.format_datetime(time, timezone, seconds: true)} (#{utc_time(time)})"
+    end
+
+    # Who signed and when, for the summary: "Jordan Reyes (Instructor), signed 1:11:50 PM MST".
+    def signers_summary(submission, timezone)
+      submission.template_submitters.filter_map do |item|
+        submitter = submission.submitters.find { |e| e.uuid == item['uuid'] }
+        next unless submitter&.completed_at
+
+        name = Stevensed::SignerName.for(submitter) || submitter.email
+        time = Stevensed.format_datetime(submitter.completed_at, timezone, seconds: true)
+
+        t(:signer_summary, name: TextUtils.maybe_rtl_reverse(name.to_s.squish),
+                           role: TextUtils.maybe_rtl_reverse(item['name'].to_s), time:)
+      end.join("\n")
+    end
+
+    def utc_time(time)
+      time.utc.strftime('%Y-%m-%d %H:%M:%S UTC')
+    end
+
+    # The result PDF's page count, or nil when it cannot be read.
+    def page_count(attachment)
+      HexaPDF::Document.new(io: StringIO.new(attachment.download)).pages.count
+    rescue StandardError
+      nil
+    end
+
+    # The consent form and version on record for the signer, such as "FRM-102-A version 3.1".
+    def consent_record(submitter)
+      key, version = StevensedEsignConsent.where(submitter_id: submitter.id).order(:id).pick(:form_key, :form_version)
+
+      [key, (t(:version, number: version) if version.present?)].compact.join(' ').presence
+    end
+
+    BROWSERS = [['Edge', %r{Edg/([\d.]+)}], ['Firefox', %r{Firefox/([\d.]+)}], ['Chrome', %r{Chrome/([\d.]+)}],
+                ['Safari', %r{Version/([\d.]+).*Safari/}]].freeze
+    SYSTEMS = [['iPhone', /iPhone OS ([\d_]+)/], ['iPad', /iPad.*OS ([\d_]+)/], ['Android', /Android ([\d.]+)/],
+               ['macOS', /Mac OS X ([\d_]+)/], ['Windows', /Windows NT ([\d.]+)/], ['Linux', /Linux/]].freeze
+
+    # A readable summary of a user agent string, such as "Safari 19.1 on macOS 10.15.7".
+    def browser_summary(user_agent)
+      ua = user_agent.to_s
+      browser = BROWSERS.lazy.filter_map do |name, re|
+        (m = ua.match(re)) && "#{name} #{m[1].split('.').first(2).join('.')}"
+      end.first
+      system = SYSTEMS.lazy.filter_map do |name, re|
+        (m = ua.match(re)) && [name, m[1]&.tr('_', '.')].compact.join(' ')
+      end.first
+
+      [browser || t(:unknown_browser), system].compact.join(" #{t(:on)} ")
     end
 
     def format_date(value, field, timezone)
