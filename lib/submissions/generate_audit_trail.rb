@@ -54,7 +54,7 @@ module Submissions
     MIN_ROWS = 3
     # When the last page would be less than this full, the log is set again with tighter vertical spacing and the
     # tighter version is kept if it saves the page.
-    SPARSE_LAST_PAGE = 0.3
+    SPARSE_LAST_PAGE = 0.4
     COMPACT_RHYTHM = 0.7
 
     CURRENCY_SYMBOLS = {
@@ -130,6 +130,7 @@ module Submissions
     def compose_audit_trail(submission, rhythm:)
       account = submission.account
       gap = ->(points) { (points * rhythm).round(2) }
+      cell_padding = [gap.call(CELL_PADDING[0]), CELL_PADDING[1], gap.call(CELL_PADDING[2]), CELL_PADDING[3]]
 
       page_size = Stevensed.page_size(account)
 
@@ -252,7 +253,8 @@ module Submissions
 
       if documents_data.present?
         draw_table(composer, documents_data, header: [t(:document), t(:detail)], label_column: true,
-                                             lead: heading_boxes(composer, t(:documents)), margin: gap.call(4))
+                                             lead: heading_boxes(composer, t(:documents)), margin: gap.call(4),
+                                             padding: cell_padding)
       end
 
       signers_heading = false
@@ -498,7 +500,7 @@ module Submissions
 
         if field_rows.present?
           draw_table(composer, field_rows, header: [t(:field), t(:entry)], label_column: true, lead:,
-                                           margin: gap.call(18))
+                                           margin: gap.call(18), padding: cell_padding)
         else
           keep_together(composer, lead)
           lead.each { |box| composer.draw_box(box) }
@@ -588,10 +590,11 @@ module Submissions
 
         draw_table(composer, events_data, header: [t(:date), t(:time), t(:event)], banded: true,
                                           column_widths: [EVENT_DATE_WIDTH, time_width, -1],
-                                          lead: heading_boxes(composer, I18n.t('event_log')), margin: gap.call(18))
+                                          lead: heading_boxes(composer, I18n.t('event_log')), margin: gap.call(18),
+                                          padding: cell_padding)
       end
 
-      add_certificate_summary(composer, account, timezone)
+      add_certificate_summary(composer, account, timezone, padding: cell_padding)
 
       frame = composer.frame
       fill = 1 - (frame.available_height / frame.height)
@@ -612,7 +615,7 @@ module Submissions
     # repeats on every page; a page never opens or closes with fewer than MIN_ROWS rows (a shorter table moves
     # whole); and the lead boxes (section heading, signer card) stay with the first rows.
     def draw_table(composer, rows, header:, lead: [], column_widths: [LABEL_COLUMN_WIDTH, -1], label_column: false,
-                   banded: false, margin: 0)
+                   banded: false, margin: 0, padding: CELL_PADDING)
       layout = composer.document.layout
       header_boxes = header.map { |text| layout.text_box(text.upcase, style: :eyebrow, fill_color: 'FFFFFF') }
       backgrounds = rows.each_index.map do |index|
@@ -627,10 +630,10 @@ module Submissions
             background ? { content: cell, background_color: background } : cell
           end
         end
-        header_row = header_boxes.map { |box| { content: box, background_color: NAVY, padding: CELL_PADDING } }
+        header_row = header_boxes.map { |box| { content: box, background_color: NAVY, padding: } }
 
         layout.table_box(part, column_widths: column_widths.dup, header: (->(_t) { [header_row] } if with_header),
-                               cell_style: { padding: CELL_PADDING,
+                               cell_style: { padding:,
                                              border: { width: [0, 0, HAIRLINE, 0], color: RULE } },
                                margin: [0, 0, bottom, 0])
       end
@@ -749,7 +752,7 @@ module Submissions
       frame.draw(canvas, result) if result.success?
     end
 
-    def add_certificate_summary(composer, account, timezone)
+    def add_certificate_summary(composer, account, timezone, padding: CELL_PADDING)
       # The summary is informational: an account without a signing certificate gets a log without it.
       pkcs = begin
         Accounts.load_signing_pkcs(account)
@@ -794,9 +797,11 @@ module Submissions
           [{ content: note, col_span: 2 }]
         ],
         column_widths: [LABEL_COLUMN_WIDTH, -1],
-        header: ->(_table) { [[header_cell(layout, t(:certificate)), header_cell(layout, t(:detail))]] },
+        header: lambda do |_table|
+          [[header_cell(layout, t(:certificate), padding), header_cell(layout, t(:detail), padding)]]
+        end,
         cell_style: lambda do |cell|
-          cell.style.update(padding: CELL_PADDING, border: { width: [0, 0, HAIRLINE, 0], color: RULE })
+          cell.style.update(padding:, border: { width: [0, 0, HAIRLINE, 0], color: RULE })
           if cell.col_span > 1
             cell.style.update(background_color: PANEL, padding: [7, 8, 6, 8], border: { width: 0 })
           elsif cell.column.zero?
@@ -811,9 +816,8 @@ module Submissions
       boxes.each { |box| composer.draw_box(box) }
     end
 
-    def header_cell(layout, text)
-      { content: layout.text_box(text.upcase, style: :eyebrow, fill_color: 'FFFFFF'), background_color: NAVY,
-        padding: CELL_PADDING }
+    def header_cell(layout, text, padding)
+      { content: layout.text_box(text.upcase, style: :eyebrow, fill_color: 'FFFFFF'), background_color: NAVY, padding: }
     end
 
     # Labels throughout the log are set the same way: small tracked capitals in the muted colour.
