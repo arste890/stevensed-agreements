@@ -23,7 +23,7 @@ describe Stevensed::IdentityEvents do
   end
 
   describe '.build' do
-    it 'carries references, links and the FRM-108 section 11 facts, and never a full date of birth' do
+    it 'carries references, links, the FRM-108 section 11 facts and the date of birth' do
       submission = stevensed_envelope(frm108, family_email: 'pat@family.test', staff_email: staff.email,
                                               values: parent_values.merge(section11),
                                               metadata: { 'stevensed_student_id' => 'u_kid',
@@ -40,10 +40,11 @@ describe Stevensed::IdentityEvents do
                                         'section_11_complete' => true)
       expect(event['facts']['section_11']).to eq('verified_on' => '2026-11-20', 'staff' => 'Alec Stevens',
                                                  'form_version' => '4.9', 'method_label' => 'Video call or in person',
-                                                 'method' => 'video')
+                                                 'method' => 'in_person')
       expect(event['signers'].map { |s| s.slice('role', 'staff') })
         .to eq([{ 'role' => 'Parent', 'staff' => false }, { 'role' => 'StevensED', 'staff' => true }])
-      expect(event.to_json).not_to include('2016-04-03')
+      expect(event['facts']['student_birth_date']).to eq('2016-04-03')
+      expect(event.to_json).not_to include('Parent — Signature')
     end
 
     it 'marks section 11 incomplete when the StevensED official left it blank' do
@@ -55,7 +56,7 @@ describe Stevensed::IdentityEvents do
       expect(facts['section_11_complete']).to be(false)
     end
 
-    it 'passes only the birth year from FRM-101' do
+    it 'passes the date of birth and its year from FRM-101' do
       frm101 = stevensed_form_template(account:, author: staff, external_id: 'FRM-101-M_v3.1',
                                        fields: StevensedIdentityHelper::FRM101_FIELDS)
       submission = stevensed_envelope(frm101, family_email: 'pat@family.test', staff_email: staff.email,
@@ -65,7 +66,7 @@ describe Stevensed::IdentityEvents do
       event = described_class.build('envelope.completed', submission, event_id: 'x')
 
       expect(event['envelope']).to include('form' => 'FRM-101', 'form_key' => 'FRM-101-M')
-      expect(event['facts']).to eq('student_name' => 'Sam Student', 'birth_year' => 2014)
+      expect(event['facts']).to eq('student_name' => 'Sam Student', 'birth_date' => '2014-09-30', 'birth_year' => 2014)
     end
   end
 
@@ -101,6 +102,13 @@ describe Stevensed::IdentityEvents do
       end.to change(StevensedIdentityEventJob.jobs, :size).by(1)
       expect(described_class.build('envelope.archived', submission, event_id: 'x')['archived'])
         .to include('reason' => 'withdrawn', 'note' => 'Parent withdrew')
+    end
+  end
+
+  describe 'section 11 methods' do
+    it 'records the 4.x combined box as in person, and the 5.0 boxes as they say' do
+      expect(described_class::METHODS.values_at('video call or in person', 'in person', 'video call'))
+        .to eq(%w[in_person in_person video])
     end
   end
 

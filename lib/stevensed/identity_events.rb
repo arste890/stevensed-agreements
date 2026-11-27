@@ -6,8 +6,8 @@ module Stevensed
   # When an envelope is completed, declined, or archived by staff with a reason, Agreements sends a signed event to
   # POST /api/v1/agreements/events on auth.stevensed.org. The event carries references only (envelope number, form key
   # and version, Document ID, the signed PDFs' SHA-256, times), the student and household IDs that identity attached
-  # when it sent the envelope, and the facts agreed for that form (FRM-108 section 11; a birth year, never a full date
-  # of birth). No PDF, signature image or full form contents leave Agreements.
+  # when it sent the envelope, and the facts agreed for that form (FRM-108 section 11 and the parent's choice; the
+  # student's date of birth, owner, 27 November 2026). No PDF, signature image or other form contents leave Agreements.
   #
   # Signing: HMAC-SHA256 over "<timestamp>.<body>" with the shared secret STEVENSED_IDENTITY_EVENTS_SECRET, sent as
   # X-StevensED-Signature: v1=<hex>, with X-StevensED-Timestamp and X-StevensED-Event-Id. Identity rejects a timestamp
@@ -51,11 +51,14 @@ module Stevensed
     }.freeze
 
     # FRM-108 section 11 methods, as printed on the form, to identity's consent method codes (lib/children.js
-    # CONSENT_METHODS). "Video call or in person" is one box on the form; identity records it as video.
+    # CONSENT_METHODS). FRM-108 4.x has one box for "Video call or in person"; StevensED used it only for meetings in
+    # person (owner, 27 November 2026), so it is recorded as in_person. FRM-108 5.0 and later have separate boxes.
     METHODS = {
       'identity check' => 'photo_id_match',
       'payment' => 'payment',
-      'video call or in person' => 'video',
+      'video call or in person' => 'in_person',
+      'video call' => 'video',
+      'in person' => 'in_person',
       'signed form returned' => 'signed_return',
       'government id check' => 'government_id'
     }.freeze
@@ -229,6 +232,7 @@ module Stevensed
 
       {
         'student_name' => v[:student_name].to_s.squish.presence,
+        'student_birth_date' => birth_date(v[:student_dob]),
         'student_birth_year' => year_only(v[:student_dob]),
         'parent_name' => v[:parent_name].to_s.squish.presence,
         'parent_email' => v[:parent_email].to_s.strip.downcase.presence,
@@ -239,8 +243,10 @@ module Stevensed
     end
 
     def birth_year_facts(submission)
+      dob = value_for(submission, DOB_FIELD)
+
       { 'student_name' => value_for(submission, STUDENT_NAME_FIELD).to_s.squish.presence,
-        'birth_year' => year_only(value_for(submission, DOB_FIELD)) }.compact
+        'birth_date' => birth_date(dob), 'birth_year' => year_only(dob) }.compact
     end
 
     def choice(value)
@@ -252,6 +258,10 @@ module Stevensed
 
     def date_only(value)
       value.to_s[/\A\d{4}-\d{2}-\d{2}/]
+    end
+
+    def birth_date(value)
+      date_only(value) if year_only(value)
     end
 
     def year_only(value)
