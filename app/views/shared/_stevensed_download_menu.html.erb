@@ -1,4 +1,4 @@
-<%# StevensED: the same download control everywhere. Download gives the main kind for the audience (signers: the completed document; staff: combined); the menu beside it offers completed document, audit log and combined (Stevensed::Downloads). The menu sizes to its longest label and opens from the chevron's right edge. Locals: submission, src (lambda: kind -> URL), audience (:signer or :staff), compact (list rows), full_width. %>
+<%# StevensED: the same download control everywhere. Download gives the main kind for the audience (signers: the completed document; staff: combined); the menu beside it offers completed document, audit log and combined (Stevensed::Downloads). The menu sizes to its longest label and opens from the chevron's right edge; in list rows on phones, where the button sits at the left, it opens from the Download button's left edge instead. Locals: submission, src (lambda: kind -> URL), audience (:signer or :staff), compact (list rows), full_width. %>
 <% kinds = Stevensed::Downloads.kinds(submission) %>
 <% main_kind = Stevensed::Downloads.default_kind(submission, audience: local_assigns.fetch(:audience, :signer)) %>
 <% compact = local_assigns[:compact] %>
@@ -15,11 +15,11 @@
     </span>
   </download-button>
   <% if kinds.many? %>
-    <div class="dropdown dropdown-end se-download-menu">
+    <div class="dropdown dropdown-end se-download-menu <%= 'max-md:static' if compact %>">
       <label tabindex="0" role="button" aria-label="<%= t('stevensed.download_choices') %>" class="<%= button_class %> !rounded-l-none !pl-1 !pr-2 !border-l-neutral-500">
         <%= svg_icon('chevron_down', class: compact ? 'w-5 h-5 stroke-2' : 'w-6 h-6 stroke-2') %>
       </label>
-      <ul tabindex="0" class="z-30 dropdown-content p-2 mt-2 shadow-lg border border-base-300 menu text-base bg-base-100 rounded-box w-max min-w-[14rem] max-w-[calc(100vw-2rem)] text-left">
+      <ul tabindex="0" class="z-30 dropdown-content p-2 mt-2 shadow-lg border border-base-300 menu text-base bg-base-100 rounded-box w-max min-w-[14rem] max-w-[calc(100vw-2rem)] text-left <%= 'max-md:!left-0 max-md:!right-auto' if compact %>">
         <% kinds.each do |kind| %>
           <li>
             <download-button role="button" tabindex="0" data-src="<%= src.call(kind) %>" class="flex items-center">
