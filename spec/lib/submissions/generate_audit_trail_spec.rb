@@ -57,7 +57,7 @@ describe Submissions::GenerateAuditTrail do
     expect(text.gsub(/\s+/, '')).to include(serial.scan(/../).join(':'))
     expect(text.gsub(/\s+/, '')).to include(OpenSSL::Digest::SHA256.hexdigest(certificate.to_der).upcase
                                                                    .scan(/../).join(':'))
-    expect(text).to include('CERTIFICATE', 'DETAIL', 'SHA-256 fingerprint')
+    expect(text).to include('CERTIFICATE', 'SHA-256 fingerprint', 'How to verify')
     expect(text).not_to match(/PRIVATE KEY|password/i)
   end
 
@@ -73,9 +73,12 @@ describe Submissions::GenerateAuditTrail do
     pages = pdf_text(build)
     text = pages.join("\n")
 
-    expect(pages.first).not_to include("Audit log for envelope #{submission.id}")
-    expect(pages.drop(1)).to all(include("Audit log for envelope #{submission.id}")) if pages.size > 1
-    expect(text).to include('SUMMARY DETAIL', 'DATE TIME EVENT', 'CERTIFICATE DETAIL')
+    header = "Certificate of Completion and Audit Log, envelope #{submission.id}"
+
+    expect(pages.size).to be > 1
+    expect(pages.first).not_to include(header)
+    expect(pages.drop(1)).to all(include(header))
+    expect(text).to include('ENVELOPE', 'TIME EVENT', 'CERTIFICATE', 'SIGNER 1 OF 2')
     expect(text).to include('IP address', 'User agent', 'Time zone')
     expect(text).not_to include('·')
   end
@@ -92,7 +95,7 @@ describe Submissions::GenerateAuditTrail do
 
     expect(log_pages.size).to be > 1
     log_pages.each do |page|
-      expect(page).to include('DATE TIME EVENT')
+      expect(page).to include('TIME').and include('EVENT')
       expect(page.scan('Form viewed by').size).to be >= Submissions::GenerateAuditTrail::MIN_ROWS
     end
   end
@@ -123,7 +126,7 @@ describe Submissions::GenerateAuditTrail do
     text = pdf_text(build).join("\n")
 
     expect(text).to include('Testa Q. Signer')
-    expect(text).to include(field['name'].delete_prefix('10. '), 'FIELD', 'ENTRY')
+    expect(text).to include(field['name'].delete_prefix('10. '), 'SUBMITTED ENTRIES')
     expect(text).not_to include('10. ')
   end
 
@@ -133,7 +136,10 @@ describe Submissions::GenerateAuditTrail do
     completed_at = submission.submitters.first.completed_at.in_time_zone(account.timezone)
 
     expect(text).to include(Stevensed.format_date(completed_at))
-    expect(text).to match(/\b\d{1,2} [A-Z][a-z]+ \d{4}, \d{1,2}:\d{2} [AP]M/)
+    local = /\b\d{1,2} [A-Z][a-z]+ \d{4}, \d{1,2}:\d{2}:\d{2} [AP]M [A-Z]+/
+    utc = /\(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} UTC\)/
+
+    expect(text).to match(/#{local} #{utc}/)
   end
 
   it 'uses Letter for US time zones and A4 elsewhere' do
@@ -142,5 +148,30 @@ describe Submissions::GenerateAuditTrail do
     account.update!(timezone: 'Berlin')
 
     expect(build.pages.first.box(:media).height).to be_within(1).of(841.89)
+  end
+
+  it 'renders a shared-link envelope with every field type and a verified email' do
+    link_template = create(:template, shared_link: true, account:, author:,
+                                      except_field_types: %w[phone payment stamp])
+    link_submission = create(:submission, template: link_template, source: :link, created_by_user: nil)
+    signer = create(:submitter, submission: link_submission, uuid: link_template.submitters.first['uuid'],
+                                completed_at: Time.current)
+    upload = lambda do |name|
+      blob = ActiveStorage::Blob.create_and_upload!(io: Rails.root.join('spec/fixtures', name).open, filename: name)
+      ActiveStorage::Attachment.create!(blob:, name: :attachments, record: signer)
+    end
+    image = upload.call('sample-image.png')
+    file = upload.call('sample-document.pdf')
+    values = { 'signature' => image.uuid, 'initials' => image.uuid, 'image' => image.uuid, 'file' => [file.uuid],
+               'date' => Date.current.iso8601, 'checkbox' => true, 'multiple' => %w[Red Blue], 'number' => 3 }
+    signer.update!(values: link_template.fields.to_h { |f| [f['uuid'], values.fetch(f['type'], 'Male')] })
+    %i[view_form email_verified start_form complete_form].each do |type|
+      SubmissionEvent.create!(submitter: signer, submission: link_submission, event_type: type,
+                              event_timestamp: Time.current, data: { ip: '203.0.113.5', ua: 'Mozilla/5.0', sid: 'a1' })
+    end
+
+    text = pdf_text(described_class.build_audit_trail(link_submission.reload)).join("\n")
+
+    expect(text).to include('SIGNER 1 OF 1', 'One-time code sent to the email address above', 'IP 203.0.113.5')
   end
 end

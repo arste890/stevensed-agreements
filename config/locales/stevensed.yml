@@ -115,9 +115,10 @@ en:
       certificate_issuer: Issuer
       root_certificate: Root certificate
       serial_number: Serial number
-      valid: Valid
+      valid: Validity period
+      valid_at_sealing: Valid when sealed
       sha256_fingerprint: SHA-256 fingerprint
-      time_stamp_authority: Time-stamp authority
+      time_stamp_authority: Time-stamp authority (RFC 3161)
       verification: This log and the documents it describes are signed with the certificate above. To confirm a signature, open the document in Adobe Acrobat or Reader and compare the certificate fingerprints with those published at
       page_number_of_total: Page %{number} of %{total}
       field: Field
@@ -125,13 +126,52 @@ en:
       certificate: Certificate
       detail: Detail
       access: Access
-      running_header: Audit log for envelope %{id}
+      running_header: Certificate of Completion and Audit Log, envelope %{id}
       footer_page: Envelope %{id}, page %{number} of %{total}
       summary: Summary
       file_name: File
-      original_sha256: Original SHA-256
-      result_sha256: Result SHA-256
-      generated: Generated
+      original_sha256: Original file SHA-256 (hex)
+      result_sha256: Signed file SHA-256 (hex)
+      sealed: Signed and sealed
+      title: Certificate of Completion and Audit Log
+      status: Status
+      status_completed:
+        one: Completed, %{count} of %{total} signer
+        other: Completed, %{count} of %{total} signers
+      sender: Sent by
+      created: Created
+      times: Times
+      times_note: All times are local time in %{zone} (UTC%{offset}) to the second, followed by the same moment in UTC.
+      log_generated: Log generated
+      verify_note: See “How to verify” in the Signing certificate section, or go to
+      authentication: Authentication
+      auth_email_code: One-time code sent to the email address above
+      auth_email_link: Signing link sent to the email address above
+      submitted_entries: Submitted entries
+      value: Value
+      signer_heading: 'Signer %{number} of %{total}: %{role}'
+      continued: '%{heading} (continued)'
+      event_created: Envelope created
+      by: by
+      event_sealed: Documents sealed
+      event_sealed_detail: with the StevensED signing certificate
+      algorithm: Key and algorithm
+      no_tsa: None. Times are recorded by the StevensED Agreements server.
+      how_to_verify: How to verify
+      record: Record
+      signer_short: Signer %{number}
+      signed: Signed
+      envelope: Envelope
+      document_count: Document %{number} of %{total}
+      page: page %{number}
+      signer_summary: '%{name} (%{role}), signed %{time}'
+      pages: Pages
+      consent_record: Consent form
+      version: version %{number}
+      browser: Browser
+      unknown_browser: Unknown browser
+      'on': 'on'
+      certification: StevensED Agreements recorded each event in this log as it occurred. StevensED keeps the signed documents and this log; to request copies, write to legal@stevensed.org.
       name: Name
       email: Email
       phone: Phone
