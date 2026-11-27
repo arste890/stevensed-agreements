@@ -80,4 +80,32 @@ describe SubmitterMailer do
       expect(html).not_to include("Dear #{Stevensed::ORGANIZATION},")
     end
   end
+
+  describe 'completion attachments' do
+    before do
+      submitter.update!(completed_at: Time.current)
+      submitter.documents.attach(io: StringIO.new('%PDF-1.4 document'), filename: 'agreement.pdf')
+      submission.audit_trail.attach(io: StringIO.new('%PDF-1.4 audit log'), filename: 'audit-log.pdf')
+      allow_any_instance_of(described_class).to receive(:select_completed_documents)
+        .and_return(submitter.documents.to_a)
+    end
+
+    it 'attaches the completed document and the audit log as separate PDFs and says so' do
+      mail = described_class.completed_email(submitter, user).deliver_now
+
+      expect(mail.attachments.map(&:filename).size).to eq(2)
+      expect(mail.attachments.map { |a| a.body.decoded }).to contain_exactly('%PDF-1.4 document', '%PDF-1.4 audit log')
+      expect(mail.html_part.body.decoded).to include('The completed document and its audit log are attached')
+    end
+
+    it 'attaches nothing and keeps the links when the files are over the size limit' do
+      stub_const('SubmitterMailer::MAX_ATTACHMENTS_SIZE', 10)
+
+      mail = described_class.documents_copy_email(submitter).deliver_now
+
+      expect(mail.attachments).to be_empty
+      expect(mail.html_part.body.decoded).not_to include('are attached')
+      expect(mail.html_part.body.decoded).to include(submission.slug)
+    end
+  end
 end

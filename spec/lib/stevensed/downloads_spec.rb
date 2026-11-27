@@ -13,21 +13,16 @@ describe Stevensed::Downloads do
     expect(described_class.resolve(submission, 'combined')).to eq('documents')
   end
 
-  it 'offers combined (the default), documents only and audit log once complete' do
+  it 'downloads the completed document by default and offers the audit log and combined once complete' do
     submission.update!(completed_at: Time.current)
 
-    expect(described_class.kinds(submission)).to eq(%w[combined documents audit])
-    expect(described_class.default_kind(submission)).to eq('combined')
-    expect(described_class.resolve(submission, 'audit')).to eq('audit')
-    expect(described_class.resolve(submission, nil)).to eq('combined')
-  end
-
-  it 'defaults to documents only when the account setting is switched off' do
-    submission.update!(completed_at: Time.current)
-    create(:account_config, account:, key: AccountConfig::COMBINE_PDF_RESULT_KEY, value: false)
-
+    expect(described_class.kinds(submission)).to eq(%w[documents audit combined])
     expect(described_class.default_kind(submission)).to eq('documents')
-    expect(described_class.kinds(submission)).to include('combined')
+    expect(described_class.resolve(submission, 'audit')).to eq('audit')
+    expect(described_class.resolve(submission, 'combined')).to eq('combined')
+    expect(described_class.resolve(submission, nil)).to eq('documents')
+    expect(described_class.kinds(submission).map { |k| described_class.label(k) })
+      .to eq(['Completed document', 'Audit log', 'Combined (document and audit log)'])
   end
 
   it 'never offers combined for an envelope with an identity-verification field' do

@@ -44,6 +44,7 @@ en:
       stevensed_archived_by_html: '<b>Archived</b> by %{user}. Reason: %{reason}'
       stevensed_unarchived_by_html: '<b>Restored to active</b> by %{user}'
   stevensed:
+    download_choices: Download choices
     records:
       archive_title: Archive this record
       archive_hint: The record moves to Archived and stays retrievable. The reason is kept in its event log.
@@ -366,7 +367,10 @@ en:
       completed_eyebrow: Completed
       completed_title: 'Re: Agreement completed, %{name}'
       completed_preheader: '"%{name}" has been completed by all parties.'
-      completed_attachments: The completed documents are attached where file size permits and remain available on the submission page.
+      completed_attachments: The completed documents remain available on the submission page.
+      attached_document_and_audit: The completed document and its audit log are attached as separate PDFs.
+      attached_document: The completed document is attached.
+      attached_audit: The audit log is attached.
       # Declined (to staff)
       declined_eyebrow: Declined
       declined_title: 'Re: Signature declined, %{name}'
@@ -375,7 +379,6 @@ en:
       # Documents copy (to signer)
       copy_title: 'Re: Your copy of the completed agreement, %{name}'
       copy_preheader: Your copy of "%{name}" is ready.
-      copy_attached: A copy is attached for your records.
       # One-time code
       otp_title: 'Re: Verification code'
       otp_preheader: Use this code to verify your email address.

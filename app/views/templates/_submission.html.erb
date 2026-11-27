@@ -68,16 +68,7 @@
         <% if submitter.completed_at? %>
           <div class="flex-1 min-w-0 md:flex-none">
             <div class="w-full md:w-fit">
-              <download-button data-src="<%= submission_download_index_path(submission) %>" class="btn btn-sm max-sm:text-[13px] btn-neutral text-white w-full md:w-36">
-                <span class="flex items-center justify-center space-x-1 <%= 'md:space-x-2' if t('download').length < 11 %>" data-target="download-button.defaultButton">
-                  <%= svg_icon('download', class: 'w-5 h-5 max-sm:w-4 max-sm:h-4 stroke-2') %>
-                  <span class="inline"><%= t('download') %></span>
-                </span>
-                <span class="flex items-center justify-center space-x-1 md:space-x-2 hidden" data-target="download-button.loadingButton">
-                  <%= svg_icon('loader', class: 'w-5 h-5 max-sm:w-4 max-sm:h-4 animate-spin') %>
-                  <span class="inline"><%= t('download')[..-2] %>...</span>
-                </span>
-              </download-button>
+              <%= render 'shared/stevensed_download_menu', submission:, compact: true, src: ->(kind) { submission_download_index_path(submission, kind:) } %>
             </div>
           </div>
         <% elsif !submission.archived_at? && !template&.archived_at? && !submission.expired? && !submitter.declined_at? %>

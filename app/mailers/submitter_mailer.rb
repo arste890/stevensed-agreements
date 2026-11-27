@@ -201,32 +201,30 @@ class SubmitterMailer < ApplicationMailer
     reply_to
   end
 
+  # StevensED: completion emails attach the completed document and the audit log as separate PDFs (never the
+  # combined PDF). If together they exceed the size limit, nothing is attached and the email's links are the way in.
   def add_completed_email_attachments!(submitter, with_audit_log: true, with_documents: true)
     # StevensED: previews and test sends of the editor use sample data and attach nothing.
     return [] if email_preview?
 
     documents = with_documents ? select_completed_documents(submitter) : []
+    audit_trail = (submitter.submission.audit_trail if with_audit_log && submitter.submission.audit_trail.present?)
 
     filename_format = AccountConfig.find_or_initialize_by(account_id: submitter.account_id,
                                                           key: AccountConfig::DOCUMENT_FILENAME_FORMAT_KEY)&.value
 
-    total_size = 0
-    audit_trail_data = nil
+    files = [*documents, audit_trail].compact
 
-    if with_audit_log && submitter.submission.audit_trail.present? && documents.first&.name != 'combined_document'
-      audit_trail_data = submitter.submission.audit_trail.download
+    return [] if files.sum(&:byte_size) >= MAX_ATTACHMENTS_SIZE
 
-      total_size = audit_trail_data.size
+    files.each do |attachment|
+      filename = Submitters.build_document_filename(submitter, attachment.blob, filename_format)
+      attachments[filename.to_s.tr('"', "'")] = attachment.download
     end
 
-    total_size = add_attachments_with_size_limit(submitter, documents, total_size, filename_format)
+    @stevensed_attached = [('document' if documents.any?), ('audit' if audit_trail)].compact.join('_and_').presence
 
-    if audit_trail_data
-      audit_trail_filename =
-        Submitters.build_document_filename(submitter, submitter.submission.audit_trail.blob, filename_format)
-
-      attachments[audit_trail_filename.tr('"', "'")] = audit_trail_data
-    end
+    total_size = files.sum(&:byte_size)
 
     if with_documents
       file_fields = submitter.submission.template_fields.select { |e| e['type'].in?(%w[file payment]) }

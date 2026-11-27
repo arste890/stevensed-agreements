@@ -11,8 +11,8 @@
   <%= render 'shared/email_greeting', name: @submitter.name %>
   <%= render 'email_text', text: @email_parts.parts['intro'], submitter: @submitter, sig: @sig %>
   <%= render 'shared/email_details', rows: [[t('stevensed.email.document'), document_name], [t('stevensed.email.signed_by'), submitters], [t('stevensed.email.completed_on'), (l(@submitter.completed_at.in_time_zone(@current_account.timezone), format: :long) if @submitter.completed_at)]] %>
-  <% if attachments.any? %>
-    <p><%= t('stevensed.email.copy_attached') %></p>
+  <% if @stevensed_attached %>
+    <p><%= t("stevensed.email.attached_#{@stevensed_attached}") %></p>
   <% end %>
   <%= render 'shared/email_button', url: copy_url, label: t('stevensed.email.download_copy') %>
   <% if @sig %>

@@ -98,7 +98,8 @@ module Submitters
 
   # StevensED: combined (documents and audit log) by default once complete; kind: 'documents' for documents only.
   def select_attachments_for_download(submitter, kind: nil)
-    if kind != 'documents' && Stevensed::Downloads.default_kind(submitter.submission) == 'combined'
+    # StevensED: the completed document by default; the combined PDF only when asked for (Stevensed::Downloads).
+    if kind == 'combined'
       return [submitter.submission.combined_document_attachment || Submissions::EnsureCombinedGenerated.call(submitter)]
     end
 

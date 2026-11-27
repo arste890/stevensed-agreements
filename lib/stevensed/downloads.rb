@@ -1,14 +1,16 @@
 # frozen_string_literal: true
 
 module Stevensed
-  # StevensED: what a completed envelope can be downloaded as, like DocuSign's download choices.
-  #   combined  - the signed documents followed by the audit log, one PDF (the default);
-  #   documents - the signed documents only;
-  #   audit     - the audit log only.
-  # Combined is offered once everyone has signed, except for envelopes with an identity-verification field.
-  # The account setting "combine documents and audit log" switched off makes "documents" the default instead.
+  # StevensED: what a completed envelope can be downloaded as, the same everywhere (submission page, signer's
+  # completion screen, lists):
+  #   documents - the completed document (the main Download button);
+  #   audit     - the audit log, once everyone has signed;
+  #   combined  - the completed document followed by the audit log, one PDF.
+  # The dropdown beside Download offers all three. Combined is not offered for envelopes with an identity-verification
+  # field. Completion emails attach the document and the audit log as separate PDFs (SubmitterMailer).
   module Downloads
-    KINDS = %w[combined documents audit].freeze
+    KINDS = %w[documents audit combined].freeze
+    MAIN_KIND = 'documents'
     FILES_TTL = 5.minutes
 
     module_function
@@ -21,16 +23,19 @@ module Stevensed
       complete?(submission) && submission.template_fields.to_a.none? { |f| f['type'] == 'verification' }
     end
 
-    def combined_default?(account_id)
-      !AccountConfig.exists?(account_id:, key: AccountConfig::COMBINE_PDF_RESULT_KEY, value: false)
-    end
-
+    # In menu order: completed document, audit log, combined.
     def kinds(submission)
-      [('combined' if combined_allowed?(submission)), 'documents', ('audit' if complete?(submission))].compact
+      ['documents', ('audit' if complete?(submission)), ('combined' if combined_allowed?(submission))].compact
     end
 
-    def default_kind(submission)
-      combined_allowed?(submission) && combined_default?(submission.account_id) ? 'combined' : 'documents'
+    # The main Download button always gives the completed document.
+    def default_kind(_submission)
+      MAIN_KIND
+    end
+
+    # Pre-generate the combined PDF at completion so the menu choice is quick.
+    def pregenerate_combined?(submission)
+      combined_allowed?(submission)
     end
 
     # The requested kind if available, otherwise the default. Returns nil for an audit log that does not exist yet.
@@ -67,8 +72,8 @@ module Stevensed
     end
 
     def label(kind)
-      { 'combined' => 'Combined (documents and audit log)', 'documents' => 'Documents only',
-        'audit' => 'Audit log only' }.fetch(kind)
+      { 'documents' => 'Completed document', 'audit' => 'Audit log',
+        'combined' => 'Combined (document and audit log)' }.fetch(kind)
     end
   end
 end
