@@ -186,7 +186,7 @@
 
 <script>
 import { cropCanvasAndExportToPNG } from './crop_canvas'
-import { loadTypedSignatureFont, drawTypedText } from './typed_signature'
+import { loadTypedSignatureFont, drawTypedText, isTypedSignatureFontReady } from './typed_signature'
 import { IconReload, IconTextSize, IconUpload, IconSignature, IconArrowsDiagonalMinimize2 } from '@tabler/icons-vue'
 import SignaturePad from 'signature_pad'
 import AppearsOn from './appears_on'
@@ -391,6 +391,14 @@ export default {
         maxFontSize: Math.min(76, height * 0.62),
         color: this.field.preferences?.color || '#000000'
       })
+
+      if (e.target.value && !isTypedSignatureFontReady()) {
+        loadTypedSignatureFont(this.baseUrl).then(() => {
+          if (!this.isDrawInitials && this.$refs.textInput?.value && this.$refs.canvas) {
+            this.updateWrittenInitials({ target: this.$refs.textInput })
+          }
+        })
+      }
     },
     toggleTextInput () {
       this.remove()
@@ -418,11 +426,12 @@ export default {
         this.$refs.textInput.value = (parts.length > 1 ? [parts[0], parts[parts.length - 1]] : parts).map((part) => part[0]?.toUpperCase() || '').join('')
       }
 
-      await loadTypedSignatureFont(this.baseUrl)
-
+      // StevensED: draw at once, then redraw when MonteCarlo has loaded (updateWrittenInitials schedules it).
       if (this.$refs.textInput?.value) {
         this.updateWrittenInitials({ target: this.$refs.textInput })
       }
+
+      await loadTypedSignatureFont(this.baseUrl)
     },
     submitPrefillAttachment () {
       if (this.dryRun) {

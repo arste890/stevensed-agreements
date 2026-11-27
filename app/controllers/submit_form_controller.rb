@@ -44,18 +44,13 @@ class SubmitFormController < ApplicationController
 
     if current_user && current_user.email == @submitter.email
       @current_user_data = current_user.as_json(only: %i[first_name last_name], methods: %i[full_name])
-
-      initials = UserConfigs.load_initials(current_user)
-
-      @prefill_initials = Submitters.build_prefill_attachment_data(@submitter, initials) if initials
     end
 
-    return unless @form_configs[:prefill_signature]
-
-    signature = UserConfigs.load_signature(current_user) ||
-                Submitters::FindRememberedSignature.call(@submitter, params, cookies)
-
-    @prefill_signature = Submitters.build_prefill_attachment_data(@submitter, signature) if signature
+    # StevensED: no signature or initials are carried over from another envelope or from a saved user profile.
+    # Office mailboxes (legal@, info@, admin@, bursar@) are shared, so a remembered signature for an email address
+    # could belong to a different person. Each signer signs fresh in each envelope.
+    @prefill_signature = nil
+    @prefill_initials = nil
   end
 
   def update

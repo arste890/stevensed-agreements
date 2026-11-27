@@ -740,6 +740,7 @@ import { IconInnerShadowTop, IconArrowsDiagonal, IconWritingSign, IconArrowsDiag
 import AppearsOn from './appears_on'
 import i18n from './i18n'
 import { displayFieldName } from './field_labels'
+import { loadTypedSignatureFont } from './typed_signature'
 import { sanitizeUrl } from '@braintree/sanitize-url'
 
 if (typeof URL.canParse !== 'function') {
@@ -1453,6 +1454,11 @@ export default {
     screen?.orientation?.removeEventListener('change', this.onOrientationChange)
   },
   mounted () {
+    // StevensED: start fetching the typed signature font as soon as the form opens, not when the step is reached.
+    if (this.fields.some((f) => ['signature', 'initials'].includes(f.type))) {
+      loadTypedSignatureFont(this.baseUrl)
+    }
+
     this.submittedValues = JSON.parse(JSON.stringify(this.values))
 
     screen?.orientation?.addEventListener('change', this.onOrientationChange)

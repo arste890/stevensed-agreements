@@ -59,4 +59,13 @@ function drawTypedText (context, text, { width, height, maxFontSize, paddingX = 
   )
 }
 
-export { TYPED_SIGNATURE_FONT, loadTypedSignatureFont, drawTypedText }
+function isTypedSignatureFontReady () {
+  try {
+    return document.fonts.check(`16px "${TYPED_SIGNATURE_FONT}"`) &&
+      [...document.fonts].some((f) => f.family.replace(/"/g, '') === TYPED_SIGNATURE_FONT && f.status === 'loaded')
+  } catch (e) {
+    return true
+  }
+}
+
+export { TYPED_SIGNATURE_FONT, loadTypedSignatureFont, drawTypedText, isTypedSignatureFontReady }

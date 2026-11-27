@@ -350,7 +350,7 @@
 import { IconReload, IconCamera, IconSignature, IconTextSize, IconArrowsDiagonalMinimize2, IconQrcode, IconX } from '@tabler/icons-vue'
 import { cropCanvasAndExportToPNG } from './crop_canvas'
 import { isValidSignatureCanvas, isCanvasBlocked } from './validate_signature'
-import { loadTypedSignatureFont, drawTypedText } from './typed_signature'
+import { loadTypedSignatureFont, drawTypedText, isTypedSignatureFontReady } from './typed_signature'
 import SignaturePad from 'signature_pad'
 import AppearsOn from './appears_on'
 import FileDropzone from './dropzone'
@@ -745,6 +745,14 @@ export default {
         maxFontSize: Math.min(76, height * 0.5),
         color: this.field.preferences?.color || '#000000'
       })
+
+      if (e.target.value && !isTypedSignatureFontReady()) {
+        this.loadFont().then(() => {
+          if (this.isTextSignature && this.$refs.textInput?.value && this.$refs.canvas) {
+            this.updateWrittenSignature({ target: this.$refs.textInput })
+          }
+        })
+      }
     },
     toggleTextInput () {
       this.remove()
@@ -778,9 +786,14 @@ export default {
         this.$refs.textInput.value = this.submitter.name
       }
 
+      // StevensED: draw at once (so the preview and Next are ready), then redraw when MonteCarlo has loaded.
+      if (this.$refs.textInput.value) {
+        this.updateWrittenSignature({ target: this.$refs.textInput })
+      }
+
       await this.loadFont()
 
-      if (this.$refs.textInput.value) {
+      if (this.isTextSignature && this.$refs.textInput?.value) {
         this.updateWrittenSignature({ target: this.$refs.textInput })
       }
     },
