@@ -482,6 +482,7 @@ export default {
       isUsePreviousValue: true,
       errorMessage: '',
       isTextSignature: !this.signatureSrc && (!!this.signatureText || this.field.preferences?.format === 'typed' || this.field.preferences?.format === 'typed_or_upload'),
+      isUploadedImage: false,
       uploadImageInputKey: Math.random().toString()
     }
   },
@@ -724,6 +725,7 @@ export default {
       this.pad.clear()
 
       this.isSignatureStarted = false
+      this.isUploadedImage = false
       this.errorMessage = ''
 
       if (this.$refs.textInput) {
@@ -843,6 +845,7 @@ export default {
       this.remove()
       this.clear()
       this.isSignatureStarted = true
+      this.isUploadedImage = true
 
       this.drawOnCanvas(event.target.files[0], this.$refs.canvas)
 
@@ -1000,6 +1003,8 @@ export default {
             formData.append('name', 'attachments')
             formData.append('remember_signature', this.rememberSignature)
             formData.append('type', 'signature')
+            // StevensED: the audit log states how the signature was adopted.
+            formData.append('signature_method', this.isUploadedImage ? 'upload' : (this.isTextSignature ? 'typed' : 'drawn'))
 
             return fetch(this.baseUrl + `/s/${this.submitterSlug}/upload`, {
               method: 'POST',

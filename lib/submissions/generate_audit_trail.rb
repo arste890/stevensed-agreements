@@ -47,7 +47,9 @@ module Submissions
     # Pagination: a table never opens or closes a page with fewer than this many rows (orphans and widows).
     MIN_ROWS = 4
     # DejaVu Sans Mono has a larger x-height than Inter; at this size the two read as the same size.
-    MONO_SIZE = 7.9
+    MONO_SIZE = 8.1
+    # Sets monospaced values on the same baseline as the Inter labels beside them.
+    MONO_BASELINE_SHIFT = 0.9
     EVENT_TIME_WIDTH = 132
     # When the last page would be less than this full, the log is set again with tighter vertical spacing and the
     # tighter version is kept if it saves the page.
@@ -183,7 +185,8 @@ module Submissions
       composer.style(:label, font: [SANS, { variant: :bold }], fill_color: MUTED)
       composer.style(:eyebrow, font: [SANS, { variant: :bold }], font_size: TYPE[:label], fill_color: MUTED,
                                character_spacing: 0.7)
-      composer.style(:hash, font: MONO, font_size: MONO_SIZE, fill_color: INK, line_spacing: 1.45)
+      composer.style(:hash, font: MONO, font_size: MONO_SIZE, fill_color: INK, line_spacing: 1.45,
+                            padding: [MONO_BASELINE_SHIFT, 0, 0, 0])
       composer.style(:section, font: [SERIF, { variant: :bold }], font_size: TYPE[:section], fill_color: INK,
                                padding: [gap.call(18), 0, 4, 0])
 
@@ -208,7 +211,7 @@ module Submissions
         [I18n.t('envelope_id'), cell.call(submission.id)],
         [t(:document), cell.call(TextUtils.maybe_rtl_reverse((submission.name || submission.template&.name).to_s))],
         [t(:status), cell.call(t(:status_completed, count: signer_count, total: signer_count))],
-        sender && [t(:sender), cell.call("#{sender.full_name.to_s.squish} (#{sender.email})")],
+        sender && [t(:sender), cell.call(sender_label(sender))],
         [t(:created), cell.call(format_time(submission.created_at, timezone, :long))],
         completed_at && [t(:completed), cell.call(format_time(completed_at, timezone, :long))],
         [t(:signers), cell.call(signers_summary(submission, timezone))],
@@ -224,7 +227,8 @@ module Submissions
       end
 
       draw_table(composer, summary_rows.map { |label, value| [cell.call(label), value] },
-                 header: ['', ''], lead: heading_boxes(composer, t(:summary)), padding: cell_padding)
+                 header: [t(:envelope_heading, id: submission.id), ''], lead: heading_boxes(composer, t(:summary)),
+                 padding: cell_padding)
       offset = zone.at(completed_at || Time.current).formatted_offset
       composer.text(t(:times_note, zone: zone.tzinfo.name, offset:),
                     font_size: TYPE[:meta], fill_color: MUTED, padding: [5, 0, gap.call(4), 0])
@@ -435,8 +439,15 @@ module Submissions
 
               image_box = layout.image_box(io, width:, height:, margin: [2, 0, 2, 0])
 
-              if with_signature_id && field['type'].in?(%w[signature initials])
-                [image_box, layout.text_box("ID #{attachment.uuid.upcase}", style: :hash, fill_color: MUTED)]
+              if field['type'].in?(%w[signature initials])
+                method = attachment.metadata.to_h['signature_method']
+                caption = t(:"signature_method_#{method.presence_in(%w[typed drawn upload]) || 'unknown'}")
+
+                [image_box, layout.text_box(caption, font_size: TYPE[:meta], fill_color: MUTED),
+                 (if with_signature_id
+                    layout.text_box("ID #{attachment.uuid.upcase}", style: :hash, fill_color: MUTED)
+                  end)]
+                  .compact
               else
                 image_box
               end
@@ -536,11 +547,9 @@ module Submissions
             I18n.t('submission_event_names.invite_party_by_html', invited_submitter_name:,
                                                                   submitter_name:)
           elsif with_audit_sender && (event.event_type == 'send_email' || event.event_type == 'send_sms')
-            created_by_name = TextUtils.maybe_rtl_reverse(submission.created_by_user.full_name.to_s.squish)
-
             [
               I18n.t("submission_event_names.#{event.event_type}_to_html", submitter_name:),
-              "<b>#{I18n.t(:from)}</b> #{created_by_name} #{submission.created_by_user.email}"
+              "<b>#{I18n.t(:from)}</b> #{TextUtils.maybe_rtl_reverse(sender_label(submission.created_by_user))}"
             ].join("\n")
           elsif event.event_type == 'delegate_form'
             from = event.data['old_email'].presence ||
@@ -569,26 +578,36 @@ module Submissions
           text_box = [*text_box, " (#{submitter.email.squish.sub('@', "@\u200B")})"]
         end
 
-        unless event.event_type.start_with?('send_')
-          ip = event.data['ip'].present? ? "IP #{event.data['ip']}" : t(:ip_not_recorded)
-          text_box = [*text_box, "\n", { text: ip, font: MONO, font_size: MONO_SIZE, fill_color: MUTED }]
-        end
-
+        ip =
+          if event.event_type.start_with?('send_') then t(:sent_by_system)
+          elsif event.data['ip'].present? then "IP #{event.data['ip']}"
+          else t(:ip_not_recorded)
+          end
+        text_box = [*text_box, "\n", { text: ip, font: event.data['ip'].present? ? MONO : SANS,
+                                       font_size: event.data['ip'].present? ? MONO_SIZE : TYPE[:meta],
+                                       fill_color: MUTED }]
         [event.event_timestamp, composer.document.layout.formatted_text_box(text_box)]
       end
 
       bold = [SANS, { variant: :bold }]
-      created_text = [{ text: t(:event_created), font: bold }, (" #{t(:by)} #{sender.full_name.to_s.squish}" if sender)]
-      events_data.unshift([submission.created_at, layout.formatted_text_box(created_text.compact)])
+      system_line = { text: "\n#{t(:system_event)}", font_size: TYPE[:meta], fill_color: MUTED }
+      created_text =
+        if sender
+          [{ text: t(:event_created), font: bold }, " #{t(:by)} #{sender_label(sender)}",
+           { text: "\n#{t(:ip_not_recorded)}", font_size: TYPE[:meta], fill_color: MUTED }]
+        else
+          [{ text: t(:event_created), font: bold }, system_line]
+        end
+      events_data.unshift([submission.created_at, layout.formatted_text_box(created_text)])
 
       if completed_at
         events_data << [completed_at, layout.formatted_text_box([{ text: t(:event_completed), font: bold },
-                                                                 " #{t(:event_completed_detail)}"])]
+                                                                 " #{t(:event_completed_detail)}", system_line])]
       end
 
       if (sealed_at = select_attachments(last_submitter).map(&:created_at).max)
         events_data << [sealed_at, layout.formatted_text_box([{ text: t(:event_sealed), font: bold },
-                                                              " #{t(:event_sealed_detail)}"])]
+                                                              " #{t(:event_sealed_detail)}", system_line])]
       end
 
       # One row per event under a row for each day, so that times line up in a single column.
@@ -604,7 +623,11 @@ module Submissions
       if event_rows.present?
         draw_table(composer, event_rows, header: [t(:time), t(:event)], label_column: false, keep: true,
                                          column_widths: [EVENT_TIME_WIDTH, -1],
-                                         lead: heading_boxes(composer, I18n.t('event_log')), margin: gap.call(18),
+                                         lead: [*heading_boxes(composer, I18n.t('event_log')),
+                                                layout.text_box(t(:event_times_note, zone: zone.tzinfo.name, offset:),
+                                                                font_size: TYPE[:meta], fill_color: MUTED,
+                                                                margin: [0, 0, 6, 0])],
+                                         margin: gap.call(18),
                                          padding: cell_padding)
       end
 
@@ -835,6 +858,7 @@ module Submissions
                       sealed_at.between?(certificate.not_before, certificate.not_after) ? t(:valid_yes) : t(:valid_no)],
         [t(:sha256_fingerprint), hex_bytes(OpenSSL::Digest::SHA256.hexdigest(certificate.to_der)), :hash],
         [t(:algorithm), "#{key_text} key, #{certificate.signature_algorithm} signature"],
+        [t(:revocation), t(:revocation_note)],
         [t(:time_stamp_authority), tsa_host || t(:no_tsa)]
       ].compact
 
@@ -853,7 +877,7 @@ module Submissions
         ],
         column_widths: [LABEL_COLUMN_WIDTH, -1],
         header: lambda do |_table|
-          [[rule_cell, rule_cell]]
+          [[header_cell(layout, t(:certificate_heading), padding), header_cell(layout, '', padding)]]
         end,
         cell_style: lambda do |cell|
           cell.style.update(padding:, border: { width: [0, 0, HAIRLINE, 0], color: RULE })
@@ -865,6 +889,11 @@ module Submissions
       boxes = [*heading_boxes(composer, t(:signing_certificate)), table]
       keep_together(composer, boxes)
       boxes.each { |box| composer.draw_box(box) }
+    end
+
+    def header_cell(layout, text, padding)
+      { content: layout.text_box(text.to_s.upcase.presence || ' ', style: :eyebrow, fill_color: 'FFFFFF'),
+        background_color: NAVY, padding: }
     end
 
     def rule_cell
@@ -981,11 +1010,20 @@ module Submissions
 
         t(:signer_summary, name: TextUtils.maybe_rtl_reverse(name.to_s.squish),
                            role: TextUtils.maybe_rtl_reverse(item['name'].to_s), time:)
-      end.join("\n")
+      end.join("\n\n")
     end
 
+    # Non-breaking hyphens and spaces keep a UTC time on one line.
     def utc_time(time)
-      time.utc.strftime('%Y-%m-%d %H:%M:%S UTC')
+      time.utc.strftime('%Y-%m-%d %H:%M:%S UTC').tr('-', "\u2011").tr(' ', "\u00A0")
+    end
+
+    # The sender's name, with their address only when it is an institutional (stevensed.org) one.
+    def sender_label(user)
+      name = user.full_name.to_s.squish.presence || t(:staff_member)
+      email = user.email.to_s
+
+      email.end_with?('@stevensed.org') ? "#{name} (#{email})" : name
     end
 
     # The result PDF's page count, or nil when it cannot be read.

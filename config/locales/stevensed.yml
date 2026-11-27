@@ -142,7 +142,7 @@ en:
       valid_at_sealing: Valid when sealed
       sha256_fingerprint: SHA-256 fingerprint
       time_stamp_authority: Time-stamp authority (RFC 3161)
-      verification: This log and the documents it describes are signed with the certificate above. To confirm a signature, open the document in Adobe Acrobat or Reader and compare the certificate fingerprints with those published at
+      verification: This log and the documents it describes are signed with the certificate above. To confirm a signature, open the document in Adobe Acrobat or Reader and compare the certificate's SHA-256 fingerprint with the one published at
       verify_file: To confirm a file, compute its SHA-256 (for example with shasum -a 256 on macOS or Linux) and compare it with the value under Documents, ignoring spaces, colons and letter case.
       page_number_of_total: Page %{number} of %{total}
       field: Field
@@ -156,7 +156,7 @@ en:
       file_name: File
       original_sha256: Original file SHA-256 (hex)
       result_sha256: Signed file SHA-256 (hex)
-      sealed: Signed and sealed
+      sealed: Sealed with signing certificate
       title: Certificate of Completion and Audit Log
       status: Status
       status_completed:
@@ -186,6 +186,19 @@ en:
       signer_short: Signer %{number}
       ip_not_recorded: IP not recorded
       not_recorded: Not recorded
+      signature_method_typed: Adopted by typing the name
+      signature_method_drawn: Drawn by hand
+      signature_method_upload: Adopted by uploading an image
+      signature_method_unknown: Method of adoption not recorded
+      sent_by_system: Sent by StevensED Agreements (system)
+      system_event: Recorded by StevensED Agreements (system)
+      system_actor: StevensED Agreements (system)
+      staff_member: a StevensED staff member
+      event_times_note: Times in %{zone} (UTC%{offset}), with UTC below each.
+      envelope_heading: Envelope %{id}
+      certificate_heading: StevensED signing certificate
+      revocation: Revocation status at sealing
+      revocation_note: Not checked in this log. Adobe Acrobat and Reader report the certificate's revocation status when the signature is validated.
       event_completed: Envelope completed
       event_completed_detail: when the last signer signed
       valid_yes: Yes. The sealing time falls within the validity period above.
@@ -194,7 +207,7 @@ en:
       envelope: Envelope
       document_count: Document %{number} of %{total}
       page: page %{number}
-      signer_summary: '%{name} (%{role}), signed %{time}'
+      signer_summary: "%{name} (%{role})\nSigned %{time}"
       pages: Pages
       consent_record: Consent form
       version: version %{number}

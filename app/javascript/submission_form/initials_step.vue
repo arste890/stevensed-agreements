@@ -262,6 +262,7 @@ export default {
       isInitialsStarted: false,
       isUsePreviousValue: true,
       isDrawInitials: false,
+      isUploadedImage: false,
       errorMessage: '',
       uploadImageInputKey: Math.random().toString()
     }
@@ -356,6 +357,7 @@ export default {
     drawImage (event) {
       this.remove()
       this.isInitialsStarted = true
+      this.isUploadedImage = true
 
       this.drawOnCanvas(event.target.files[0], this.$refs.canvas)
 
@@ -371,6 +373,7 @@ export default {
       this.pad.clear()
 
       this.isInitialsStarted = false
+      this.isUploadedImage = false
       this.errorMessage = ''
 
       if (this.$refs.textInput) {
@@ -507,6 +510,8 @@ export default {
             formData.append('submitter_slug', this.submitterSlug)
             formData.append('name', 'attachments')
             formData.append('type', 'initials')
+            // StevensED: the audit log states how the initials were adopted.
+            formData.append('signature_method', this.isUploadedImage ? 'upload' : (this.isDrawInitials ? 'drawn' : 'typed'))
 
             return fetch(this.baseUrl + `/s/${this.submitterSlug}/upload`, {
               method: 'POST',
