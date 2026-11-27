@@ -142,12 +142,21 @@ class SubmitFormController < ApplicationController
   end
 
   def maybe_render_locked_page
-    return render :archived if @submitter.submission.template&.archived_at? ||
+    # StevensED: PolicySync archives a template when a newer form version replaces it. That locks unsigned links,
+    # but a signer who already completed the record still reaches the completed page (show redirects there), where
+    # the usual download rules apply. A record archived by staff, or an archived account, stays locked.
+    template_locked = @submitter.submission.template&.archived_at? && !signer_finished?(@submitter)
+
+    return render :archived if template_locked ||
                                @submitter.submission.archived_at? ||
                                @submitter.account.archived_at?
     return render :expired if @submitter.submission.expired?
 
     render :declined if @submitter.declined_at?
+  end
+
+  def signer_finished?(submitter)
+    submitter.completed_at? || (submitter.viewer? && submitter.submission.completed_at?)
   end
 
   def maybe_redirect_delegated
