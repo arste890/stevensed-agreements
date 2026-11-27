@@ -234,7 +234,9 @@ module Submissions
                     font_size: TYPE[:meta], fill_color: MUTED, padding: [5, 0, gap.call(4), 0])
 
       single_document = submission.schema_documents.size <= 1
-      documents_rows = select_attachments(last_submitter).flat_map do |document|
+      result_documents = select_attachments(last_submitter)
+      # Each document after the first opens with its own header row, so that its rows stay together.
+      documents_rows = result_documents.each_with_index.flat_map do |document, document_index|
         original_documents = submission.schema_documents.select do |e|
           e.uuid == (document.metadata['original_uuid'] || document.uuid)
         end.presence
@@ -248,6 +250,9 @@ module Submissions
         original_hashes = original_documents.map { |attachment| sha256_hex(attachment) }
 
         [
+          (if document_index.positive?
+             { header: [t(:document_count, number: document_index + 1, total: result_documents.size), ''] }
+           end),
           [cell.call(t(:file_name)), strong.call(TextUtils.maybe_rtl_reverse(document.filename.to_s))],
           original_hashes.present? &&
             [cell.call(t(:original_sha256)),
@@ -259,15 +264,11 @@ module Submissions
       end
 
       if documents_rows.present?
-        documents_header = if select_attachments(last_submitter).one?
-                             t(:document_count, number: 1,
-                                                total: 1)
-                           else
-                             t(:documents)
-                           end
-        draw_table(composer, documents_rows, header: [documents_header, ''],
-                                             lead: heading_boxes(composer, t(:documents)), margin: gap.call(4),
-                                             padding: cell_padding)
+        draw_table(composer, documents_rows,
+                   header: [t(:document_count, number: 1, total: result_documents.size), ''],
+                   continued: t(:continued, heading: t(:documents)),
+                   lead: heading_boxes(composer, t(:documents)), margin: gap.call(4),
+                   padding: cell_padding)
       end
 
       signers_heading = false
