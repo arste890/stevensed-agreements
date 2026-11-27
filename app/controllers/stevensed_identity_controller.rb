@@ -134,7 +134,7 @@ class StevensedIdentityController < ActionController::API
   end
 
   def managed_external_ids
-    Template.where("external_id ~ '^FRM-(108|101|103|105)(-[A-Z0-9]+)?_v'").pluck(:external_id)
+    Template.where('external_id ~ ?', Stevensed::IdentityEvents::FAMILY_EXTERNAL_IDS).pluck(:external_id)
   end
 
   def existing_for(request_id)

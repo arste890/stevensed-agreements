@@ -73,7 +73,7 @@ describe Stevensed::IdentityEvents do
   describe 'enqueueing' do
     it 'queues a completion for a form identity acts on, and nothing for other forms' do
       submission = stevensed_envelope(frm108, family_email: 'pat@family.test', staff_email: staff.email)
-      other = stevensed_form_template(account:, author: staff, external_id: 'FRM-301_v1.0',
+      other = stevensed_form_template(account:, author: staff, external_id: 'FRM-501_v1.0',
                                       fields: StevensedIdentityHelper::FRM101_FIELDS)
 
       expect { described_class.enqueue_completed(submission) }.to change(StevensedIdentityEventJob.jobs, :size).by(1)
@@ -102,6 +102,46 @@ describe Stevensed::IdentityEvents do
       end.to change(StevensedIdentityEventJob.jobs, :size).by(1)
       expect(described_class.build('envelope.archived', submission, event_id: 'x')['archived'])
         .to include('reason' => 'withdrawn', 'note' => 'Parent withdrew')
+    end
+  end
+
+  describe 'FRM-301' do
+    let(:choices) do
+      { '1. Student name' => 'Sam Student', '1. Academic year' => '2026-27',
+        '2. (a) Internal instructional use, including lesson recordings. Photos' => true,
+        "2. (b) Recital and performance programs. My student's name" => true,
+        '2. (d) StevensED social media accounts' => false, '2. First name only' => true }
+    end
+
+    it 'passes the choices, the name preference and the academic year' do
+      frm301 = stevensed_form_template(account:, author: staff, external_id: 'FRM-301-M_v3.2',
+                                       fields: StevensedIdentityHelper::FRM301_FIELDS, roles: %w[Parent])
+      submission = stevensed_envelope(frm301, family_email: 'pat@family.test', staff_email: staff.email,
+                                              values: choices)
+
+      event = described_class.build('envelope.completed', submission, event_id: 'x')
+
+      expect(event['envelope']).to include('form' => 'FRM-301', 'form_key' => 'FRM-301-M', 'title' => 'FRM-301-M v3.2')
+      expect(event['facts']).to eq('student_name' => 'Sam Student', 'academic_year' => '2026-27', 'under_13' => false,
+                                   'name_display' => 'first',
+                                   'choices' => { 'a' => true, 'b' => true, 'c' => false, 'd' => false, 'e' => false,
+                                                  'f' => false, 'g' => false })
+    end
+
+    it 'adds section 8 for the under-13 version' do
+      frm301 = stevensed_form_template(account:, author: staff, external_id: 'FRM-301-U13_v3.2',
+                                       fields: StevensedIdentityHelper::FRM301_U13_FIELDS)
+      section8 = { '1. Student date of birth' => '2016-04-03',
+                   '8. Parent consent verified by StevensED staff on (date)' => '2026-11-20',
+                   '8. StevensED staff member' => 'Alec Stevens', '8. Form version' => '3.2',
+                   '8. StevensED use only' => 'Payment' }
+      submission = stevensed_envelope(frm301, family_email: 'pat@family.test', staff_email: staff.email,
+                                              values: choices.merge(section8))
+
+      facts = described_class.build('envelope.completed', submission, event_id: 'x')['facts']
+
+      expect(facts).to include('under_13' => true, 'student_birth_date' => '2016-04-03', 'section_8_complete' => true)
+      expect(facts['section_8']).to include('method' => 'payment', 'staff' => 'Alec Stevens')
     end
   end
 
