@@ -17,6 +17,8 @@ Rails.application.routes.draw do
   get '/auth/failure', to: 'omniauth_callbacks#failure' # StevensED SSO
   get '/my_agreements', to: 'my_agreements#index', as: :my_agreements # StevensED client portal
   post '/upload_spreadsheet', to: 'upload_spreadsheets#create' # StevensED bulk send
+  get '/stevensed/identity/events', to: 'stevensed_identity#events' # StevensED: auth.stevensed.org reconcile
+  post '/stevensed/identity/envelopes', to: 'stevensed_identity#create_envelope' # StevensED: Send for signature
 
   get 'up' => 'rails/health#show'
   get 'manifest.json' => 'pwa#manifest', format: false, defaults: { format: :json }

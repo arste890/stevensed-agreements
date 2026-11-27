@@ -39,6 +39,8 @@ class ProcessSubmitterCompletionJob
 
       Stevensed::Records.supersede_earlier!(submission.reload) # StevensED: same signer, newer version of the form
 
+      Stevensed::IdentityEvents.enqueue_completed(submission) # StevensED: event for auth.stevensed.org
+
       enqueue_completed_emails(submitter)
     end
 
