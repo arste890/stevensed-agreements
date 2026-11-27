@@ -137,7 +137,8 @@ describe Submissions::GenerateAuditTrail do
 
     expect(text).to include(Stevensed.format_date(completed_at))
     local = /\b\d{1,2} [A-Z][a-z]+ \d{4}, \d{1,2}:\d{2}:\d{2} [AP]M [A-Z]+/
-    utc = /\(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} UTC\)/
+    # UTC times use non-breaking hyphens and spaces so that they never wrap.
+    utc = /\(\d{4}[-\u2011]\d{2}[-\u2011]\d{2}[ \u00A0]\d{2}:\d{2}:\d{2}[ \u00A0]UTC\)/
 
     expect(text).to match(/#{local} #{utc}/)
   end
@@ -173,5 +174,30 @@ describe Submissions::GenerateAuditTrail do
     text = pdf_text(described_class.build_audit_trail(link_submission.reload)).join("\n")
 
     expect(text).to include('SIGNER 1 OF 1', 'One-time code sent to the email address above', 'IP 203.0.113.5')
+    expect(text).to include('Method of adoption not recorded', 'Revocation status at sealing')
+  end
+
+  it 'states how each signature was adopted' do
+    signer = submission.submitters.first
+    field = submission.template_fields.find { |f| f['submitter_uuid'] == signer.uuid }
+    blob = ActiveStorage::Blob.create_and_upload!(io: Rails.root.join('spec/fixtures/sample-image.png').open,
+                                                  filename: 'signature.png')
+    attachment = ActiveStorage::Attachment.create!(blob:, name: :attachments, record: signer,
+                                                   metadata: { signature_method: 'typed' })
+    field['type'] = 'signature'
+    submission.update!(template_fields: submission.template_fields)
+    signer.update!(values: signer.values.merge(field['uuid'] => attachment.uuid))
+
+    expect(pdf_text(build).join("\n")).to include('Adopted by typing the name')
+  end
+
+  it 'prints only an institutional sender address' do
+    create(:account_config, account:, key: AccountConfig::WITH_AUDIT_SENDER_KEY, value: true)
+    author.update!(email: 'someone@example.com')
+
+    text = pdf_text(build).join("\n")
+
+    expect(text).to include(author.full_name)
+    expect(text).not_to include('someone@example.com')
   end
 end

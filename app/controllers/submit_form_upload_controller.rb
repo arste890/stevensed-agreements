@@ -29,6 +29,8 @@ class SubmitFormUploadController < ActionController::API
       end
 
       metadata = { analyzed: true, identified: true, width: image.width, height: image.height }
+      # StevensED: how the signer adopted the signature (typed, drawn or an uploaded image), for the audit log.
+      metadata[:signature_method] = params[:signature_method] if params[:signature_method].in?(%w[typed drawn upload])
     end
 
     attachment = Submitters.create_attachment!(@submitter, file, metadata:)
