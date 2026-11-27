@@ -53,10 +53,36 @@ describe Submissions::GenerateAuditTrail do
     text = pdf_text(build).join("\n")
     certificate = Accounts.load_signing_pkcs(account).certificate
 
-    expect(text).to include(certificate.serial.to_s(16).upcase)
+    serial = certificate.serial.to_s(16).upcase.then { |hex| hex.length.odd? ? "0#{hex}" : hex }
+
+    expect(text.gsub(/\s+/, '')).to include(serial.scan(/../).join(':'))
     expect(text.gsub(/\s+/, '')).to include(OpenSSL::Digest::SHA256.hexdigest(certificate.to_der).upcase
                                                                    .scan(/../).join(':'))
+    expect(text).to include('CERTIFICATE', 'DETAIL', 'SHA-256 FINGERPRINT')
     expect(text).not_to match(/PRIVATE KEY|password/i)
+  end
+
+  it 'splits the fingerprint into two even halves of 16 bytes' do
+    text = pdf_text(build).join("\n")
+    bytes = OpenSSL::Digest::SHA256.hexdigest(Accounts.load_signing_pkcs(account).certificate.to_der).upcase.scan(/../)
+
+    expect(text).to include("#{bytes[0, 16].join(':')}:\n#{bytes[16, 16].join(':')}")
+      .or include("#{bytes[0, 16].join(':')}:\r\n#{bytes[16, 16].join(':')}")
+  end
+
+  it 'repeats a running header on continuation pages and sets every label in capitals' do
+    pages = pdf_text(build)
+    header = "#{Stevensed::PRODUCT_NAME} · #{I18n.t('audit_log')} · Envelope #{submission.id}"
+
+    expect(pages.first).not_to include(header)
+    expect(pages.drop(1)).to all(include(header)) if pages.size > 1
+    expect(pages.join("\n")).to include('IP ADDRESS', 'USER AGENT', 'TIME ZONE')
+    expect(pages.join("\n")).not_to include('IP address:', 'User agent:')
+  end
+
+  it 'splits document hashes by character and hexadecimal values by whole bytes' do
+    expect(described_class.even_halves(('A' * 22) + ('B' * 22))).to eq("#{'A' * 22}\n#{'B' * 22}")
+    expect(described_class.hex_bytes('ABC')).to eq('0A:BC')
   end
 
   it 'embeds the brand fonts' do
@@ -64,7 +90,7 @@ describe Submissions::GenerateAuditTrail do
       obj[:BaseFont].to_s if obj.is_a?(HexaPDF::Dictionary) && obj[:Type] == :Font
     end
 
-    expect(font_names.join(' ')).to include('Inter', 'CormorantGaramond')
+    expect(font_names.join(' ')).to include('Inter', 'CormorantGaramond', 'DejaVuSansMono')
   end
 
   it 'names each signer by legal name and leaves section numbers out of field labels' do

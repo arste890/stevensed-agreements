@@ -13,6 +13,8 @@ module Submissions
     BRAND_FONTS_DIR = Rails.root.join('lib/stevensed/fonts')
     SANS = 'Inter'
     SERIF = 'Cormorant Garamond'
+    # Hashes, fingerprints and serial numbers are set in a monospaced face so that their characters line up.
+    MONO = 'DejaVu Sans Mono'
     FONT_NAME = SANS
     LOCKUP_PATH = Rails.root.join('lib/stevensed/pdf/lockup-reverse.pdf')
 
@@ -31,6 +33,11 @@ module Submissions
     BAND_HEIGHT = 84
     CORAL_RULE_HEIGHT = 4
     FOOTER_HEIGHT = 44
+    # Continuation pages carry a slim running header: a line of text above a hairline, mirroring the footer.
+    HEADER_RULE_FROM_TOP = 38
+    LABEL_COLUMN_WIDTH = 170
+    DETAIL_LABEL_WIDTH = 104
+    CELL_PADDING = [5, 8, 4, 8].freeze
 
     CURRENCY_SYMBOLS = {
       'USD' => '$',
@@ -135,7 +142,12 @@ module Submissions
                                                           FOOTER_HEIGHT + 14, MARGIN_X])
       end
 
+      running_header = t(:running_header, product: Stevensed::PRODUCT_NAME, title: I18n.t('audit_log'),
+                                          id: submission.id)
+
       composer.page_style(:default, page_size:) do |canvas, style|
+        draw_running_header(canvas, composer.document, running_header)
+
         style.frame = style.create_frame(canvas.context, [MARGIN_X, MARGIN_X, FOOTER_HEIGHT + 14, MARGIN_X])
       end
 
@@ -144,6 +156,7 @@ module Submissions
       composer.style(:label, font: [SANS, { variant: :bold }], fill_color: MUTED)
       composer.style(:eyebrow, font: [SANS, { variant: :bold }], font_size: 6.5, fill_color: MUTED,
                                character_spacing: 0.7)
+      composer.style(:hash, font: MONO, font_size: 7.5, fill_color: INK, line_spacing: 1.45)
       composer.style(:section, font: [SERIF, { variant: :bold }], font_size: 15, fill_color: INK,
                                padding: [16, 0, 4, 0])
 
@@ -193,16 +206,16 @@ module Submissions
           ),
           composer.document.layout.formatted_text_box(
             [
-              { text: "#{I18n.t('original_sha256')}\n", style: :eyebrow },
-              { text: original_documents.map { |d| d.metadata['sha256'] || d.checksum }
-                                        .first(CHECKSUM_LIMIT).join("\n"), font_size: 7.5 },
+              { text: "#{I18n.t('original_sha256').upcase}\n", style: :eyebrow },
+              { text: original_documents.map { |d| even_halves(d.metadata['sha256'] || d.checksum) }
+                                        .first(CHECKSUM_LIMIT).join("\n"), style: :hash },
               "\n",
-              { text: "#{I18n.t('result_sha256')}\n", style: :eyebrow },
-              { text: (document.metadata['sha256'] || document.checksum).to_s, font_size: 7.5 },
+              { text: "#{I18n.t('result_sha256').upcase}\n", style: :eyebrow },
+              { text: even_halves(document.metadata['sha256'] || document.checksum), style: :hash },
               "\n",
-              { text: "#{I18n.t('generated_at')}\n", style: :eyebrow },
+              { text: "#{I18n.t('generated_at').upcase}\n", style: :eyebrow },
               format_time(document.created_at, timezone, :long)
-            ], line_spacing: 1.4
+            ], line_spacing: 1.45
           )
         ]
       end
@@ -245,9 +258,7 @@ module Submissions
         kba_answers = complete_kba_event.data['answers']
         kba_score = " (#{kba_answers['correct']}/#{kba_answers['asked']})" if kba_answers
 
-        detail = lambda do |label, value|
-          [{ text: "#{label}: ", style: :label }, { text: "#{value}\n" }]
-        end
+        detail = ->(label, value) { [[label, value]] }
 
         identity_box = composer.document.layout.formatted_text_box(
           [
@@ -264,22 +275,44 @@ module Submissions
           ].compact_blank, line_spacing: 1.4, padding: [0, 14, 0, 0]
         )
 
-        details_box = composer.document.layout.formatted_text_box(
-          [
-            submitter.viewer? && { text: "#{I18n.t('view_only')}\n" },
-            *(submitter.email && (click_email_event || verify_email_event) &&
-              detail.call(I18n.t('email_verification'), I18n.t('verified'))),
-            *(submitter.phone && verify_phone_event && detail.call(I18n.t('phone_verification'), I18n.t('verified'))),
-            *(is_id_verified && detail.call(I18n.t('identity_verification'), I18n.t('verified'))),
-            *(complete_kba_event.persisted? &&
-              detail.call(I18n.t('knowledge_based_authentication'), "#{I18n.t('passed')}#{kba_score}")),
-            esign_consent_event && { text: Stevensed::Consents.audit_line(esign_consent_event, timezone:) },
-            *(completed_event.data['ip'] && detail.call(t(:ip_address), completed_event.data['ip'])),
-            *(completed_event.data['sid'] && detail.call(I18n.t('session_id'), completed_event.data['sid'])),
-            *(completed_event.data['ua'] && detail.call(t(:user_agent), completed_event.data['ua'].to_s.squish)),
-            *(submitter.timezone && detail.call(t(:time_zone), submitter.timezone.to_s.sub('Kiev', 'Kyiv')))
-          ].compact_blank, line_spacing: 1.4
-        )
+        # The consent record is one or more "Label: value" lines; each becomes a row like the other details.
+        consent_rows =
+          if esign_consent_event
+            Stevensed::Consents.audit_line(esign_consent_event, timezone:).lines.map(&:strip).compact_blank
+                                .map { |line| line.split(': ', 2) }
+          end
+
+        detail_rows = [
+          *(submitter.viewer? && detail.call(t(:access), I18n.t('view_only'))),
+          *(submitter.email && (click_email_event || verify_email_event) &&
+            detail.call(I18n.t('email_verification'), I18n.t('verified'))),
+          *(submitter.phone && verify_phone_event && detail.call(I18n.t('phone_verification'), I18n.t('verified'))),
+          *(is_id_verified && detail.call(I18n.t('identity_verification'), I18n.t('verified'))),
+          *(complete_kba_event.persisted? &&
+            detail.call(I18n.t('knowledge_based_authentication'), "#{I18n.t('passed')}#{kba_score}")),
+          *consent_rows,
+          *(completed_event.data['ip'] && detail.call(t(:ip_address), completed_event.data['ip'])),
+          *(completed_event.data['sid'] && detail.call(I18n.t('session_id'), completed_event.data['sid'])),
+          *(completed_event.data['ua'] && detail.call(t(:user_agent), completed_event.data['ua'].to_s.squish)),
+          *(submitter.timezone && detail.call(t(:time_zone), submitter.timezone.to_s.sub('Kiev', 'Kyiv')))
+        ].grep(Array)
+
+        details_box =
+          if detail_rows.present?
+            composer.document.layout.table_box(
+              detail_rows.map do |label, value|
+                if value.nil?
+                  [{ content: composer.document.layout.text_box(label.to_s), col_span: 2 }]
+                else
+                  [label_box(composer.document.layout, label), composer.document.layout.text_box(value.to_s)]
+                end
+              end,
+              column_widths: [DETAIL_LABEL_WIDTH, -1],
+              cell_style: { padding: [0, 0, 4, 0], border: { width: 0 } }
+            )
+          else
+            composer.document.layout.text_box('')
+          end
 
         panel_box = composer.document.layout.table_box(
           [[identity_box, details_box]],
@@ -579,6 +612,7 @@ module Submissions
         SANS => sans,
         # PDF/A embeds every font, so anything that asks for Helvetica (such as the signature field) gets Inter.
         'Helvetica' => sans,
+        MONO => { none: BRAND_FONTS_DIR.join('DejaVuSansMono.ttf').to_s },
         SERIF => {
           none: BRAND_FONTS_DIR.join('CormorantGaramond-Medium.ttf').to_s,
           bold: BRAND_FONTS_DIR.join('CormorantGaramond-SemiBold.ttf').to_s
@@ -662,31 +696,89 @@ module Submissions
                          name_part.call(certificate.subject, 'O')].compact.join(', ')],
         [t(:certificate_issuer), name_part.call(certificate.issuer, 'CN') || certificate.issuer.to_s],
         root && [t(:root_certificate), name_part.call(root.subject, 'CN') || root.subject.to_s],
-        [t(:serial_number), certificate.serial.to_s(16).upcase],
+        [t(:serial_number), hex_bytes(certificate.serial.to_s(16)), :hash],
         [t(:valid), "#{Stevensed.format_date(certificate.not_before.in_time_zone(timezone))} to " \
                     "#{Stevensed.format_date(certificate.not_after.in_time_zone(timezone))}"],
-        [t(:sha256_fingerprint), OpenSSL::Digest::SHA256.hexdigest(certificate.to_der).upcase.scan(/../)
-                                                      .each_slice(16).map { |bytes| bytes.join(':') }.join(":\n")],
+        [t(:sha256_fingerprint), hex_bytes(OpenSSL::Digest::SHA256.hexdigest(certificate.to_der)), :hash],
         tsa_host && [t(:time_stamp_authority), tsa_host]
       ].compact
 
       layout = composer.document.layout
-      table = layout.table_box(
-        rows.map do |label, value|
-          [layout.text_box(label.to_s.upcase, style: :eyebrow, padding: [2, 0, 0, 0]), layout.text_box(value.to_s)]
-        end,
-        column_widths: [130, -1],
-        cell_style: { padding: [0, 0, 5, 0], border: { width: 0 } }
-      )
       note = layout.formatted_text_box(
         ["#{t(:verification)} ", { link: Stevensed::PKI_URL, text: Stevensed::PKI_URL.delete_suffix('/'),
-                                   style: :link }, '.'],
-        fill_color: MUTED, padding: [6, 0, 0, 0]
+                                   style: :link, font_size: 7.5 }, '.'],
+        fill_color: MUTED, font_size: 7.5
       )
 
-      section_heading(composer, t(:signing_certificate), keep: [table, note])
+      table = layout.table_box(
+        [
+          *rows.map do |label, value, style|
+            [label_box(layout, label), style ? layout.text_box(value.to_s, style:) : layout.text_box(value.to_s)]
+          end,
+          [{ content: note, col_span: 2 }]
+        ],
+        column_widths: [LABEL_COLUMN_WIDTH, -1],
+        header: ->(_table) { [[header_cell(layout, t(:certificate)), header_cell(layout, t(:detail))]] },
+        cell_style: lambda do |cell|
+          cell.style.update(padding: CELL_PADDING, border: { width: [0, 0, 0.5, 0], color: RULE })
+          if cell.col_span > 1
+            cell.style.update(background_color: PANEL, padding: [7, 8, 6, 8], border: { width: 0 })
+          elsif cell.column.zero?
+            cell.style.update(background_color: LABEL_CELL)
+          end
+        end,
+        margin: [0, 0, 18, 0]
+      )
+
+      section_heading(composer, t(:signing_certificate), keep: [table])
       composer.draw_box(table)
-      composer.draw_box(note)
+    end
+
+    def header_cell(layout, text)
+      { content: layout.text_box(text.upcase, style: :eyebrow, fill_color: 'FFFFFF'), background_color: NAVY,
+        padding: CELL_PADDING }
+    end
+
+    # Labels throughout the log are set the same way: small tracked capitals in the muted colour.
+    def label_box(layout, text)
+      layout.text_box(text.to_s.upcase, style: :eyebrow, padding: [2, 0, 0, 0])
+    end
+
+    # A hexadecimal value as colon-separated bytes, in two even halves.
+    def hex_bytes(hex)
+      hex = hex.to_s.upcase
+      even_halves((hex.length.odd? ? "0#{hex}" : hex).scan(/../).join(':'))
+    end
+
+    # Splits a long hash into two lines of equal length: whole bytes when the value is colon-separated,
+    # otherwise characters.
+    def even_halves(value)
+      value = value.to_s
+
+      return value if value.length < 32
+
+      if value.include?(':')
+        bytes = value.split(':')
+        half = (bytes.size / 2.0).ceil
+
+        "#{bytes[0...half].join(':')}:\n#{bytes[half..].join(':')}"
+      else
+        half = (value.length / 2.0).ceil
+
+        "#{value[0...half]}\n#{value[half..]}"
+      end
+    end
+
+    def draw_running_header(canvas, document, text)
+      box = canvas.context.box(:media)
+      rule_y = box.height - HEADER_RULE_FROM_TOP
+
+      canvas.save_graphics_state do
+        canvas.stroke_color(RULE).line_width(0.75).line(MARGIN_X, rule_y, box.width - MARGIN_X, rule_y).stroke
+      end
+
+      draw_text_box(canvas, document.layout.text_box(text, font: SANS, font_size: 6.5, fill_color: MUTED),
+                    MARGIN_X, rule_y + 5, box.width - (MARGIN_X * 2), 14)
     end
 
     def add_footers(document, submission, with_signature_id)

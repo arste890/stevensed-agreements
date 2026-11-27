@@ -121,6 +121,10 @@ en:
       page_number_of_total: Page %{number} of %{total}
       field: Field
       entry: Entry
+      certificate: Certificate
+      detail: Detail
+      access: Access
+      running_header: '%{product} · %{title} · Envelope %{id}'
       'yes': 'Yes'
       'no': 'No'
     personalization:
