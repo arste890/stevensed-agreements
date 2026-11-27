@@ -20,7 +20,19 @@ module Stevensed
     end
 
     def combined_allowed?(submission)
-      complete?(submission) && submission.template_fields.to_a.none? { |f| f['type'] == 'verification' }
+      complete?(submission) && fields(submission).none? { |f| f['type'] == 'verification' }
+    end
+
+    # List queries load submissions without template_fields (select_for_list); read the column on its own then.
+    def fields(submission)
+      raw =
+        if submission.has_attribute?(:template_fields)
+          submission.template_fields
+        else
+          Submission.where(id: submission.id).pick(:template_fields)
+        end
+
+      (raw.presence || submission.template&.fields).to_a
     end
 
     # In menu order: completed document, audit log, combined.
