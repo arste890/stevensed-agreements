@@ -13,6 +13,8 @@ module Submissions
     BRAND_FONTS_DIR = Rails.root.join('lib/stevensed/fonts')
     SANS = 'Inter'
     SERIF = 'Cormorant Garamond'
+    # Hashes, fingerprints and serial numbers are set in a monospaced face so that their characters line up.
+    MONO = 'DejaVu Sans Mono'
     FONT_NAME = SANS
     LOCKUP_PATH = Rails.root.join('lib/stevensed/pdf/lockup-reverse.pdf')
 
@@ -31,6 +33,29 @@ module Submissions
     BAND_HEIGHT = 84
     CORAL_RULE_HEIGHT = 4
     FOOTER_HEIGHT = 44
+    # Continuation pages carry a slim running header: a line of text above a hairline, mirroring the footer.
+    HEADER_RULE_FROM_TOP = 38
+    LABEL_COLUMN_WIDTH = 170
+    DETAIL_LABEL_WIDTH = 104
+    CELL_PADDING = [5, 8, 4, 8].freeze
+    # Event log date and time columns, measured in Inter at body size with cell padding: "28 September 2026", and
+    # "12:46 AM AKST" or, with seconds, "12:46:05 AM AKST", each on one line.
+    EVENT_DATE_WIDTH = 98
+    EVENT_TIME_WIDTH = 80
+    EVENT_TIME_WITH_SECONDS_WIDTH = 93
+    # Every rule in the log is one hairline in one colour.
+    HAIRLINE = 0.5
+
+    # One modular type scale (major second, 1.125) built on the 8.5 pt body size.
+    TYPE = { label: -2, meta: -1, body: 0, name: 2, section: 5, band: 7, title: 9 }
+           .transform_values { |step| (8.5 * (1.125**step)).round(2) }.freeze
+
+    # Pagination: a table never opens or closes a page with fewer than this many rows (orphans and widows).
+    MIN_ROWS = 3
+    # When the last page would be less than this full, the log is set again with tighter vertical spacing and the
+    # tighter version is kept if it saves the page.
+    SPARSE_LAST_PAGE = 0.4
+    COMPACT_RHYTHM = 0.7
 
     CURRENCY_SYMBOLS = {
       'USD' => '$',
@@ -91,7 +116,21 @@ module Submissions
     end
 
     def build_audit_trail(submission)
+      document, fill = compose_audit_trail(submission, rhythm: 1)
+
+      if document.pages.count > 1 && fill < SPARSE_LAST_PAGE
+        compact, = compose_audit_trail(submission, rhythm: COMPACT_RHYTHM)
+        document = compact if compact.pages.count < document.pages.count
+      end
+
+      document
+    end
+
+    # Sets the log with vertical spacing scaled by rhythm. Returns the document and how full its last page is.
+    def compose_audit_trail(submission, rhythm:)
       account = submission.account
+      gap = ->(points) { (points * rhythm).round(2) }
+      cell_padding = [gap.call(CELL_PADDING[0]), CELL_PADDING[1], gap.call(CELL_PADDING[2]), CELL_PADDING[3]]
 
       page_size = Stevensed.page_size(account)
 
@@ -135,24 +174,31 @@ module Submissions
                                                           FOOTER_HEIGHT + 14, MARGIN_X])
       end
 
+      running_header = t(:running_header, product: Stevensed::PRODUCT_NAME, title: I18n.t('audit_log'),
+                                          id: submission.id)
+
       composer.page_style(:default, page_size:) do |canvas, style|
+        draw_running_header(canvas, composer.document, running_header)
+
         style.frame = style.create_frame(canvas.context, [MARGIN_X, MARGIN_X, FOOTER_HEIGHT + 14, MARGIN_X])
       end
 
       composer.style(:base, font: SANS, font_size: FONT_SIZE, fill_color: INK, line_spacing: 1.35)
       composer.style(:link, fill_color: NAVY, underline: true)
       composer.style(:label, font: [SANS, { variant: :bold }], fill_color: MUTED)
-      composer.style(:eyebrow, font: [SANS, { variant: :bold }], font_size: 6.5, fill_color: MUTED,
+      composer.style(:eyebrow, font: [SANS, { variant: :bold }], font_size: TYPE[:label], fill_color: MUTED,
                                character_spacing: 0.7)
-      composer.style(:section, font: [SERIF, { variant: :bold }], font_size: 15, fill_color: INK,
-                               padding: [16, 0, 4, 0])
+      composer.style(:hash, font: MONO, font_size: TYPE[:meta], fill_color: INK, line_spacing: 1.45)
+      composer.style(:section, font: [SERIF, { variant: :bold }], font_size: TYPE[:section], fill_color: INK,
+                               padding: [gap.call(18), 0, 4, 0])
 
       composer.new_page(:first)
 
       completed_at = last_submitter&.completed_at
 
       composer.text(account.testing? ? I18n.t('testing_log_not_for_production_use') : I18n.t('audit_log'),
-                    font: [SERIF, { variant: :bold }], font_size: 26, fill_color: INK, padding: [0, 0, 8, 0])
+                    font: [SERIF, { variant: :bold }], font_size: TYPE[:title], fill_color: INK,
+                    padding: [0, 0, gap.call(8), 0])
 
       summary_rows = [
         [I18n.t('envelope_id'), submission.id.to_s],
@@ -168,11 +214,10 @@ module Submissions
 
       composer.table(
         summary_rows.map do |label, value|
-          [composer.document.layout.text_box(label.to_s.upcase, style: :eyebrow, padding: [2, 0, 0, 0]),
-           composer.document.layout.formatted_text_box([value])]
+          [label_box(composer.document.layout, label), composer.document.layout.formatted_text_box([value])]
         end,
-        column_widths: [110, -1],
-        cell_style: { padding: [0, 0, 5, 0], border: { width: 0 } }
+        column_widths: [LABEL_COLUMN_WIDTH + CELL_PADDING[3], -1],
+        cell_style: { padding: [0, 0, gap.call(5), 0], border: { width: 0 } }
       )
 
       documents_data = select_attachments(last_submitter).map do |document|
@@ -188,29 +233,28 @@ module Submissions
 
         [
           composer.document.layout.formatted_text_box(
-            [{ text: TextUtils.maybe_rtl_reverse(document.filename.to_s), font: [SANS, { variant: :bold }] }],
-            padding: [0, 12, 0, 0]
+            [{ text: TextUtils.maybe_rtl_reverse(document.filename.to_s), font: [SANS, { variant: :bold }] }]
           ),
           composer.document.layout.formatted_text_box(
             [
-              { text: "#{I18n.t('original_sha256')}\n", style: :eyebrow },
-              { text: original_documents.map { |d| d.metadata['sha256'] || d.checksum }
-                                        .first(CHECKSUM_LIMIT).join("\n"), font_size: 7.5 },
+              { text: "#{I18n.t('original_sha256').upcase}\n", style: :eyebrow },
+              { text: original_documents.map { |d| even_halves(d.metadata['sha256'] || d.checksum) }
+                                        .first(CHECKSUM_LIMIT).join("\n"), style: :hash },
               "\n",
-              { text: "#{I18n.t('result_sha256')}\n", style: :eyebrow },
-              { text: (document.metadata['sha256'] || document.checksum).to_s, font_size: 7.5 },
+              { text: "#{I18n.t('result_sha256').upcase}\n", style: :eyebrow },
+              { text: even_halves(document.metadata['sha256'] || document.checksum), style: :hash },
               "\n",
-              { text: "#{I18n.t('generated_at')}\n", style: :eyebrow },
+              { text: "#{I18n.t('generated_at').upcase}\n", style: :eyebrow },
               format_time(document.created_at, timezone, :long)
-            ], line_spacing: 1.4
+            ], line_spacing: 1.45
           )
         ]
       end
 
       if documents_data.present?
-        section_heading(composer, t(:documents))
-        composer.table(documents_data, column_widths: [170, -1],
-                                       cell_style: { padding: [0, 0, 14, 0], border: { width: 0 } })
+        draw_table(composer, documents_data, header: [t(:document), t(:detail)], label_column: true,
+                                             lead: heading_boxes(composer, t(:documents)), margin: gap.call(4),
+                                             padding: cell_padding)
       end
 
       signers_heading = false
@@ -245,9 +289,7 @@ module Submissions
         kba_answers = complete_kba_event.data['answers']
         kba_score = " (#{kba_answers['correct']}/#{kba_answers['asked']})" if kba_answers
 
-        detail = lambda do |label, value|
-          [{ text: "#{label}: ", style: :label }, { text: "#{value}\n" }]
-        end
+        detail = ->(label, value) { [[label, value]] }
 
         identity_box = composer.document.layout.formatted_text_box(
           [
@@ -255,8 +297,9 @@ module Submissions
               fill_color: CORAL },
             (signer_name = Stevensed::SignerName.for(submitter)) &&
               { text: "#{TextUtils.maybe_rtl_reverse(signer_name.squish)}\n", font: [SANS, { variant: :bold }],
-                font_size: 10 },
-            submitter.email && { text: "#{submitter.email.squish}\n" },
+                font_size: TYPE[:name] },
+            # A zero-width space after the @ lets a long address wrap there rather than mid-word.
+            submitter.email && { text: "#{submitter.email.squish.sub('@', "@\u200B")}\n" },
             submitter.phone && { text: "#{submitter.phone.squish}\n" },
             submitter.completed_at && { text: "#{t(:completed)} " \
                                               "#{format_time(submitter.completed_at, timezone, :long)}\n",
@@ -264,29 +307,51 @@ module Submissions
           ].compact_blank, line_spacing: 1.4, padding: [0, 14, 0, 0]
         )
 
-        details_box = composer.document.layout.formatted_text_box(
-          [
-            submitter.viewer? && { text: "#{I18n.t('view_only')}\n" },
-            *(submitter.email && (click_email_event || verify_email_event) &&
-              detail.call(I18n.t('email_verification'), I18n.t('verified'))),
-            *(submitter.phone && verify_phone_event && detail.call(I18n.t('phone_verification'), I18n.t('verified'))),
-            *(is_id_verified && detail.call(I18n.t('identity_verification'), I18n.t('verified'))),
-            *(complete_kba_event.persisted? &&
-              detail.call(I18n.t('knowledge_based_authentication'), "#{I18n.t('passed')}#{kba_score}")),
-            esign_consent_event && { text: Stevensed::Consents.audit_line(esign_consent_event, timezone:) },
-            *(completed_event.data['ip'] && detail.call(t(:ip_address), completed_event.data['ip'])),
-            *(completed_event.data['sid'] && detail.call(I18n.t('session_id'), completed_event.data['sid'])),
-            *(completed_event.data['ua'] && detail.call(t(:user_agent), completed_event.data['ua'].to_s.squish)),
-            *(submitter.timezone && detail.call(t(:time_zone), submitter.timezone.to_s.sub('Kiev', 'Kyiv')))
-          ].compact_blank, line_spacing: 1.4
-        )
+        # The consent record is one or more "Label: value" lines; each becomes a row like the other details.
+        consent_rows =
+          if esign_consent_event
+            Stevensed::Consents.audit_line(esign_consent_event, timezone:).lines.map(&:strip).compact_blank
+                                .map { |line| line.split(': ', 2) }
+          end
+
+        detail_rows = [
+          *(submitter.viewer? && detail.call(t(:access), I18n.t('view_only'))),
+          *(submitter.email && (click_email_event || verify_email_event) &&
+            detail.call(I18n.t('email_verification'), I18n.t('verified'))),
+          *(submitter.phone && verify_phone_event && detail.call(I18n.t('phone_verification'), I18n.t('verified'))),
+          *(is_id_verified && detail.call(I18n.t('identity_verification'), I18n.t('verified'))),
+          *(complete_kba_event.persisted? &&
+            detail.call(I18n.t('knowledge_based_authentication'), "#{I18n.t('passed')}#{kba_score}")),
+          *consent_rows,
+          *(completed_event.data['ip'] && detail.call(t(:ip_address), completed_event.data['ip'])),
+          *(completed_event.data['sid'] && detail.call(I18n.t('session_id'), completed_event.data['sid'])),
+          *(completed_event.data['ua'] && detail.call(t(:user_agent), completed_event.data['ua'].to_s.squish)),
+          *(submitter.timezone && detail.call(t(:time_zone), submitter.timezone.to_s.sub('Kiev', 'Kyiv')))
+        ].grep(Array)
+
+        details_box =
+          if detail_rows.present?
+            composer.document.layout.table_box(
+              detail_rows.map do |label, value|
+                if value.nil?
+                  [{ content: composer.document.layout.text_box(label.to_s), col_span: 2 }]
+                else
+                  [label_box(composer.document.layout, label), composer.document.layout.text_box(value.to_s)]
+                end
+              end,
+              column_widths: [DETAIL_LABEL_WIDTH, -1],
+              cell_style: { padding: [0, 0, 4, 0], border: { width: 0 } }
+            )
+          else
+            composer.document.layout.text_box('')
+          end
 
         panel_box = composer.document.layout.table_box(
           [[identity_box, details_box]],
-          column_widths: [170, -1],
+          column_widths: [LABEL_COLUMN_WIDTH, -1],
           cell_style: { padding: [10, 12, 8, 12], background_color: PANEL,
                         border: { width: [0, 0, 0, 2], color: NAVY } },
-          margin: [0, 0, 10, 0]
+          margin: [0, 0, gap.call(10), 0]
         )
 
         submitter_field_counters = Hash.new { 0 }
@@ -428,36 +493,18 @@ module Submissions
           ]
         end
 
-        fields_box =
-          if field_rows.present?
-            layout.table_box(
-              field_rows,
-              column_widths: [170, -1],
-              header: lambda do |_table|
-                [[{ content: layout.text_box(t(:field).upcase, style: :eyebrow, fill_color: 'FFFFFF'),
-                    background_color: NAVY, padding: [5, 8, 4, 8] },
-                  { content: layout.text_box(t(:entry).upcase, style: :eyebrow, fill_color: 'FFFFFF'),
-                    background_color: NAVY, padding: [5, 8, 4, 8] }]]
-              end,
-              cell_style: lambda do |cell|
-                cell.style.update(padding: [5, 8, 4, 8], border: { width: [0, 0, 0.5, 0], color: RULE })
-                cell.style.update(background_color: LABEL_CELL) if cell.column.zero?
-              end,
-              margin: [0, 0, 18, 0]
-            )
-          end
+        # The signer's card stays with the first rows of the signer's entries (and the Signers heading with the
+        # first card); longer lists continue on the next page under a repeated header row.
+        lead = [*(heading_boxes(composer, t(:signers)) unless signers_heading), panel_box]
+        signers_heading = true
 
-        # A signer's card and entries stay on one page when they fit on one; longer lists continue on the next
-        # page under a repeated header.
-        if signers_heading
-          keep_together(composer, [panel_box, fields_box].compact)
+        if field_rows.present?
+          draw_table(composer, field_rows, header: [t(:field), t(:entry)], label_column: true, lead:,
+                                           margin: gap.call(18), padding: cell_padding)
         else
-          section_heading(composer, t(:signers), keep: [panel_box, fields_box].compact)
-          signers_heading = true
+          keep_together(composer, lead)
+          lead.each { |box| composer.draw_box(box) }
         end
-
-        composer.draw_box(panel_box)
-        fields_box ? composer.draw_box(fields_box) : composer.formatted_text_box([{ text: '' }], margin: [0, 0, 8, 0])
       end
 
       submitter_versions_index = submission.submitters.preload(:submitter_versions).to_h do |s|
@@ -530,47 +577,112 @@ module Submissions
 
         time_format = with_timestamp_seconds ? :detailed : :long
 
+        date, time = format_time(event.event_timestamp, timezone, time_format).split(', ', 2)
+
         [
-          composer.document.layout.text_box(format_time(event.event_timestamp, timezone, time_format),
-                                            fill_color: MUTED),
+          composer.document.layout.text_box(date, fill_color: MUTED),
+          composer.document.layout.text_box(time.to_s, fill_color: MUTED, text_align: :right),
           composer.document.layout.formatted_text_box(text_box)
         ]
       end
 
       if events_data.present?
-        section_heading(composer, I18n.t('event_log'))
+        # Date and time sit in their own columns so that times line up, right-aligned on the minute.
+        time_width = with_timestamp_seconds ? EVENT_TIME_WITH_SECONDS_WIDTH : EVENT_TIME_WIDTH
 
-        header_cell = lambda do |text|
-          { content: composer.document.layout.text_box(text.upcase, style: :eyebrow, fill_color: 'FFFFFF'),
-            background_color: NAVY, padding: [5, 8, 4, 8] }
-        end
-
-        composer.table(
-          events_data,
-          column_widths: [170, -1],
-          header: ->(_table) { [[header_cell.call(t(:time)), header_cell.call(t(:event))]] },
-          cell_style: lambda do |cell|
-            cell.style.update(padding: [5, 8, 4, 8], border: { width: [0, 0, 0.5, 0], color: RULE })
-            cell.style.update(background_color: PANEL) if cell.row.odd?
-          end
-        )
+        draw_table(composer, events_data, header: [t(:date), t(:time), t(:event)], banded: true,
+                                          column_widths: [EVENT_DATE_WIDTH, time_width, -1],
+                                          lead: heading_boxes(composer, I18n.t('event_log')), margin: gap.call(18),
+                                          padding: cell_padding)
       end
 
-      add_certificate_summary(composer, account, timezone)
+      add_certificate_summary(composer, account, timezone, padding: cell_padding)
+
+      frame = composer.frame
+      fill = 1 - (frame.available_height / frame.height)
 
       add_footers(composer.document, submission, with_signature_id)
 
-      composer.document
+      [composer.document, fill]
     end
 
-    # The heading stays with what follows it: the boxes in keep when given, otherwise at least 110 pt of content.
-    def section_heading(composer, title, keep: nil)
-      heading = composer.document.layout.text_box(title, style: :section)
-      keep ? keep_together(composer, [heading, *keep], extra: 11) : keep_with_next(composer, 110)
+    # A section heading and its hairline, kept with whatever is drawn after them.
+    def heading_boxes(composer, title)
+      [composer.document.layout.text_box(title, style: :section),
+       HexaPDF::Layout::Box.create(height: HAIRLINE, margin: [0, 0, 10, 0],
+                                   border: { width: [HAIRLINE, 0, 0, 0], color: RULE })]
+    end
 
-      composer.draw_box(heading)
-      composer.draw_box(HexaPDF::Layout::Box.create(height: 0.75, margin: [0, 0, 10, 0],
-                                                    border: { width: [0.75, 0, 0, 0], color: RULE }))
+    # Draws a table page by page instead of letting it split anywhere. Rows never split; the navy header row
+    # repeats on every page; a page never opens or closes with fewer than MIN_ROWS rows (a shorter table moves
+    # whole); and the lead boxes (section heading, signer card) stay with the first rows.
+    def draw_table(composer, rows, header:, lead: [], column_widths: [LABEL_COLUMN_WIDTH, -1], label_column: false,
+                   banded: false, margin: 0, padding: CELL_PADDING)
+      layout = composer.document.layout
+      header_boxes = header.map { |text| layout.text_box(text.upcase, style: :eyebrow, fill_color: 'FFFFFF') }
+      backgrounds = rows.each_index.map do |index|
+        rows[index].each_index.map do |column|
+          (LABEL_CELL if label_column && column.zero?) || (PANEL if banded && index.odd?)
+        end
+      end
+      # HexaPDF takes cell hashes apart when it builds a table, so every table gets fresh ones.
+      table = lambda do |indexes, with_header: true, bottom: 0|
+        part = indexes.map do |index|
+          rows[index].zip(backgrounds[index]).map do |cell, background|
+            background ? { content: cell, background_color: background } : cell
+          end
+        end
+        header_row = header_boxes.map { |box| { content: box, background_color: NAVY, padding: } }
+
+        layout.table_box(part, column_widths: column_widths.dup, header: (->(_t) { [header_row] } if with_header),
+                               cell_style: { padding:,
+                                             border: { width: [0, 0, HAIRLINE, 0], color: RULE } },
+                               margin: [0, 0, bottom, 0])
+      end
+
+      heights = rows.each_index.map { |index| measure(composer, table.call([index], with_header: false)) }
+      header_height = measure(composer, table.call([0])) - heights.first
+      lead_height = lead.sum { |box| measure(composer, box) }
+
+      index = 0
+
+      while index < rows.size
+        room = composer.frame.available_height - header_height - (index.zero? ? lead_height : 0)
+        fit = 0
+        total = 0
+        heights[index..].each do |height|
+          break if total + height > room
+
+          total += height
+          fit += 1
+        end
+        remaining = rows.size - index
+
+        if fit < remaining
+          fit = remaining - MIN_ROWS if remaining - fit < MIN_ROWS
+          fresh = composer.frame.available_height >= composer.frame.height - 1
+
+          if fit < [MIN_ROWS, remaining].min && !fresh
+            composer.new_page
+            next
+          end
+
+          fit = fit.clamp(1, remaining)
+        end
+
+        lead.each { |box| composer.draw_box(box) } if index.zero?
+        composer.draw_box(table.call((index...(index + fit)).to_a, bottom: index + fit == rows.size ? margin : 0))
+        index += fit
+        composer.new_page if index < rows.size
+      end
+    end
+
+    def measure(composer, box)
+      frame = composer.frame
+      probe = HexaPDF::Layout::Frame.new(0, 0, frame.width, 100_000, context: frame.context)
+      probe.fit(box)
+
+      box.height + box.style.margin.top + box.style.margin.bottom
     end
 
     def configure_fonts(document)
@@ -581,6 +693,7 @@ module Submissions
         SANS => sans,
         # PDF/A embeds every font, so anything that asks for Helvetica (such as the signature field) gets Inter.
         'Helvetica' => sans,
+        MONO => { none: BRAND_FONTS_DIR.join('DejaVuSansMono.ttf').to_s },
         SERIF => {
           none: BRAND_FONTS_DIR.join('CormorantGaramond-Medium.ttf').to_s,
           bold: BRAND_FONTS_DIR.join('CormorantGaramond-SemiBold.ttf').to_s
@@ -625,9 +738,9 @@ module Submissions
 
       heading = document.layout.formatted_text_box(
         [
-          { text: "#{Stevensed::PRODUCT_NAME}\n", font: [SERIF, { variant: :bold }], font_size: 20,
+          { text: "#{Stevensed::PRODUCT_NAME}\n", font: [SERIF, { variant: :bold }], font_size: TYPE[:band],
             fill_color: 'FFFFFF' },
-          { text: Stevensed::OFFICE.upcase, font: SANS, font_size: 6.5, fill_color: BAND_MUTED, character_spacing: 0.9 }
+          { text: Stevensed::OFFICE.upcase, font: SANS, font_size: TYPE[:label], fill_color: BAND_MUTED, character_spacing: 0.9 }
         ], text_align: :right, line_spacing: 1.5
       )
 
@@ -641,7 +754,7 @@ module Submissions
       frame.draw(canvas, result) if result.success?
     end
 
-    def add_certificate_summary(composer, account, timezone)
+    def add_certificate_summary(composer, account, timezone, padding: CELL_PADDING)
       # The summary is informational: an account without a signing certificate gets a log without it.
       pkcs = begin
         Accounts.load_signing_pkcs(account)
@@ -664,31 +777,91 @@ module Submissions
                          name_part.call(certificate.subject, 'O')].compact.join(', ')],
         [t(:certificate_issuer), name_part.call(certificate.issuer, 'CN') || certificate.issuer.to_s],
         root && [t(:root_certificate), name_part.call(root.subject, 'CN') || root.subject.to_s],
-        [t(:serial_number), certificate.serial.to_s(16).upcase],
+        [t(:serial_number), hex_bytes(certificate.serial.to_s(16)), :hash],
         [t(:valid), "#{Stevensed.format_date(certificate.not_before.in_time_zone(timezone))} to " \
                     "#{Stevensed.format_date(certificate.not_after.in_time_zone(timezone))}"],
-        [t(:sha256_fingerprint), OpenSSL::Digest::SHA256.hexdigest(certificate.to_der).upcase.scan(/../)
-                                                      .each_slice(16).map { |bytes| bytes.join(':') }.join(":\n")],
+        [t(:sha256_fingerprint), hex_bytes(OpenSSL::Digest::SHA256.hexdigest(certificate.to_der)), :hash],
         tsa_host && [t(:time_stamp_authority), tsa_host]
       ].compact
 
       layout = composer.document.layout
-      table = layout.table_box(
-        rows.map do |label, value|
-          [layout.text_box(label.to_s.upcase, style: :eyebrow, padding: [2, 0, 0, 0]), layout.text_box(value.to_s)]
-        end,
-        column_widths: [130, -1],
-        cell_style: { padding: [0, 0, 5, 0], border: { width: 0 } }
-      )
       note = layout.formatted_text_box(
         ["#{t(:verification)} ", { link: Stevensed::PKI_URL, text: Stevensed::PKI_URL.delete_suffix('/'),
-                                   style: :link }, '.'],
-        fill_color: MUTED, padding: [6, 0, 0, 0]
+                                   style: :link, font_size: TYPE[:meta] }, '.'],
+        fill_color: MUTED, font_size: TYPE[:meta]
       )
 
-      section_heading(composer, t(:signing_certificate), keep: [table, note])
-      composer.draw_box(table)
-      composer.draw_box(note)
+      table = layout.table_box(
+        [
+          *rows.map do |label, value, style|
+            [label_box(layout, label), style ? layout.text_box(value.to_s, style:) : layout.text_box(value.to_s)]
+          end,
+          [{ content: note, col_span: 2 }]
+        ],
+        column_widths: [LABEL_COLUMN_WIDTH, -1],
+        header: lambda do |_table|
+          [[header_cell(layout, t(:certificate), padding), header_cell(layout, t(:detail), padding)]]
+        end,
+        cell_style: lambda do |cell|
+          cell.style.update(padding:, border: { width: [0, 0, HAIRLINE, 0], color: RULE })
+          if cell.col_span > 1
+            cell.style.update(background_color: PANEL, padding: [7, 8, 6, 8], border: { width: 0 })
+          elsif cell.column.zero?
+            cell.style.update(background_color: LABEL_CELL)
+          end
+        end,
+        margin: [0, 0, 4, 0]
+      )
+
+      boxes = [*heading_boxes(composer, t(:signing_certificate)), table]
+      keep_together(composer, boxes)
+      boxes.each { |box| composer.draw_box(box) }
+    end
+
+    def header_cell(layout, text, padding)
+      { content: layout.text_box(text.upcase, style: :eyebrow, fill_color: 'FFFFFF'), background_color: NAVY, padding: }
+    end
+
+    # Labels throughout the log are set the same way: small tracked capitals in the muted colour.
+    def label_box(layout, text)
+      layout.text_box(text.to_s.upcase, style: :eyebrow, padding: [2, 0, 0, 0])
+    end
+
+    # A hexadecimal value as colon-separated bytes, in two even halves.
+    def hex_bytes(hex)
+      hex = hex.to_s.upcase
+      even_halves((hex.length.odd? ? "0#{hex}" : hex).scan(/../).join(':'))
+    end
+
+    # Splits a long hash into two lines of equal length: whole bytes when the value is colon-separated,
+    # otherwise characters.
+    def even_halves(value)
+      value = value.to_s
+
+      return value if value.length < 32
+
+      if value.include?(':')
+        bytes = value.split(':')
+        half = (bytes.size / 2.0).ceil
+
+        "#{bytes[0...half].join(':')}:\n#{bytes[half..].join(':')}"
+      else
+        half = (value.length / 2.0).ceil
+
+        "#{value[0...half]}\n#{value[half..]}"
+      end
+    end
+
+    def draw_running_header(canvas, document, text)
+      box = canvas.context.box(:media)
+      rule_y = box.height - HEADER_RULE_FROM_TOP
+
+      canvas.save_graphics_state do
+        canvas.stroke_color(RULE).line_width(HAIRLINE).line(MARGIN_X, rule_y, box.width - MARGIN_X, rule_y).stroke
+      end
+
+      draw_text_box(canvas, document.layout.text_box(text, font: SANS, font_size: TYPE[:label], fill_color: MUTED),
+                    MARGIN_X, rule_y + 5, box.width - (MARGIN_X * 2), 14)
     end
 
     def add_footers(document, submission, with_signature_id)
@@ -712,16 +885,17 @@ module Submissions
         width = box.width - (MARGIN_X * 2)
 
         canvas.save_graphics_state do
-          canvas.stroke_color(RULE).line_width(0.75)
+          canvas.stroke_color(RULE).line_width(HAIRLINE)
                 .line(MARGIN_X, FOOTER_HEIGHT, box.width - MARGIN_X, FOOTER_HEIGHT).stroke
         end
 
         page_label = t(:page_number_of_total, number: index + 1, total: pages.size)
 
-        draw_text_box(canvas, document.layout.text_box(left_text, font: SANS, font_size: 6.5, fill_color: MUTED),
+        footer_style = { font: SANS, font_size: TYPE[:label], fill_color: MUTED }
+
+        draw_text_box(canvas, document.layout.text_box(left_text, **footer_style),
                       MARGIN_X, 18, width * 0.72, FOOTER_HEIGHT - 24)
-        draw_text_box(canvas, document.layout.text_box("#{envelope} · #{page_label}", font: SANS, font_size: 6.5,
-                                                                                      fill_color: MUTED,
+        draw_text_box(canvas, document.layout.text_box("#{envelope} · #{page_label}", **footer_style,
                                                                                       text_align: :right),
                       MARGIN_X + (width * 0.72), 18, width * 0.28, FOOTER_HEIGHT - 24)
       end
@@ -750,12 +924,6 @@ module Submissions
       end
 
       composer.new_page if height > frame.available_height && height <= frame.height
-    end
-
-    # Starts a new page when less than height is left, so that a heading or signer card is not left at the foot
-    # of a page apart from what follows it.
-    def keep_with_next(composer, height)
-      composer.new_page if composer.frame.available_height < height
     end
 
     def sign_reason

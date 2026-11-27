@@ -130,6 +130,7 @@ en:
       session_id: Session ID
       user_agent: User agent
       time_zone: Time zone
+      date: Date
       time: Time
       event: Event
       signing_certificate: Signing certificate
@@ -144,6 +145,10 @@ en:
       page_number_of_total: Page %{number} of %{total}
       field: Field
       entry: Entry
+      certificate: Certificate
+      detail: Detail
+      access: Access
+      running_header: '%{product} · %{title} · Envelope %{id}'
       'yes': 'Yes'
       'no': 'No'
     personalization:
