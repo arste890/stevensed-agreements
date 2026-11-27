@@ -3,6 +3,8 @@
 describe Stevensed::Records do
   let(:account) { create(:account) }
   let(:staff) { create(:user, account:, role: User::ADMIN_ROLE, email: 'legal@example.org') }
+  let(:old_template) { form_template('4.6') }
+  let(:new_template) { form_template('4.7') }
 
   def form_template(version)
     template = create(:template, account:, author: staff, only_field_types: %w[text])
@@ -20,9 +22,6 @@ describe Stevensed::Records do
                        name: 'StevensED Admin', completed_at:)
     submission
   end
-
-  let(:old_template) { form_template('4.6') }
-  let(:new_template) { form_template('4.7') }
 
   describe '.supersede_earlier!' do
     it 'archives the same family\'s earlier version, links it and records an event' do
