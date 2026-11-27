@@ -99,6 +99,8 @@ class SubmissionsController < ApplicationController
 
         WebhookUrls.enqueue_events(@submission, 'submission.archived')
 
+        Stevensed::IdentityEvents.enqueue_archived(@submission) # StevensED: event for auth.stevensed.org
+
         I18n.t('submission_has_been_archived')
       end
 

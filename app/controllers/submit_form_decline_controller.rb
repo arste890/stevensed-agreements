@@ -36,6 +36,8 @@ class SubmitFormDeclineController < ApplicationController
 
     WebhookUrls.enqueue_events(@submitter, 'form.declined')
 
+    Stevensed::IdentityEvents.enqueue_declined(@submitter) # StevensED: event for auth.stevensed.org
+
     redirect_to submit_form_path(@submitter.slug)
   end
 
