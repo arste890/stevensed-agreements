@@ -43,8 +43,7 @@ describe Submissions::GenerateAuditTrail do
     expect(text).to include(I18n.t('audit_log'))
     expect(text).to include('Signers', I18n.t('event_log'), 'Signing certificate')
     expect(text).to include('198.51.100.10')
-    expect(text).to include("Page 1 of #{pages.size}")
-    expect(text).to include("#{I18n.t('envelope_id')} #{submission.id}")
+    expect(text).to include("Envelope #{submission.id}, page 1 of #{pages.size}")
     expect(text).to include('pki.stevensed.org')
     expect(text).not_to include('DocuSeal')
   end
@@ -58,7 +57,7 @@ describe Submissions::GenerateAuditTrail do
     expect(text.gsub(/\s+/, '')).to include(serial.scan(/../).join(':'))
     expect(text.gsub(/\s+/, '')).to include(OpenSSL::Digest::SHA256.hexdigest(certificate.to_der).upcase
                                                                    .scan(/../).join(':'))
-    expect(text).to include('CERTIFICATE', 'DETAIL', 'SHA-256 FINGERPRINT')
+    expect(text).to include('CERTIFICATE', 'DETAIL', 'SHA-256 fingerprint')
     expect(text).not_to match(/PRIVATE KEY|password/i)
   end
 
@@ -70,14 +69,15 @@ describe Submissions::GenerateAuditTrail do
       .or include("#{bytes[0, 16].join(':')}:\r\n#{bytes[16, 16].join(':')}")
   end
 
-  it 'repeats a running header on continuation pages and sets every label in capitals' do
+  it 'repeats a running header on continuation pages and sets every section as a table' do
     pages = pdf_text(build)
-    header = "#{Stevensed::PRODUCT_NAME} · #{I18n.t('audit_log')} · Envelope #{submission.id}"
+    text = pages.join("\n")
 
-    expect(pages.first).not_to include(header)
-    expect(pages.drop(1)).to all(include(header)) if pages.size > 1
-    expect(pages.join("\n")).to include('IP ADDRESS', 'USER AGENT', 'TIME ZONE')
-    expect(pages.join("\n")).not_to include('IP address:', 'User agent:')
+    expect(pages.first).not_to include("Audit log for envelope #{submission.id}")
+    expect(pages.drop(1)).to all(include("Audit log for envelope #{submission.id}")) if pages.size > 1
+    expect(text).to include('SUMMARY DETAIL', 'DATE TIME EVENT', 'CERTIFICATE DETAIL')
+    expect(text).to include('IP address', 'User agent', 'Time zone')
+    expect(text).not_to include('·')
   end
 
   it 'repeats the event log header row on every page and never leaves fewer than three rows on one' do
