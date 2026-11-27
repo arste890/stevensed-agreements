@@ -1,8 +1,8 @@
 const en = {
-  or_download: 'Or download:',
-  download_kind_documents: 'Documents only',
-  download_kind_audit: 'Audit log only',
-  download_kind_combined: 'Combined (documents and audit log)',
+  download_choices: 'Download choices',
+  download_kind_documents: 'Completed document',
+  download_kind_audit: 'Audit log',
+  download_kind_combined: 'Combined (document and audit log)',
   available_once_everyone_has_signed: 'This is available once everyone has signed.',
   failed_to_download_files: 'The files could not be downloaded. Please try again.',
   finish: 'Finish',

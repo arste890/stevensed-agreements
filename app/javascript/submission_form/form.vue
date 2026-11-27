@@ -369,7 +369,7 @@
             >
               <MarkdownContent :string="currentField.description" />
             </div>
-            <div class="flex w-full max-h-44 overflow-y-auto">
+            <div class="flex w-full max-h-44 overflow-y-auto se-scroll-fade">
               <div
                 v-if="!showFieldNames || (currentField.options.every((e) => !e.value) && currentField.options.length > 4)"
                 class="text-xl px-1"
@@ -432,7 +432,7 @@
               <MarkdownContent :string="currentField.description" />
             </div>
             <div
-              class="flex w-full max-h-44 overflow-y-auto"
+              class="flex w-full max-h-44 overflow-y-auto se-scroll-fade"
             >
               <input
                 type="hidden"

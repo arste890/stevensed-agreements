@@ -1,0 +1,40 @@
+<%# StevensED: the same download control everywhere. Download gives the main kind for the audience (signers: the completed document; staff: combined); the menu beside it offers completed document, audit log and combined (Stevensed::Downloads). Locals: submission, src (lambda: kind -> URL), audience (:signer or :staff), compact (list rows), full_width. %>
+<% kinds = Stevensed::Downloads.kinds(submission) %>
+<% main_kind = Stevensed::Downloads.default_kind(submission, audience: local_assigns.fetch(:audience, :signer)) %>
+<% compact = local_assigns[:compact] %>
+<% button_class = compact ? 'btn btn-sm max-sm:text-[13px] btn-neutral text-white' : 'base-button' %>
+<div class="join relative flex-nowrap <%= 'w-full' if local_assigns[:full_width] %>">
+  <download-button role="button" tabindex="0" aria-label="<%= t('download') %>: <%= Stevensed::Downloads.label(main_kind) %>" data-src="<%= src.call(main_kind) %>" class="<%= button_class %> flex-1 whitespace-nowrap <%= '!rounded-r-none !pr-2' if kinds.many? %>">
+    <span class="flex items-center justify-center space-x-1 md:space-x-2" data-target="download-button.defaultButton">
+      <%= svg_icon('download', class: compact ? 'w-5 h-5 max-sm:w-4 max-sm:h-4 stroke-2' : 'w-6 h-6') %>
+      <span class="inline"><%= t('download') %></span>
+    </span>
+    <span class="flex items-center justify-center space-x-1 md:space-x-2 hidden" data-target="download-button.loadingButton">
+      <%= svg_icon('loader', class: compact ? 'w-5 h-5 animate-spin' : 'w-6 h-6 animate-spin') %>
+      <span class="inline"><%= t('downloading') %></span>
+    </span>
+  </download-button>
+  <% if kinds.many? %>
+    <div class="dropdown dropdown-end se-download-menu">
+      <label tabindex="0" role="button" aria-label="<%= t('stevensed.download_choices') %>" class="<%= button_class %> !rounded-l-none !pl-1 !pr-2 !border-l-neutral-500">
+        <%= svg_icon('chevron_down', class: compact ? 'w-5 h-5 stroke-2' : 'w-6 h-6 stroke-2') %>
+      </label>
+      <ul tabindex="0" class="z-10 dropdown-content p-2 mt-2 shadow menu text-base bg-base-100 rounded-box w-72 text-left">
+        <% kinds.each do |kind| %>
+          <li>
+            <download-button role="button" tabindex="0" data-src="<%= src.call(kind) %>" class="flex items-center">
+              <span class="flex items-center space-x-2" data-target="download-button.defaultButton">
+                <%= svg_icon('download', class: 'w-5 h-5 flex-shrink-0') %>
+                <span class="whitespace-nowrap"><%= Stevensed::Downloads.label(kind) %></span>
+              </span>
+              <span class="flex items-center space-x-2 hidden" data-target="download-button.loadingButton">
+                <%= svg_icon('loader', class: 'w-5 h-5 animate-spin') %>
+                <span><%= t('downloading') %></span>
+              </span>
+            </download-button>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+</div>

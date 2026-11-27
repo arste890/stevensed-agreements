@@ -30,8 +30,8 @@ class ProcessSubmitterCompletionJob
     Submissions::EnsureResultGenerated.call(submitter)
 
     if is_last
-      # StevensED: combined (documents and audit log) is the default download.
-      if Stevensed::Downloads.default_kind(submission.reload) == 'combined'
+      # StevensED: the combined PDF is one of the download choices (Stevensed::Downloads); build it now.
+      if Stevensed::Downloads.pregenerate_combined?(submission.reload)
         Submissions::EnsureCombinedGenerated.call(submitter)
       end
 

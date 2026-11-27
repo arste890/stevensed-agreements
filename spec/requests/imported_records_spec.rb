@@ -37,8 +37,8 @@ describe 'Imported records' do
     body = response.body
 
     expect(response).to have_http_status(:ok)
-    expect(body.index('Signed document')).to be < body.index('Audit log')
-    expect(body.index('Audit log')).to be < body.index('Combined PDF')
+    expect(body.index('Completed document')).to be < body.index('Audit log')
+    expect(body.index('Audit log')).to be < body.index('Combined (document and audit log)')
     expect(body.index('janey@example.com')).to be < body.index('records@stevensed.org')
     expect(body).to include('Completed 22 November 2026')
     expect(body).to include('Verified against the original audit log, envelope 13478070')

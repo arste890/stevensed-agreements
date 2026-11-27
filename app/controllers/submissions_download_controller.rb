@@ -10,9 +10,9 @@ class SubmissionsDownloadController < ApplicationController
 
     Submissions::EnsureResultGenerated.call(last_submitter)
 
-    # StevensED: documents, audit log or combined (default); "combined=true" kept for older links.
+    # StevensED: staff download, combined by default (or documents, or the audit log); "combined=true" still works.
     requested = params[:kind].presence || ('combined' if params[:combined] == 'true')
-    kind = Stevensed::Downloads.resolve(@submission, requested)
+    kind = Stevensed::Downloads.resolve(@submission, requested, audience: :staff)
     urls = kind ? Stevensed::Downloads.urls(last_submitter, kind) : []
 
     return head :not_found if urls.empty?

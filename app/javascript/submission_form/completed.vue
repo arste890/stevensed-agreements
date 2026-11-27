@@ -55,40 +55,62 @@
           {{ t('send_copy_via_email') }}
         </span>
       </button>
-      <button
-        v-if="(!isWebView || isNativeApp) && withDownloadButton"
-        class="base-button flex items-center space-x-1 w-full completed-form-download-button"
-        :disabled="isDownloading"
-        @click.prevent="download"
-      >
-        <IconInnerShadowTop
-          v-if="isDownloading"
-          class="animate-spin"
-          aria-hidden="true"
-        />
-        <IconDownload
-          v-else
-          aria-hidden="true"
-        />
-        <span>
-          {{ t('download') }}
-        </span>
-      </button>
       <div
-        v-if="!isWebView && withDownloadButton"
-        class="flex flex-wrap justify-center gap-x-4 gap-y-1 text-sm completed-form-download-kinds"
+        v-if="(!isWebView || isNativeApp) && withDownloadButton"
+        class="flex flex-wrap w-full completed-form-download"
       >
-        <span class="opacity-70">{{ t('or_download') }}</span>
         <button
-          v-for="kind in ['documents', 'audit', 'combined']"
-          :key="kind"
-          type="button"
-          class="link link-hover font-medium"
+          class="base-button flex items-center space-x-1 flex-1 completed-form-download-button"
+          :class="{ '!rounded-r-none !pr-2': !isWebView }"
           :disabled="isDownloading"
-          @click.prevent="download(kind)"
+          :aria-label="`${t('download')}: ${t('download_kind_documents')}`"
+          @click.prevent="download('documents')"
         >
-          {{ t(`download_kind_${kind}`) }}
+          <IconInnerShadowTop
+            v-if="isDownloading"
+            class="animate-spin"
+            aria-hidden="true"
+          />
+          <IconDownload
+            v-else
+            aria-hidden="true"
+          />
+          <span>
+            {{ t('download') }}
+          </span>
         </button>
+        <button
+          v-if="!isWebView"
+          type="button"
+          class="base-button !rounded-l-none !pl-1 !pr-2 !border-l-neutral-500 completed-form-download-menu-button"
+          :aria-label="t('download_choices')"
+          :aria-expanded="isDownloadMenuOpen ? 'true' : 'false'"
+          :disabled="isDownloading"
+          @click.prevent="isDownloadMenuOpen = !isDownloadMenuOpen"
+        >
+          <IconChevronDown aria-hidden="true" />
+        </button>
+        <ul
+          v-if="isDownloadMenuOpen && !isWebView"
+          class="basis-full w-full mt-2 p-1 menu text-base bg-base-100 border border-base-300 rounded-box text-left completed-form-download-kinds"
+        >
+          <li
+            v-for="kind in downloadKinds"
+            :key="kind"
+          >
+            <button
+              type="button"
+              class="flex items-center space-x-2"
+              @click.prevent="isDownloadMenuOpen = false; download(kind)"
+            >
+              <IconDownload
+                class="w-5 h-5"
+                aria-hidden="true"
+              />
+              <span class="whitespace-nowrap">{{ t(`download_kind_${kind}`) }}</span>
+            </button>
+          </li>
+        </ul>
       </div>
       <p
         class="text-sm text-center empty:hidden completed-form-notice"
@@ -132,7 +154,7 @@
 </template>
 
 <script>
-import { IconCircleCheck, IconBrandGithub, IconMail, IconDownload, IconInnerShadowTop, IconLogin } from '@tabler/icons-vue'
+import { IconCircleCheck, IconBrandGithub, IconMail, IconDownload, IconInnerShadowTop, IconLogin, IconChevronDown } from '@tabler/icons-vue'
 import MarkdownContent from './markdown_content'
 import { sanitizeUrl } from '@braintree/sanitize-url'
 
@@ -145,7 +167,8 @@ export default {
     IconBrandGithub,
     IconMail,
     IconLogin,
-    IconDownload
+    IconDownload,
+    IconChevronDown
   },
   inject: ['baseUrl', 't'],
   props: {
@@ -218,6 +241,8 @@ export default {
     return {
       isSendingCopy: false,
       isDownloading: false,
+      isDownloadMenuOpen: false,
+      downloadKinds: ['documents', 'audit', 'combined'],
       notice: '',
       isNoticeError: false
     }
