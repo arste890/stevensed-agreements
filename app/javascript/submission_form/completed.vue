@@ -57,7 +57,7 @@
       </button>
       <div
         v-if="(!isWebView || isNativeApp) && withDownloadButton"
-        class="relative flex w-full completed-form-download"
+        class="flex flex-wrap w-full completed-form-download"
       >
         <button
           class="base-button flex items-center space-x-1 flex-1 completed-form-download-button"
@@ -92,7 +92,7 @@
         </button>
         <ul
           v-if="isDownloadMenuOpen && !isWebView"
-          class="absolute right-0 bottom-full z-10 mb-2 w-72 max-w-full p-2 shadow menu text-base bg-base-100 rounded-box text-left completed-form-download-kinds"
+          class="basis-full w-full mt-2 p-1 menu text-base bg-base-100 border border-base-300 rounded-box text-left completed-form-download-kinds"
         >
           <li
             v-for="kind in downloadKinds"
