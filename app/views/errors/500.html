@@ -1,58 +1,30 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <title>We're sorry, but something went wrong (500)</title>
+    <!-- StevensED: branded error page, self-contained so it renders even when the app cannot. -->
+    <title>Something went wrong (500) | StevensED Agreements</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="robots" content="noindex">
+    <link rel="icon" href="/favicon.ico">
     <style>
-    .error-page {
-      background-color: #FAF7F4;
-      color: #2E2F30;
-      text-align: center;
-      font-family: arial, sans-serif;
-      margin: 0;
-    }
-
-    .error-page h1 {
-      font-weight: 700;
-      font-size: 10em;
-      color: #F97272;
-      margin: 0 0 0.1em;
-    }
-
-    .error-page h2 {
-      font-weight: 600;
-      font-size: 1.75em;
-      color: #291434;
-      margin: 0.5em 0;
-    }
-
-    .error-page a.btn {
-      display: inline-block;
-      width: auto;
-      background-color: #291434;
-      padding: 1em 1.5em;
-      border-radius: 25px;
-      color: #ffffff;
-      text-decoration: none;
-      margin: 1em 0;
-      text-transform: uppercase;
-    }
-
-    .error-page div.dialog {
-      width: 95%;
-      max-width: 33em;
-      margin: 6em auto 0;
-    }
+      body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #f7f5f1; color: #3a4461; font-family: Inter, "Helvetica Neue", Helvetica, Arial, sans-serif; text-align: center; }
+      main { width: 100%; max-width: 32rem; padding: 3rem 1.5rem; box-sizing: border-box; }
+      .logo { display: block; height: 3rem; width: auto; margin: 0 auto 2.5rem; }
+      .code { margin: 0; font-size: 0.875rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #59697a; }
+      h1 { margin: 0.5rem 0 0.75rem; font-size: 1.75rem; line-height: 1.25; font-weight: 600; color: #1f2948; overflow-wrap: anywhere; }
+      p.lead { margin: 0 0 2rem; font-size: 1rem; line-height: 1.6; }
+      a.button { display: inline-block; padding: 0.75rem 1.5rem; border-radius: 0.5rem; background: #2f3e68; color: #ffffff; font-weight: 600; text-decoration: none; }
+      a.button:hover { background: #26335a; }
+      a.button:focus-visible { outline: 3px solid #c13f44; outline-offset: 3px; }
     </style>
   </head>
-
-  <body class="error-page">
-    <div class="dialog">
-      <div>
-        <h1>500</h1>
-        <h2>We're sorry, but something went wrong</h2>
-      </div>
-      <a rel="noopener noreferrer" href="/" class="btn">Back to homepage</a>
-    </div>
+  <body>
+    <main>
+      <img class="logo" src="/stevensed/logo-lockup.svg" alt="StevensED Agreements">
+      <p class="code">Error 500</p>
+      <h1>Something went wrong on our side.</h1>
+      <p class="lead">Please try again in a moment. If the problem continues, contact StevensED.</p>
+      <a class="button" href="/">Go to StevensED Agreements</a>
+    </main>
   </body>
 </html>

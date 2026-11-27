@@ -174,7 +174,7 @@
     >
       <div
         v-if="!modelValue && !computedPreviousValue && !computedPrefillData && !isShowQr && !isTextSignature && isSignatureStarted"
-        class="absolute top-0.5 right-0.5"
+        class="absolute top-1.5 right-1.5"
       >
         <button
           type="button"

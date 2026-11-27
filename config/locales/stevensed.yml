@@ -45,6 +45,8 @@ en:
       stevensed_unarchived_by_html: '<b>Restored to active</b> by %{user}'
   stevensed:
     download_choices: Download choices
+    empty_archived_submissions: No archived submissions. Records archived by staff, or superseded by a newer signature, appear here.
+    empty_folder: This folder is empty. Upload a document or create a template to add one.
     records:
       archive_title: Archive this record
       archive_hint: The record moves to Archived and stays retrievable. The reason is kept in its event log.

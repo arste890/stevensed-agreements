@@ -1,6 +1,6 @@
 <div class="flex flex-col items-start md:flex-row space-y-2 md:space-y-0 md:space-x-2 md:justify-between md:items-start mb-6 md:mb-3">
-  <div class="relative flex items-start justify-between w-full space-x-0">
-    <div>
+  <div class="relative flex items-start justify-between w-full gap-x-4">
+    <div class="min-w-0">
       <div id="template_title" class="flex">
         <% name_html = capture do %><% template.name.split(/(_)/).each do |item| %><%= item %><wbr><% end %><% end %>
         <h1 class="text-3xl md:text-[2em] font-semibold" style="overflow: hidden; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;">
@@ -60,7 +60,7 @@
       <% end %>
     </div>
     <% if !template.archived_at? %>
-      <div class="flex items-center space-x-2">
+      <div class="flex items-center space-x-2 flex-none">
         <% if can?(:update, template) && !turbo_native_app? %>
           <div class="tooltip tooltip-no-touch hidden md:block" data-tip="<%= t('preferences') %>">
             <%= link_to template_preferences_path(template), class: 'btn border border-base-200 bg-base-200 hover:bg-base-300 hover:border-base-300 btn-sm flex-1 hidden md:flex', data: { turbo_frame: :modal } do %>

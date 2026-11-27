@@ -21,12 +21,13 @@
     <% end %>
     <% if can?(:create, ::Template) && !turbo_native_app? %>
       <span class="hidden sm:block">
-        <%= render 'templates/upload_button' %>
+        <%# StevensED: with the search box open, the action labels show from lg so the toolbar fits tablets. %>
+        <%= render 'templates/upload_button', label_class: params[:q].present? ? 'hidden lg:block' : 'hidden md:block' %>
       </span>
       <open-modal-mobile data-disabled="<%= !Docuseal.multitenant? %>" class="flex">
-        <%= link_to new_template_path, class: 'white-button !border gap-2', data: { turbo_frame: :modal, native_modal: :medium } do %>
+        <%= link_to new_template_path, class: 'white-button !border gap-2', aria: { label: t('create') }, data: { turbo_frame: :modal, native_modal: :medium } do %>
           <%= svg_icon('plus', class: 'w-6 h-6 stroke-2') %>
-          <span class="hidden md:block"><%= t('create') %></span>
+          <span class="hidden <%= params[:q].present? ? 'lg:block' : 'md:block' %>"><%= t('create') %></span>
         <% end %>
       </open-modal-mobile>
     <% end %>

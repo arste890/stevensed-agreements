@@ -10,7 +10,7 @@
             <%= svg_icon('writing_sign', class: 'w-10 h-10') %>
           </div>
           <div dir="auto">
-            <p class="text-lg font-bold mb-1"><%= @submitter.submission.name || @submitter.submission.template&.name %></p>
+            <p class="text-lg font-bold mb-1 [overflow-wrap:anywhere]"><%= @submitter.submission.name || @submitter.submission.template&.name %></p>
             <% if (voided = @submitter.metadata.to_h['stevensed_voided']) %>
               <%# StevensED: voided because the student's age does not match this version of the documents. %>
               <p class="text-sm">This envelope is for <%= voided['expected'] %>, so it has been withdrawn. The Office of Legal Operations and Institutional Compliance has been notified and will send you the correct documents. You do not need to do anything else.</p>

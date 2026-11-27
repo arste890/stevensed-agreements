@@ -53,6 +53,17 @@ describe SubmitterMailer do
     expect(mail.subject).to eq('StevensED Agreements: password reset instructions')
   end
 
+  it 'draws a custom body line that only links to the signing page as the standard button' do
+    html = ApplicationController.render(partial: 'submitter_mailer/custom_body',
+                                        locals: { body: "Hello.\n\n[Review and sign]({submitter.link})\n\nThanks.",
+                                                  submitter:, sig: nil })
+
+    expect(html).to include('class="se-button"')
+    expect(html).to include('Review and sign</a>')
+    expect(html).not_to include('[Review and sign]')
+    expect(html).to include('Thanks.')
+  end
+
   describe 'completed notice to the sender' do
     before do
       template.update!(preferences: template.preferences.merge('completed_notification_email_attach_documents' => false,

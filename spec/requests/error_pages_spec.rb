@@ -34,7 +34,7 @@ describe 'Error pages' do
 
     expect(response).to have_http_status(:not_found)
     expect(response.media_type).to eq('text/html')
-    expect(response.body).to include("Sorry, we couldn't find this page.")
+    expect(response.body).to include('This page could not be found.')
   end
 
   it 'has a page for every status ErrorsController can be asked to render' do

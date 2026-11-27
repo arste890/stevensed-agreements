@@ -1,5 +1,20 @@
-<%# StevensED: custom email body from DocuSeal settings, rendered inside the branded layout. Locals: body, submitter, sig, link_url, link_label. %>
-<%= render 'custom_content', content: local_assigns[:body], submitter: local_assigns[:submitter], sig: local_assigns[:sig] %>
+<%# StevensED: custom email body from DocuSeal settings, rendered inside the branded layout. A line that is only a link to the signing page, such as [Review and Sign]({submitter.link}), becomes the standard button, so every email has the same call to action. Locals: body, submitter, sig, link_url, link_label. %>
+<% button_line = /^[ \t]*\[([^\]\n]+)\]\(\s*(\{+submitter\.link\}+)\s*\)[ \t]*$/i %>
+<%# split keeps the captures: the whole line, then its label, then its link variable. %>
+<% parts = local_assigns[:body].to_s.split(/(#{button_line.source})/i) %>
+<% index = 0 %>
+<% while index < parts.size %>
+  <% part = parts[index] %>
+  <% if part.match?(/\A#{button_line.source}\z/i) %>
+    <%= render 'shared/email_button', url: ReplaceEmailVariables.call(parts[index + 2], submitter: local_assigns[:submitter], sig: local_assigns[:sig]), label: parts[index + 1].strip %>
+    <% index += 3 %>
+  <% else %>
+    <% if part.strip.present? %>
+      <%= render 'custom_content', content: part, submitter: local_assigns[:submitter], sig: local_assigns[:sig] %>
+    <% end %>
+    <% index += 1 %>
+  <% end %>
+<% end %>
 <% if local_assigns[:link_url].present? %>
   <%= render 'shared/email_button', url: local_assigns[:link_url], label: local_assigns[:link_label] %>
 <% end %>

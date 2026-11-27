@@ -8,11 +8,11 @@
     <% else %>
       <p><%= t('stevensed.oidc_disabled') %></p>
     <% end %>
-    <p class="text-sm text-base-content/70"><%= t('stevensed.oidc_redirect', url: "https://#{Docuseal::HOST}/auth/stevensed/callback") %></p>
+    <p class="text-sm text-base-content/70 [overflow-wrap:anywhere]"><%= t('stevensed.oidc_redirect', url: "https://#{Docuseal::HOST}/auth/stevensed/callback") %></p>
   </div>
   <%= form_with url: settings_sso_index_path, method: :post, scope: :saml, class: 'space-y-4' do |f| %>
     <p class="font-semibold">SAML 2.0</p>
-    <p class="text-sm text-base-content/70"><%= t('stevensed.saml_sp_details', acs: "https://#{Docuseal::HOST}/auth/saml/callback", entity: value['sp_entity_id'].presence || "https://#{Docuseal::HOST}/auth/saml/metadata") %></p>
+    <p class="text-sm text-base-content/70 [overflow-wrap:anywhere]"><%= t('stevensed.saml_sp_details', acs: "https://#{Docuseal::HOST}/auth/saml/callback", entity: value['sp_entity_id'].presence || "https://#{Docuseal::HOST}/auth/saml/metadata") %></p>
     <div class="form-control">
       <%= f.label :idp_sso_service_url, t('stevensed.saml_idp_url'), class: 'label' %>
       <%= f.url_field :idp_sso_service_url, value: value['idp_sso_service_url'], class: 'base-input', placeholder: 'https://' %>

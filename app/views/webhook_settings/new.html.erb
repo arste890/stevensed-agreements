@@ -12,7 +12,7 @@
               <div class="flex">
                 <label class="flex items-center space-x-2">
                   <%= b.check_box class: 'base-checkbox', checked: @webhook_url.events.include?(b.value) %>
-                  <span>
+                  <span class="min-w-0 [overflow-wrap:anywhere]">
                     <%= b.label %>
                   </span>
                 </label>

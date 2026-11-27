@@ -6,9 +6,9 @@
       <%= button_to t('remove'), settings_logo_path, method: :delete, class: 'btn btn-sm btn-outline', form: { data: { turbo_confirm: t('are_you_sure_') } } %>
     <% end %>
   </div>
-  <%= form_with url: settings_logo_path, method: :post, multipart: true, class: 'flex items-center space-x-2' do |f| %>
-    <%= f.file_field :logo, accept: 'image/png,image/jpeg,image/webp', required: true, class: 'file-input file-input-bordered file-input-sm w-full' %>
-    <%= f.button t('upload'), class: 'btn btn-sm btn-neutral text-white' %>
+  <%= form_with url: settings_logo_path, method: :post, multipart: true, class: 'flex flex-wrap items-center gap-2' do |f| %>
+    <%= f.file_field :logo, accept: 'image/png,image/jpeg,image/webp', required: true, class: 'file-input file-input-bordered file-input-sm min-w-0 flex-1 basis-56' %>
+    <%= f.button t('upload'), class: 'btn btn-sm btn-neutral text-white flex-none' %>
   <% end %>
   <p class="text-sm text-base-content/70"><%= t('stevensed.logo_hint') %></p>
 </div>

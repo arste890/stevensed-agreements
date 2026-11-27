@@ -58,12 +58,12 @@
       <% end %>
       <% if can?(:create, ::Template) && !turbo_native_app? %>
         <span class="hidden sm:block">
-          <%= render 'templates/upload_button', folder_name: @template_folder.full_name %>
+          <%= render 'templates/upload_button', folder_name: @template_folder.full_name, label_class: 'hidden lg:block' %>
         </span>
         <open-modal-mobile data-disabled="<%= !Docuseal.multitenant? %>" class="flex">
-          <%= link_to new_template_path(folder_name: @template_folder.full_name), class: 'white-button !border gap-2', data: { turbo_frame: :modal, native_modal: :medium } do %>
+          <%= link_to new_template_path(folder_name: @template_folder.full_name), class: 'white-button !border gap-2', aria: { label: t('create') }, data: { turbo_frame: :modal, native_modal: :medium } do %>
             <%= svg_icon('plus', class: 'w-6 h-6 stroke-2') %>
-            <span class="hidden md:block"><%= t('create') %></span>
+            <span class="hidden lg:block"><%= t('create') %></span>
           <% end %>
         </open-modal-mobile>
       <% end %>
@@ -86,6 +86,8 @@
       <% end %>
     <% end %>
     <%= render 'shared/pagination', pagy: @pagy, items_name: @templates.present? ? 'templates' : 'template_folders', right_additional_html: templates_order_select_html %>
+  <% elsif params[:q].blank? && @template_folders.blank? %>
+    <p class="mt-10 text-center text-base-content/60"><%= t('stevensed.empty_folder') %></p>
   <% elsif params[:q].present? %>
     <div class="text-center">
       <div class="mt-16 text-3xl font-semibold">

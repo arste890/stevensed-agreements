@@ -27,6 +27,16 @@
     /* The archive menu sits in a row's z-indexed action bar; lift that bar while the menu is open so later rows do not cover it. */
     *:has(> .se-archive-menu:focus-within) { z-index: 30 !important; }
     .z-\[1\]:has(.se-download-menu:focus-within) { z-index: 30 !important; }
+    /* Hidden tooltip bubbles near the right edge (settings toggles) widened the page on tablets; nothing scrolls sideways. */
+    html { overflow-x: clip; }
+    /* Settings pages: the content column beside the nav may shrink, so wide tables scroll inside it instead of running off the page. */
+    .se-settings-nav ~ div { min-width: 0; }
+    /* Long option text (time zones) stops before the select arrow. */
+    .base-select, .select { padding-right: 2.5rem; text-overflow: ellipsis; }
+    /* WCAG AA: secondary text at 50 to 60 percent ink fell to about 3.4:1 on the parchment rows; 80 percent keeps the hierarchy and passes. */
+    html .text-base-content\/50, html .text-base-content\/60 { color: rgb(31 41 72 / 0.8); }
+    html .badge-info.badge-outline { color: var(--navy, #2f3e68); border-color: currentColor; }
+    html .btn-outline.btn-error:not(:hover):not(:focus-visible) { color: #a3262c; border-color: #a3262c; }
     .se-page-zone__title, .se-page-zone__title a:not(.btn):not(.white-button):not(.base-button) { display: block; color: var(--ink); text-decoration: none; }
     .se-page-zone__title h1, .se-page-zone__title .se-page-title { font-size: 1.125rem; font-weight: 600; line-height: 1.3; letter-spacing: -0.005em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
     .se-page-zone__title .se-page-subtitle { display: block; font-size: 0.8125rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -222,7 +232,7 @@
     .se-prose h1 { font-size: clamp(2.4rem, 5vw, 3.4rem); line-height: 1.06; margin: 0 0 1.5rem; }
     .se-prose h2 { font-family: 'Cormorant Garamond', ui-serif, Georgia, serif; font-weight: 600; color: var(--ink); font-size: 1.75rem; line-height: 1.2; margin: 2.5rem 0 0.75rem; }
     .se-prose p, .se-prose li { max-width: 68ch; }
-    .se-prose ul { padding-left: 1.2rem; }
+    .se-prose ul { padding-left: 1.2rem; list-style: disc; } .se-prose li { margin-block: 0.35rem; } .se-prose li::marker { color: var(--crimson); }
     .se-signin { max-width: 28rem; margin-inline: auto; padding-block: 3rem 5rem; }
     .se-signin h1 { font-size: clamp(2.4rem, 5vw, 3.2rem); line-height: 1.05; margin: 0; }
     .se-signin-lede { margin: 0.9rem 0 2rem; color: var(--text); }

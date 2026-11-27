@@ -40,5 +40,7 @@
       <%= t('submissions_not_found') %>
     </div>
   </div>
+<% else %>
+  <p class="mt-10 text-center text-base-content/60"><%= t('stevensed.empty_archived_submissions') %></p>
 <% end %>
 <%= render 'shared/pagination', pagy: @pagy, items_name: 'submissions' %>

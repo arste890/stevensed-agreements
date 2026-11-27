@@ -107,7 +107,7 @@
               <%= t('2fa_is_not_configured') %>
             </span>
           </p>
-          <a href="<%= new_mfa_setup_path %>" data-turbo-frame="modal" aria-label="<%= t('setup_2fa') %>" class="base-button w-full !px-8">🔒 <%= t('set_up_2fa') %></a>
+          <a href="<%= new_mfa_setup_path %>" data-turbo-frame="modal" aria-label="<%= t('setup_2fa') %>" class="base-button w-full !px-8 gap-2"><%= svg_icon('lock', class: 'w-5 h-5') %><%= t('set_up_2fa') %></a>
         <% end %>
       </div>
     <% end %>

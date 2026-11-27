@@ -18,7 +18,7 @@
             ID: <%= attachment.uuid %>
           </div>
           <% if local_assigns[:with_signature_id_reason] != false %>
-            <div>
+            <div class="[overflow-wrap:anywhere]">
               <% reason_value = submitter.values[field.dig('preferences', 'reason_field_uuid')].presence %>
               <% if reason_value %><%= t('reason') %>: <% end %><%= reason_value || t('digitally_signed_by') %> <%= submitter.name %>
               <% if submitter.email %>
