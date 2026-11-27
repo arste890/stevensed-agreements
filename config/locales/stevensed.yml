@@ -120,6 +120,7 @@ en:
       sha256_fingerprint: SHA-256 fingerprint
       time_stamp_authority: Time-stamp authority (RFC 3161)
       verification: This log and the documents it describes are signed with the certificate above. To confirm a signature, open the document in Adobe Acrobat or Reader and compare the certificate fingerprints with those published at
+      verify_file: To confirm a file, compute its SHA-256 (for example with shasum -a 256 on macOS or Linux) and compare it with the value under Documents, ignoring spaces, colons and letter case.
       page_number_of_total: Page %{number} of %{total}
       field: Field
       entry: Entry
@@ -160,6 +161,12 @@ en:
       how_to_verify: How to verify
       record: Record
       signer_short: Signer %{number}
+      ip_not_recorded: IP not recorded
+      not_recorded: Not recorded
+      event_completed: Envelope completed
+      event_completed_detail: when the last signer signed
+      valid_yes: Yes. The sealing time falls within the validity period above.
+      valid_no: No. The sealing time falls outside the validity period above.
       signed: Signed
       envelope: Envelope
       document_count: Document %{number} of %{total}
