@@ -1,16 +1,16 @@
 # frozen_string_literal: true
 
 module Stevensed
-  # StevensED: what a completed envelope can be downloaded as, the same everywhere (submission page, signer's
-  # completion screen, lists):
-  #   documents - the completed document (the main Download button);
+  # StevensED: what a completed envelope can be downloaded as:
+  #   documents - the completed document;
   #   audit     - the audit log, once everyone has signed;
   #   combined  - the completed document followed by the audit log, one PDF.
-  # The dropdown beside Download offers all three. Combined is not offered for envelopes with an identity-verification
-  # field. Completion emails attach the document and the audit log as separate PDFs (SubmitterMailer).
+  # The main Download button gives signers the completed document (their completion screens and copy link) and gives
+  # StevensED staff the combined PDF (submission page, lists), unless the account turns combining off. The menu beside
+  # Download offers all three everywhere, with the same labels. Combined is not offered for envelopes with an
+  # identity-verification field. Completion emails attach the document and the audit log as separate PDFs.
   module Downloads
     KINDS = %w[documents audit combined].freeze
-    MAIN_KIND = 'documents'
     FILES_TTL = 5.minutes
 
     module_function
@@ -40,9 +40,15 @@ module Stevensed
       ['documents', ('audit' if complete?(submission)), ('combined' if combined_allowed?(submission))].compact
     end
 
-    # The main Download button always gives the completed document.
-    def default_kind(_submission)
-      MAIN_KIND
+    # The main Download button: the completed document for signers; the combined PDF for staff when available.
+    def default_kind(submission, audience: :signer)
+      return 'documents' unless audience == :staff
+
+      combined_allowed?(submission) && combined_default?(submission.account_id) ? 'combined' : 'documents'
+    end
+
+    def combined_default?(account_id)
+      !AccountConfig.exists?(account_id:, key: AccountConfig::COMBINE_PDF_RESULT_KEY, value: false)
     end
 
     # Pre-generate the combined PDF at completion so the menu choice is quick.
@@ -51,12 +57,12 @@ module Stevensed
     end
 
     # The requested kind if available, otherwise the default. Returns nil for an audit log that does not exist yet.
-    def resolve(submission, requested)
+    def resolve(submission, requested, audience: :signer)
       requested = requested.to_s
       return requested if kinds(submission).include?(requested)
       return nil if requested == 'audit'
 
-      default_kind(submission)
+      default_kind(submission, audience:)
     end
 
     def urls(last_submitter, kind)

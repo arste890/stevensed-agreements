@@ -69,10 +69,10 @@ en:
     completed_on: Completed %{date}
     imported_records_verified: Verified against the original audit log, envelope %{id}
     imported_records_not_verified: Not verified against the DocuSeal audit log, original envelope %{id}
-    imported_records_signed_document: Signed document
-    imported_records_signed_document_n: Signed document %{n}
+    imported_records_signed_document: Completed document
+    imported_records_signed_document_n: Completed document %{n}
     imported_records_audit_log: Audit log
-    imported_records_combined: Combined PDF
+    imported_records_combined: Combined (document and audit log)
     legal_notices: Legal notices
     sms_not_available: Not available in StevensED Agreements. Signature requests are sent by email.
     embedding_settings_hint: Instructions for embedding the signing form and the template builder, and the list of allowed sites, are in Settings.

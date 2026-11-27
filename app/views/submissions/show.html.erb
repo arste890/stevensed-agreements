@@ -6,8 +6,8 @@
 <% font_scale = 1040.0 / PdfUtils::US_LETTER_W %>
 <% configs = AccountConfig.where(account_id: @submission.account_id, key: [AccountConfig::COMBINE_PDF_RESULT_KEY, AccountConfig::WITH_SIGNATURE_ID, AccountConfig::WITH_SUBMITTER_TIMEZONE_KEY, AccountConfig::WITH_SIGNATURE_ID_REASON_KEY, AccountConfig::WITH_TIMESTAMP_SECONDS_KEY, AccountConfig::WITH_SIGNATURE_ID_COMPLETED_AT_KEY]) %>
 <% with_signature_id = configs.find { |e| e.key == AccountConfig::WITH_SIGNATURE_ID }&.value == true %>
-<%# StevensED: Download gives the completed document; the dropdown offers completed document, audit log and combined (Stevensed::Downloads). %>
-<% is_combined_enabled = false %>
+<%# StevensED: Download gives staff the combined PDF and a signer (the copy link, a preview) the completed document; the dropdown offers all three (Stevensed::Downloads). %>
+<% is_combined_enabled = !local_assigns[:is_preview] && Stevensed::Downloads.default_kind(@submission, audience: :staff) == 'combined' %>
 <% download_kinds = Stevensed::Downloads.kinds(@submission) %>
 <% extra_download_kinds = download_kinds.many? ? download_kinds : [] %>
 <% with_submitter_timezone = configs.find { |e| e.key == AccountConfig::WITH_SUBMITTER_TIMEZONE_KEY }&.value == true %>
