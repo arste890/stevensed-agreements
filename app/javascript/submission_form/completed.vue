@@ -92,7 +92,7 @@
         </button>
         <ul
           v-if="isDownloadMenuOpen && !isWebView"
-          class="absolute right-0 top-full z-10 mt-2 w-72 p-2 shadow menu text-base bg-base-100 rounded-box text-left completed-form-download-kinds"
+          class="absolute right-0 bottom-full z-10 mb-2 w-72 max-w-full p-2 shadow menu text-base bg-base-100 rounded-box text-left completed-form-download-kinds"
         >
           <li
             v-for="kind in downloadKinds"

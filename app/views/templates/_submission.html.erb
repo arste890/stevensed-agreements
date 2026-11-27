@@ -66,8 +66,8 @@
       </div>
       <div class="flex space-x-2 items-center z-[1]">
         <% if submitter.completed_at? %>
-          <div class="flex-1 min-w-0 md:flex-none">
-            <div class="w-full md:w-fit">
+          <div class="flex-none">
+            <div class="w-fit">
               <%= render 'shared/stevensed_download_menu', submission:, compact: true, audience: :staff, src: ->(kind) { submission_download_index_path(submission, kind:) } %>
             </div>
           </div>
@@ -180,8 +180,8 @@
       <div class="flex space-x-2 items-center z-[1]">
         <% if is_submission_completed %>
           <% latest_submitter = submitters.select(&:completed_at?).max_by(&:completed_at) %>
-          <div class="flex-1 min-w-0 md:flex-none">
-            <div class="w-full md:w-fit">
+          <div class="flex-none">
+            <div class="w-fit">
               <%= render 'shared/stevensed_download_menu', submission:, compact: true, audience: :staff, src: ->(kind) { submission_download_index_path(submission, kind:) } %>
             </div>
           </div>

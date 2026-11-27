@@ -16,6 +16,12 @@
     .se-site-header.se-site-header--static { position: relative; margin-bottom: 0; }
     .se-site-header .se-wrap.se-wrap--wide { max-width: 100rem; }
     .se-page-zone { display: flex; align-items: center; gap: 1rem; flex: 1 1 auto; min-width: 0; }
+    /* The logo never shrinks under the page title: its wrapper keeps the logo's width. */
+    .se-site-header__inner > :has(> .se-brand) { flex: none; }
+    /* On a phone the page actions take the header; a title squeezed to one letter helps nobody. */
+    @media (max-width: 480px) { .se-page-zone:has(.se-page-zone__actions > *) .se-page-zone__title { display: none; } }
+    /* Scrolling option lists fade at the bottom edge, so a cut-off option reads as "more below". */
+    .se-scroll-fade { padding-bottom: 1.25rem; -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 1.25rem), transparent); mask-image: linear-gradient(to bottom, #000 calc(100% - 1.25rem), transparent); }
     .se-page-zone__rule { width: 1px; height: 2.25rem; background: var(--rule); flex: none; }
     .se-page-zone__title { flex: 1 1 auto; min-width: 0; }
     /* The archive menu sits in a row's z-indexed action bar; lift that bar while the menu is open so later rows do not cover it. */

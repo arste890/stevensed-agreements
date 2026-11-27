@@ -25,7 +25,7 @@
   >
     <MarkdownContent :string="field.description" />
   </div>
-  <div class="flex w-full max-h-44 overflow-y-auto">
+  <div class="flex w-full max-h-44 overflow-y-auto se-scroll-fade">
     <input
       v-if="modelValue.length === 0"
       type="text"

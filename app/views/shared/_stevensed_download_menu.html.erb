@@ -3,8 +3,8 @@
 <% main_kind = Stevensed::Downloads.default_kind(submission, audience: local_assigns.fetch(:audience, :signer)) %>
 <% compact = local_assigns[:compact] %>
 <% button_class = compact ? 'btn btn-sm max-sm:text-[13px] btn-neutral text-white' : 'base-button' %>
-<div class="join relative <%= 'w-full' if local_assigns[:full_width] %> <%= 'md:w-36' if compact %>">
-  <download-button role="button" tabindex="0" aria-label="<%= t('download') %>: <%= Stevensed::Downloads.label(main_kind) %>" data-src="<%= src.call(main_kind) %>" class="<%= button_class %> flex-1 <%= '!rounded-r-none !pr-2' if kinds.many? %>">
+<div class="join relative flex-nowrap <%= 'w-full' if local_assigns[:full_width] %>">
+  <download-button role="button" tabindex="0" aria-label="<%= t('download') %>: <%= Stevensed::Downloads.label(main_kind) %>" data-src="<%= src.call(main_kind) %>" class="<%= button_class %> flex-1 whitespace-nowrap <%= '!rounded-r-none !pr-2' if kinds.many? %>">
     <span class="flex items-center justify-center space-x-1 md:space-x-2" data-target="download-button.defaultButton">
       <%= svg_icon('download', class: compact ? 'w-5 h-5 max-sm:w-4 max-sm:h-4 stroke-2' : 'w-6 h-6') %>
       <span class="inline"><%= t('download') %></span>
