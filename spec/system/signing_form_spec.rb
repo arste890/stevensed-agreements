@@ -474,7 +474,7 @@ RSpec.describe 'Signing Form' do
 
       input = find_field('Birthday')
 
-      expect(input[:value]).to eq Time.zone.now.strftime('%Y-%m-%d')
+      expect(input[:value]).to eq Time.current.in_time_zone('America/Denver').strftime('%Y-%m-%d')
 
       find('#submit_form_button').click
 

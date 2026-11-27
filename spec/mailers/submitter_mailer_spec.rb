@@ -54,7 +54,11 @@ describe SubmitterMailer do
   end
 
   describe 'completed notice to the sender' do
-    before { submitter.update!(completed_at: Time.current) }
+    before do
+      template.update!(preferences: template.preferences.merge('completed_notification_email_attach_documents' => false,
+                                                               'completed_notification_email_attach_audit' => false))
+      submitter.update!(completed_at: Time.current)
+    end
 
     it 'greets the sending user by full name and draws a bulletproof button with a dark palette' do
       html = described_class.completed_email(submitter, user).deliver_now.html_part.body.decoded
