@@ -42,7 +42,9 @@
             <% end %>
           </div>
           <p class="text-base-content/80 mt-1">
-            <% if event.event_type == 'complete_verification' %>
+            <% if (stevensed_text = Stevensed::Records.event_text(event, submitter_name)) %>
+              <%= stevensed_text.html_safe %>
+            <% elsif event.event_type == 'complete_verification' %>
               <% identity_name = [event.data['firstname'], event.data['lastname']].compact_blank.join(' ') %>
               <%= t('submission_event_names.complete_verification_by_html', provider: event.data['method'], submitter_name: identity_name.presence || submitter_name) %>
             <% elsif event.event_type == 'invite_party' && (invited_submitter = @submission.submitters.find { |e| e.uuid == event.data['uuid'] }) && (name = @submission.template_submitters.find { |e| e['uuid'] == event.data['uuid'] }&.dig('name')) %>

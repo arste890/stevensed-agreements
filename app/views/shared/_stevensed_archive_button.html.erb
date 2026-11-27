@@ -1,0 +1,27 @@
+<%# StevensED: archiving a record asks for a reason, which is kept with the record and shown in its event log (Stevensed::Records). Locals: submission. %>
+<div class="dropdown dropdown-end z-[2]">
+  <span data-tip="<%= t('archive') %>" class="tooltip tooltip-top tooltip-no-touch">
+    <label tabindex="0" role="button" class="btn btn-outline btn-sm w-full md:w-fit" aria-label="<%= t('archive') %>" title="<%= t('archive') %>">
+      <%= svg_icon('archive', class: 'w-6 h-6') %>
+    </label>
+  </span>
+  <div tabindex="0" class="dropdown-content mt-2 w-72 rounded-box border border-base-300 bg-base-100 p-4 shadow-lg text-left">
+    <%= form_with url: submission_path(submission), method: :delete, class: 'space-y-3' do %>
+      <p class="text-sm font-semibold"><%= t('stevensed.records.archive_title') %></p>
+      <p class="text-xs text-base-content/70"><%= t('stevensed.records.archive_hint') %></p>
+      <div>
+        <label for="archive_reason_<%= submission.id %>" class="label-text text-sm"><%= t('stevensed.records.reason') %></label>
+        <select id="archive_reason_<%= submission.id %>" name="archive_reason" class="select select-bordered select-sm w-full" required>
+          <% Stevensed::Records::ARCHIVE_REASONS.each do |reason| %>
+            <option value="<%= reason %>"><%= t("stevensed.records.reasons.#{reason}") %></option>
+          <% end %>
+        </select>
+      </div>
+      <div>
+        <label for="archive_note_<%= submission.id %>" class="label-text text-sm"><%= t('stevensed.records.note') %></label>
+        <input id="archive_note_<%= submission.id %>" type="text" name="archive_note" maxlength="200" class="input input-bordered input-sm w-full" autocomplete="off">
+      </div>
+      <button type="submit" class="base-button w-full !h-9 !min-h-9 text-sm"><%= t('archive') %></button>
+    <% end %>
+  </div>
+</div>

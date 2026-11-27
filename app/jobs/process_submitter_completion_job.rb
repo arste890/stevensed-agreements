@@ -37,6 +37,8 @@ class ProcessSubmitterCompletionJob
 
       Submissions::EnsureAuditGenerated.call(submission)
 
+      Stevensed::Records.supersede_earlier!(submission.reload) # StevensED: same signer, newer version of the form
+
       enqueue_completed_emails(submitter)
     end
 

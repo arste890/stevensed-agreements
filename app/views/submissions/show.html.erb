@@ -15,6 +15,18 @@
 <% with_signature_id_completed_at = configs.find { |e| e.key == AccountConfig::WITH_SIGNATURE_ID_COMPLETED_AT_KEY }&.value == true %>
 <% is_generating = @submission.variables_schema.present? && @submission.template_schema.to_a.any? { |item| item['dynamic'] && @submission.schema_documents.none? { |e| e.uuid == item['attachment_uuid'] } } %>
 <div style="max-width: 1600px" class="mx-auto pl-4">
+  <% if signed_in? && @submission.archived_at? && (stevensed_archive = Stevensed::Records.archive_info(@submission)) %>
+    <div class="alert mb-3 mr-4 text-sm" role="status">
+      <%= svg_icon('archive', class: 'w-5 h-5') %>
+      <span>
+        <% if stevensed_archive['kind'] == 'superseded' %>
+          <%= t('stevensed.records.superseded_notice_html', link: link_to(t('stevensed.records.envelope', id: stevensed_archive['superseded_by_submission_id']), submission_path(stevensed_archive['superseded_by_submission_id']), class: 'link'), version: stevensed_archive['superseded_by_version']) %>
+        <% else %>
+          <%= t('stevensed.records.archived_notice', user: stevensed_archive['user_name'].presence || t('stevensed.records.staff'), reason: [t("stevensed.records.reasons.#{stevensed_archive['reason']}", default: stevensed_archive['reason'].to_s), stevensed_archive['note']].compact_blank.join(': ')) %>
+        <% end %>
+      </span>
+    </div>
+  <% end %>
   <% unless native_tab == 'recipients' %>
     <% page_actions = capture do %>
       <div class="flex items-center gap-3">

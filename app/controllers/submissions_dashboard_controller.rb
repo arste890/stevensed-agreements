@@ -6,8 +6,9 @@ class SubmissionsDashboardController < ApplicationController
   def index
     @submissions = @submissions.left_joins(:template)
 
+    # StevensED: a record stays active when PolicySync archives its template as a superseded version; only the
+    # record's own archived_at (superseded by a newer signature, or archived by staff with a reason) hides it.
     @submissions = @submissions.where(archived_at: nil)
-                               .where(templates: { archived_at: nil })
                                .preload(:template_accesses, :created_by_user)
 
     @submissions = Submissions.search(current_user, @submissions, params[:q], search_template: true)

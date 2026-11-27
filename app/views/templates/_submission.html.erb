@@ -21,6 +21,7 @@
             <%= svg_icon('calendar', class: 'w-4 h-4 flex-shrink-0') %>
             <span><%= l(submission.created_at.in_time_zone(current_account.timezone), format: :short, locale: current_account.locale) %></span>
           </span>
+          <%= render 'shared/stevensed_record_status', submission:, template: %>
         </div>
       </div>
     </a>
@@ -102,10 +103,8 @@
             <%= t('view') %>
           </a>
         </div>
-        <% if !submission.archived_at? && !template&.archived_at? && can?(:destroy, submission) %>
-          <span data-tip="<%= t('archive') %>" class="tooltip tooltip-top tooltip-no-touch">
-            <%= button_to button_title(title: nil, disabled_with: nil, icon: svg_icon('archive', class: 'w-6 h-6'), icon_disabled: svg_icon('loader', class: 'w-6 h-6 animate-spin')), submission_path(submission), class: 'btn btn-outline btn-sm w-full md:w-fit', form: { class: 'flex' }, title: t('archive'), method: :delete %>
-          </span>
+        <% if !submission.archived_at? && can?(:destroy, submission) %>
+          <%= render 'shared/stevensed_archive_button', submission: %>
         <% end %>
         <% if local_assigns[:archived] && can?(:destroy, submission) %>
           <span data-tip="<%= t('remove') %>" class="tooltip tooltip-top tooltip-no-touch">
@@ -221,10 +220,8 @@
             <%= t('view') %>
           </a>
         </div>
-        <% if !submission.archived_at? && !template&.archived_at? %>
-          <span data-tip="<%= t('archive') %>" class="tooltip tooltip-top tooltip-no-touch">
-            <%= button_to button_title(title: nil, disabled_with: nil, icon: svg_icon('archive', class: 'w-6 h-6'), icon_disabled: svg_icon('loader', class: 'w-6 h-6 animate-spin')), submission_path(submission), class: 'btn btn-outline btn-sm w-full md:w-fit', form: { class: 'flex' }, title: t('archive'), method: :delete %>
-          </span>
+        <% if !submission.archived_at? && can?(:destroy, submission) %>
+          <%= render 'shared/stevensed_archive_button', submission: %>
         <% end %>
         <% if local_assigns[:archived] && can?(:destroy, submission) %>
           <span data-tip="<%= t('remove') %>" class="tooltip tooltip-top tooltip-no-touch">

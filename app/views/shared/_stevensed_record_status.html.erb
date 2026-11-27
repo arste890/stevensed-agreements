@@ -1,0 +1,9 @@
+<%# StevensED: why a record is archived, or that an active record was signed on an earlier form version (Stevensed::Records). Locals: submission, template. %>
+<% info = Stevensed::Records.archive_info(submission) %>
+<% if submission.archived_at? && info&.dig('kind') == 'superseded' %>
+  <span class="flex items-center space-x-1"><%= svg_icon('archive', class: 'w-4 h-4 flex-shrink-0') %><span><%= t('stevensed.records.superseded_by', envelope: info['superseded_by_submission_id']) %></span></span>
+<% elsif submission.archived_at? && info&.dig('kind') == 'staff' %>
+  <span class="flex items-center space-x-1"><%= svg_icon('archive', class: 'w-4 h-4 flex-shrink-0') %><span class="truncate"><%= t('stevensed.records.archived_reason', reason: t("stevensed.records.reasons.#{info['reason']}", default: info['reason'].to_s)) %></span></span>
+<% elsif !submission.archived_at? && local_assigns[:template]&.archived_at? %>
+  <span class="flex items-center space-x-1"><%= svg_icon('clock', class: 'w-4 h-4 flex-shrink-0') %><span><%= t('stevensed.records.earlier_version') %></span></span>
+<% end %>

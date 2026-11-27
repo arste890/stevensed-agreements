@@ -112,9 +112,9 @@ class SearchController < ApplicationController
 
     submissions =
       if params[:archived] == 'true'
-        submissions.where.not(archived_at: nil).or(submissions.where.not(templates: { archived_at: nil }))
+        submissions.where.not(archived_at: nil) # StevensED: the record's own state (Stevensed::Records)
       else
-        submissions.where(archived_at: nil).where(templates: { archived_at: nil })
+        submissions.where(archived_at: nil)
       end
 
     submissions = Submissions.search(current_user, submissions, query, search_template: true)

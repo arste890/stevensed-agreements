@@ -21,7 +21,10 @@ class SubmissionEventsController < ApplicationController
     'start_verification' => 'player_play',
     'complete_verification' => 'check',
     'invite_party' => 'user_plus',
-    'accept_esign_consent' => 'circle_check'
+    'accept_esign_consent' => 'circle_check',
+    'stevensed_superseded' => 'archive',
+    'stevensed_archived' => 'archive',
+    'stevensed_unarchived' => 'rotate'
   }.freeze
 
   load_and_authorize_resource :submission

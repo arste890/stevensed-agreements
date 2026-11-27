@@ -482,7 +482,9 @@ module Submissions
         submitter_name = TextUtils.maybe_rtl_reverse(submitter_name.to_s.squish)
 
         text =
-          if event.event_type == 'complete_verification'
+          if (stevensed_text = Stevensed::Records.event_text(event, submitter_name))
+            stevensed_text
+          elsif event.event_type == 'complete_verification'
             identity_name = [event.data['firstname'], event.data['lastname']].compact_blank.join(' ')
             identity_name = TextUtils.maybe_rtl_reverse(identity_name) if identity_name.present?
 

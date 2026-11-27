@@ -139,7 +139,6 @@ class TemplatesDashboardController < ApplicationController
     related_submissions = Submission.accessible_by(current_ability)
                                     .left_joins(:template)
                                     .where(archived_at: nil)
-                                    .where(templates: { archived_at: nil })
                                     .preload(:template_accesses, :created_by_user,
                                              template: :author,
                                              submitters: :start_form_submission_events)

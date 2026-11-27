@@ -93,7 +93,9 @@ class SubmissionsController < ApplicationController
 
         I18n.t('submission_has_been_removed')
       else
-        @submission.update!(archived_at: Time.current)
+        # StevensED: staff archive with a recorded reason (Stevensed::Records), shown in the event log.
+        Stevensed::Records.archive_by_staff!(@submission, user: current_user, reason: params[:archive_reason],
+                                                          note: params[:archive_note])
 
         WebhookUrls.enqueue_events(@submission, 'submission.archived')
 

@@ -5,8 +5,7 @@ class SubmissionsArchivedController < ApplicationController
 
   def index
     @submissions = @submissions.left_joins(:template)
-    @submissions = @submissions.where.not(archived_at: nil)
-                               .or(@submissions.where.not(templates: { archived_at: nil }))
+    @submissions = @submissions.where.not(archived_at: nil) # StevensED: records archived themselves (Stevensed::Records)
                                .preload(:template_accesses, :created_by_user)
 
     @submissions = Submissions.search(current_user, @submissions, params[:q], search_template: true)

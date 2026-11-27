@@ -38,7 +38,30 @@ en:
     view_active: View active
     view_archived: View archived
     webhook_security: Webhook security
+    # StevensED: record lifecycle events (Stevensed::Records)
+    submission_event_names:
+      stevensed_superseded_by_html: '<b>Superseded</b> by envelope %{envelope} (version %{version}), signed by %{submitter_name}'
+      stevensed_archived_by_html: '<b>Archived</b> by %{user}. Reason: %{reason}'
+      stevensed_unarchived_by_html: '<b>Restored to active</b> by %{user}'
   stevensed:
+    records:
+      archive_title: Archive this record
+      archive_hint: The record moves to Archived and stays retrievable. The reason is kept in its event log.
+      reason: Reason
+      note: Note (optional)
+      staff: staff
+      reasons:
+        entered_in_error: Entered in error
+        duplicate: Duplicate
+        withdrawn: Withdrawn or revoked
+        replaced_by_paper: Replaced by a paper record
+        other: Other
+      envelope: envelope %{id}
+      superseded_by: Superseded by envelope %{envelope}
+      archived_reason: 'Archived: %{reason}'
+      earlier_version: Signed on an earlier form version
+      superseded_notice_html: Superseded by %{link}, which the same signer completed on version %{version}. This record stays retrievable here.
+      archived_notice: 'Archived by %{user}. Reason: %{reason}'
     imported_records: Imported records
     imported_records_intro: Signed agreements imported on November 26, 2026 from the cloud e-signature service StevensED used before StevensED Agreements. Each document was checked against the SHA-256 value in its audit log. Records keep the retention period that applied when they were signed.
     no_imported_records: No imported records.

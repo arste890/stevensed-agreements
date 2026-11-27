@@ -6,7 +6,7 @@ class SubmissionsUnarchiveController < ApplicationController
   def create
     authorize!(:destroy, @submission)
 
-    @submission.update!(archived_at: nil)
+    Stevensed::Records.unarchive!(@submission, user: current_user)
 
     redirect_to submission_path(@submission), notice: I18n.t('submission_has_been_unarchived')
   end

@@ -67,7 +67,10 @@ class SubmissionEvent < ApplicationRecord
     decline_form: 'decline_form',
     delegate_form: 'delegate_form',
     api_complete_form: 'api_complete_form',
-    accept_esign_consent: 'accept_esign_consent' # StevensED: ESIGN Act consent before signing
+    accept_esign_consent: 'accept_esign_consent', # StevensED: ESIGN Act consent before signing
+    stevensed_superseded: 'stevensed_superseded', # StevensED: a newer version signed by the same signer
+    stevensed_archived: 'stevensed_archived', # StevensED: archived by staff, with a reason
+    stevensed_unarchived: 'stevensed_unarchived'
   }, scope: false
 
   private
