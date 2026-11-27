@@ -35,8 +35,7 @@ module Submissions
     FOOTER_HEIGHT = 44
     # Continuation pages carry a slim running header: a line of text above a hairline, mirroring the footer.
     HEADER_RULE_FROM_TOP = 38
-    LABEL_COLUMN_WIDTH = 170
-    DETAIL_LABEL_WIDTH = 104
+    LABEL_COLUMN_WIDTH = 178
     CELL_PADDING = [5, 8, 4, 8].freeze
     # Event log date and time columns, measured in Inter at body size with cell padding: "28 September 2026", and
     # "12:46 AM AKST" or, with seconds, "12:46:05 AM AKST", each on one line.
@@ -174,8 +173,7 @@ module Submissions
                                                           FOOTER_HEIGHT + 14, MARGIN_X])
       end
 
-      running_header = t(:running_header, product: Stevensed::PRODUCT_NAME, title: I18n.t('audit_log'),
-                                          id: submission.id)
+      running_header = [Stevensed::PRODUCT_NAME, t(:running_header, id: submission.id)]
 
       composer.page_style(:default, page_size:) do |canvas, style|
         draw_running_header(canvas, composer.document, running_header)
@@ -200,27 +198,27 @@ module Submissions
                     font: [SERIF, { variant: :bold }], font_size: TYPE[:title], fill_color: INK,
                     padding: [0, 0, gap.call(8), 0])
 
+      layout = composer.document.layout
+      text = ->(value, **options) { layout.text_box(value.to_s, **options) }
+      strong = ->(value) { layout.text_box(value.to_s, font: [SANS, { variant: :bold }]) }
+
       summary_rows = [
-        [I18n.t('envelope_id'), submission.id.to_s],
-        [t(:document), TextUtils.maybe_rtl_reverse((submission.name || submission.template&.name).to_s)],
-        completed_at && [t(:completed), format_time(completed_at, timezone, :long)],
-        [t(:issued_by), "#{Stevensed::LEGAL_ENTITY}, #{Stevensed::OFFICE}"]
+        [I18n.t('envelope_id'), text.call(submission.id)],
+        [t(:document), text.call(TextUtils.maybe_rtl_reverse((submission.name || submission.template&.name).to_s))],
+        completed_at && [t(:completed), text.call(format_time(completed_at, timezone, :long))],
+        [t(:issued_by), text.call("#{Stevensed::LEGAL_ENTITY}, #{Stevensed::OFFICE}")]
       ].compact
 
       if show_verify?(submission)
-        summary_rows << [I18n.t('verify'), { link: Stevensed::PKI_URL, text: Stevensed::PKI_URL.delete_suffix('/'),
-                                             style: :link }]
+        summary_rows << [I18n.t('verify'),
+                         layout.formatted_text_box([{ link: Stevensed::PKI_URL, style: :link,
+                                                      text: Stevensed::PKI_URL.delete_suffix('/') }])]
       end
 
-      composer.table(
-        summary_rows.map do |label, value|
-          [label_box(composer.document.layout, label), composer.document.layout.formatted_text_box([value])]
-        end,
-        column_widths: [LABEL_COLUMN_WIDTH + CELL_PADDING[3], -1],
-        cell_style: { padding: [0, 0, gap.call(5), 0], border: { width: 0 } }
-      )
+      draw_table(composer, summary_rows.map { |label, value| [text.call(label), value] },
+                 header: [t(:summary), t(:detail)], margin: gap.call(4), padding: cell_padding)
 
-      documents_data = select_attachments(last_submitter).map do |document|
+      documents_rows = select_attachments(last_submitter).flat_map do |document|
         original_documents = submission.schema_documents.select do |e|
           e.uuid == (document.metadata['original_uuid'] || document.uuid)
         end.presence
@@ -231,28 +229,19 @@ module Submissions
           end
         end
 
+        original_hashes = original_documents.map { |d| even_halves(d.metadata['sha256'] || d.checksum) }
+
         [
-          composer.document.layout.formatted_text_box(
-            [{ text: TextUtils.maybe_rtl_reverse(document.filename.to_s), font: [SANS, { variant: :bold }] }]
-          ),
-          composer.document.layout.formatted_text_box(
-            [
-              { text: "#{I18n.t('original_sha256').upcase}\n", style: :eyebrow },
-              { text: original_documents.map { |d| even_halves(d.metadata['sha256'] || d.checksum) }
-                                        .first(CHECKSUM_LIMIT).join("\n"), style: :hash },
-              "\n",
-              { text: "#{I18n.t('result_sha256').upcase}\n", style: :eyebrow },
-              { text: even_halves(document.metadata['sha256'] || document.checksum), style: :hash },
-              "\n",
-              { text: "#{I18n.t('generated_at').upcase}\n", style: :eyebrow },
-              format_time(document.created_at, timezone, :long)
-            ], line_spacing: 1.45
-          )
+          [text.call(t(:file_name)), strong.call(TextUtils.maybe_rtl_reverse(document.filename.to_s))],
+          [text.call(t(:original_sha256)), text.call(original_hashes.first(CHECKSUM_LIMIT).join("\n"), style: :hash)],
+          [text.call(t(:result_sha256)),
+           text.call(even_halves(document.metadata['sha256'] || document.checksum), style: :hash)],
+          [text.call(t(:generated)), text.call(format_time(document.created_at, timezone, :long))]
         ]
       end
 
-      if documents_data.present?
-        draw_table(composer, documents_data, header: [t(:document), t(:detail)], label_column: true,
+      if documents_rows.present?
+        draw_table(composer, documents_rows, header: [t(:document), t(:detail)],
                                              lead: heading_boxes(composer, t(:documents)), margin: gap.call(4),
                                              padding: cell_padding)
       end
@@ -291,27 +280,21 @@ module Submissions
 
         detail = ->(label, value) { [[label, value]] }
 
-        identity_box = composer.document.layout.formatted_text_box(
-          [
-            { text: "#{TextUtils.maybe_rtl_reverse(item['name'].to_s).upcase}\n", style: :eyebrow,
-              fill_color: CORAL },
-            (signer_name = Stevensed::SignerName.for(submitter)) &&
-              { text: "#{TextUtils.maybe_rtl_reverse(signer_name.squish)}\n", font: [SANS, { variant: :bold }],
-                font_size: TYPE[:name] },
-            # A zero-width space after the @ lets a long address wrap there rather than mid-word.
-            submitter.email && { text: "#{submitter.email.squish.sub('@', "@\u200B")}\n" },
-            submitter.phone && { text: "#{submitter.phone.squish}\n" },
-            submitter.completed_at && { text: "#{t(:completed)} " \
-                                              "#{format_time(submitter.completed_at, timezone, :long)}\n",
-                                        fill_color: MUTED }
-          ].compact_blank, line_spacing: 1.4, padding: [0, 14, 0, 0]
-        )
+        signer_name = Stevensed::SignerName.for(submitter)
+
+        identity_rows = [
+          signer_name && [t(:name), strong.call(TextUtils.maybe_rtl_reverse(signer_name.squish))],
+          # A zero-width space after the @ lets a long address wrap there rather than mid-word.
+          submitter.email && [t(:email), text.call(submitter.email.squish.sub('@', "@\u200B"))],
+          submitter.phone && [t(:phone), text.call(submitter.phone.squish)],
+          submitter.completed_at && [t(:completed), text.call(format_time(submitter.completed_at, timezone, :long))]
+        ].compact
 
         # The consent record is one or more "Label: value" lines; each becomes a row like the other details.
         consent_rows =
           if esign_consent_event
-            Stevensed::Consents.audit_line(esign_consent_event, timezone:).lines.map(&:strip).compact_blank
-                                .map { |line| line.split(': ', 2) }
+            lines = Stevensed::Consents.audit_line(esign_consent_event, timezone:).lines.map(&:strip).compact_blank
+            lines.map { |line| line.split(': ', 2) }.map { |label, value| [label, value.to_s.upcase_first] }
           end
 
         detail_rows = [
@@ -329,30 +312,8 @@ module Submissions
           *(submitter.timezone && detail.call(t(:time_zone), submitter.timezone.to_s.sub('Kiev', 'Kyiv')))
         ].grep(Array)
 
-        details_box =
-          if detail_rows.present?
-            composer.document.layout.table_box(
-              detail_rows.map do |label, value|
-                if value.nil?
-                  [{ content: composer.document.layout.text_box(label.to_s), col_span: 2 }]
-                else
-                  [label_box(composer.document.layout, label), composer.document.layout.text_box(value.to_s)]
-                end
-              end,
-              column_widths: [DETAIL_LABEL_WIDTH, -1],
-              cell_style: { padding: [0, 0, 4, 0], border: { width: 0 } }
-            )
-          else
-            composer.document.layout.text_box('')
-          end
-
-        panel_box = composer.document.layout.table_box(
-          [[identity_box, details_box]],
-          column_widths: [LABEL_COLUMN_WIDTH, -1],
-          cell_style: { padding: [10, 12, 8, 12], background_color: PANEL,
-                        border: { width: [0, 0, 0, 2], color: NAVY } },
-          margin: [0, 0, gap.call(10), 0]
-        )
+        signer_rows = identity_rows.map { |label, value| [text.call(label), value] } +
+                      detail_rows.map { |label, value| [text.call(label), text.call(value)] }
 
         submitter_field_counters = Hash.new { 0 }
         grouped_value_field_names = {}
@@ -447,7 +408,7 @@ module Submissions
               image_box = layout.image_box(io, width:, height:, margin: [2, 0, 2, 0])
 
               if with_signature_id && field['type'].in?(%w[signature initials])
-                [image_box, layout.text_box("ID #{attachment.uuid.upcase}", style: :eyebrow)]
+                [image_box, layout.text_box("ID #{attachment.uuid.upcase}", style: :hash, fill_color: MUTED)]
               else
                 image_box
               end
@@ -493,18 +454,15 @@ module Submissions
           ]
         end
 
-        # The signer's card stays with the first rows of the signer's entries (and the Signers heading with the
-        # first card); longer lists continue on the next page under a repeated header row.
-        lead = [*(heading_boxes(composer, t(:signers)) unless signers_heading), panel_box]
+        # One table per signer: who signed and how, then what they entered under a second header row. Long
+        # tables continue on the next page under a repeated header row.
+        lead = signers_heading ? [] : heading_boxes(composer, t(:signers))
         signers_heading = true
+        rows = signer_rows
+        rows += [{ header: [t(:field), t(:entry)] }, *field_rows] if field_rows.present?
 
-        if field_rows.present?
-          draw_table(composer, field_rows, header: [t(:field), t(:entry)], label_column: true, lead:,
-                                           margin: gap.call(18), padding: cell_padding)
-        else
-          keep_together(composer, lead)
-          lead.each { |box| composer.draw_box(box) }
-        end
+        draw_table(composer, rows, header: [TextUtils.maybe_rtl_reverse(item['name'].to_s), t(:detail)], lead:,
+                                   margin: gap.call(18), padding: cell_padding)
       end
 
       submitter_versions_index = submission.submitters.preload(:submitter_versions).to_h do |s|
@@ -588,7 +546,7 @@ module Submissions
         # Date and time sit in their own columns so that times line up, right-aligned on the minute.
         time_width = with_timestamp_seconds ? EVENT_TIME_WITH_SECONDS_WIDTH : EVENT_TIME_WIDTH
 
-        draw_table(composer, events_data, header: [t(:date), t(:time), t(:event)], banded: true,
+        draw_table(composer, events_data, header: [t(:date), t(:time), t(:event)], label_column: false,
                                           column_widths: [EVENT_DATE_WIDTH, time_width, -1],
                                           lead: heading_boxes(composer, I18n.t('event_log')), margin: gap.call(18),
                                           padding: cell_padding)
@@ -614,27 +572,28 @@ module Submissions
     # Draws a table page by page instead of letting it split anywhere. Rows never split; the navy header row
     # repeats on every page; a page never opens or closes with fewer than MIN_ROWS rows (a shorter table moves
     # whole); and the lead boxes (section heading, signer card) stay with the first rows.
-    def draw_table(composer, rows, header:, lead: [], column_widths: [LABEL_COLUMN_WIDTH, -1], label_column: false,
-                   banded: false, margin: 0, padding: CELL_PADDING)
+    def draw_table(composer, rows, header:, lead: [], column_widths: [LABEL_COLUMN_WIDTH, -1], label_column: true,
+                   margin: 0, padding: CELL_PADDING)
       layout = composer.document.layout
-      header_boxes = header.map { |text| layout.text_box(text.upcase, style: :eyebrow, fill_color: 'FFFFFF') }
-      backgrounds = rows.each_index.map do |index|
-        rows[index].each_index.map do |column|
-          (LABEL_CELL if label_column && column.zero?) || (PANEL if banded && index.odd?)
+      header_cells = lambda do |texts|
+        texts.map do |value|
+          { content: layout.text_box(value.to_s.upcase, style: :eyebrow, fill_color: 'FFFFFF'), background_color: NAVY,
+            padding: }
         end
       end
-      # HexaPDF takes cell hashes apart when it builds a table, so every table gets fresh ones.
+      # HexaPDF takes cell hashes apart when it builds a table, so every table gets fresh ones. A row given as
+      # { header: [...] } is a header row inside the table; otherwise the first column is the label column.
       table = lambda do |indexes, with_header: true, bottom: 0|
         part = indexes.map do |index|
-          rows[index].zip(backgrounds[index]).map do |cell, background|
-            background ? { content: cell, background_color: background } : cell
-          end
-        end
-        header_row = header_boxes.map { |box| { content: box, background_color: NAVY, padding: } }
+          row = rows[index]
+          next header_cells.call(row[:header]) if row.is_a?(Hash)
 
-        layout.table_box(part, column_widths: column_widths.dup, header: (->(_t) { [header_row] } if with_header),
-                               cell_style: { padding:,
-                                             border: { width: [0, 0, HAIRLINE, 0], color: RULE } },
+          label_column ? [{ content: row.first, background_color: LABEL_CELL }, *row.drop(1)] : row
+        end
+
+        layout.table_box(part, column_widths: column_widths.dup,
+                               header: (->(_t) { [header_cells.call(header)] } if with_header),
+                               cell_style: { padding:, border: { width: [0, 0, HAIRLINE, 0], color: RULE } },
                                margin: [0, 0, bottom, 0])
       end
 
@@ -658,6 +617,11 @@ module Submissions
 
         if fit < remaining
           fit = remaining - MIN_ROWS if remaining - fit < MIN_ROWS
+          # A header row inside the table keeps at least MIN_ROWS of its rows (or all of them) on its page.
+          if (inner = (index...(index + fit)).to_a.rfind { |i| rows[i].is_a?(Hash) })
+            group = rows[(inner + 1)..].take_while { |row| !row.is_a?(Hash) }.size
+            fit = inner - index if index + fit - inner - 1 < [MIN_ROWS, group].min
+          end
           fresh = composer.frame.available_height >= composer.frame.height - 1
 
           if fit < [MIN_ROWS, remaining].min && !fresh
@@ -669,7 +633,9 @@ module Submissions
         end
 
         lead.each { |box| composer.draw_box(box) } if index.zero?
-        composer.draw_box(table.call((index...(index + fit)).to_a, bottom: index + fit == rows.size ? margin : 0))
+        # A page that opens on a header row inside the table needs no repeated header above it.
+        composer.draw_box(table.call((index...(index + fit)).to_a, with_header: !rows[index].is_a?(Hash),
+                                                                   bottom: index + fit == rows.size ? margin : 0))
         index += fit
         composer.new_page if index < rows.size
       end
@@ -792,7 +758,7 @@ module Submissions
       table = layout.table_box(
         [
           *rows.map do |label, value, style|
-            [label_box(layout, label), style ? layout.text_box(value.to_s, style:) : layout.text_box(value.to_s)]
+            [layout.text_box(label.to_s), style ? layout.text_box(value.to_s, style:) : layout.text_box(value.to_s)]
           end,
           [{ content: note, col_span: 2 }]
         ],
@@ -820,11 +786,6 @@ module Submissions
       { content: layout.text_box(text.upcase, style: :eyebrow, fill_color: 'FFFFFF'), background_color: NAVY, padding: }
     end
 
-    # Labels throughout the log are set the same way: small tracked capitals in the muted colour.
-    def label_box(layout, text)
-      layout.text_box(text.to_s.upcase, style: :eyebrow, padding: [2, 0, 0, 0])
-    end
-
     # A hexadecimal value as colon-separated bytes, in two even halves.
     def hex_bytes(hex)
       hex = hex.to_s.upcase
@@ -850,7 +811,8 @@ module Submissions
       end
     end
 
-    def draw_running_header(canvas, document, text)
+    # The product name on the left and the log and envelope on the right, above a hairline.
+    def draw_running_header(canvas, document, (left_text, right_text))
       box = canvas.context.box(:media)
       rule_y = box.height - HEADER_RULE_FROM_TOP
 
@@ -858,19 +820,22 @@ module Submissions
         canvas.stroke_color(RULE).line_width(HAIRLINE).line(MARGIN_X, rule_y, box.width - MARGIN_X, rule_y).stroke
       end
 
-      draw_text_box(canvas, document.layout.text_box(text, font: SANS, font_size: TYPE[:label], fill_color: MUTED),
-                    MARGIN_X, rule_y + 5, box.width - (MARGIN_X * 2), 14)
+      style = { font: SANS, font_size: TYPE[:label], fill_color: MUTED }
+      width = box.width - (MARGIN_X * 2)
+
+      draw_text_box(canvas, document.layout.text_box(left_text, **style), MARGIN_X, rule_y + 5, width / 2, 14)
+      draw_text_box(canvas, document.layout.text_box(right_text, **style, text_align: :right),
+                    MARGIN_X + (width / 2), rule_y + 5, width / 2, 14)
     end
 
     def add_footers(document, submission, with_signature_id)
       pages = document.pages.to_a
-      envelope = "#{I18n.t('envelope_id')} #{submission.id}"
 
       left_text =
         if submission.account.testing?
           TESTING_FOOTER
         else
-          "#{Stevensed::LEGAL_ENTITY} · #{Stevensed::OFFICE} · #{Docuseal.default_url_options[:host]}"
+          "#{Stevensed::LEGAL_ENTITY}, #{Stevensed::OFFICE}, #{Docuseal.default_url_options[:host]}"
         end
 
       if with_signature_id
@@ -887,13 +852,13 @@ module Submissions
                 .line(MARGIN_X, FOOTER_HEIGHT, box.width - MARGIN_X, FOOTER_HEIGHT).stroke
         end
 
-        page_label = t(:page_number_of_total, number: index + 1, total: pages.size)
+        page_label = t(:footer_page, id: submission.id, number: index + 1, total: pages.size)
 
         footer_style = { font: SANS, font_size: TYPE[:label], fill_color: MUTED }
 
         draw_text_box(canvas, document.layout.text_box(left_text, **footer_style),
                       MARGIN_X, 18, width * 0.72, FOOTER_HEIGHT - 24)
-        draw_text_box(canvas, document.layout.text_box("#{envelope} · #{page_label}", **footer_style,
+        draw_text_box(canvas, document.layout.text_box(page_label, **footer_style,
                                                                                       text_align: :right),
                       MARGIN_X + (width * 0.72), 18, width * 0.28, FOOTER_HEIGHT - 24)
       end

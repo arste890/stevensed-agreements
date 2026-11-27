@@ -125,7 +125,16 @@ en:
       certificate: Certificate
       detail: Detail
       access: Access
-      running_header: '%{product} · %{title} · Envelope %{id}'
+      running_header: Audit log for envelope %{id}
+      footer_page: Envelope %{id}, page %{number} of %{total}
+      summary: Summary
+      file_name: File
+      original_sha256: Original SHA-256
+      result_sha256: Result SHA-256
+      generated: Generated
+      name: Name
+      email: Email
+      phone: Phone
       'yes': 'Yes'
       'no': 'No'
     personalization:
