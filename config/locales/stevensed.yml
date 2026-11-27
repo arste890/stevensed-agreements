@@ -107,6 +107,7 @@ en:
       session_id: Session ID
       user_agent: User agent
       time_zone: Time zone
+      date: Date
       time: Time
       event: Event
       signing_certificate: Signing certificate

@@ -80,6 +80,23 @@ describe Submissions::GenerateAuditTrail do
     expect(pages.join("\n")).not_to include('IP address:', 'User agent:')
   end
 
+  it 'repeats the event log header row on every page and never leaves fewer than three rows on one' do
+    submitter = submission.submitters.first
+    60.times do |index|
+      SubmissionEvent.create!(submitter:, submission:, event_type: :view_form,
+                              event_timestamp: submitter.completed_at + index.minutes)
+    end
+
+    pages = pdf_text(build)
+    log_pages = pages.select { |page| page.include?('Form viewed by') }
+
+    expect(log_pages.size).to be > 1
+    log_pages.each do |page|
+      expect(page).to include('DATE TIME EVENT')
+      expect(page.scan('Form viewed by').size).to be >= Submissions::GenerateAuditTrail::MIN_ROWS
+    end
+  end
+
   it 'splits document hashes by character and hexadecimal values by whole bytes' do
     expect(described_class.even_halves(('A' * 22) + ('B' * 22))).to eq("#{'A' * 22}\n#{'B' * 22}")
     expect(described_class.hex_bytes('ABC')).to eq('0A:BC')
