@@ -1,9 +1,9 @@
-<%# StevensED: the dark palette from Stevensed::EmailDarkStyles, for prefers-color-scheme and for Outlook's [data-ogsc] / [data-ogsb] attributes. %>
+<%# StevensED: the dark palette from Stevensed::EmailDarkStyles (prefers-color-scheme), then the Outlook corrections for its [data-ogsc] / [data-ogsb] recolouring. %>
       @media (prefers-color-scheme: dark) {
 <% Stevensed::EmailDarkStyles::RULES.each do |selector, declarations| %>
         <%= selector %> { <%= declarations %> }
 <% end %>
       }
-<% Stevensed::EmailDarkStyles::RULES.each do |selector, declarations| %>
+<% Stevensed::EmailDarkStyles::OUTLOOK_RULES.each do |selector, declarations| %>
       <%= Stevensed::EmailDarkStyles.outlook_selector(selector) %> { <%= declarations %> }
 <% end %>
