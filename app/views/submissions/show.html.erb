@@ -89,7 +89,7 @@
                       </span>
                     </label>
                   <% end %>
-                  <ul class="z-10 dropdown-content p-2 mt-2 shadow menu text-base bg-base-100 rounded-box text-right">
+                  <ul class="z-30 dropdown-content p-2 mt-2 shadow-lg border border-base-300 menu text-base bg-base-100 rounded-box w-max min-w-[14rem] max-w-[calc(100vw-2rem)] text-left">
                     <% extra_download_kinds.each do |kind| %>
                       <native-action data-label="<%= Stevensed::Downloads.label(kind) %>" data-icon="download">
                         <li>
