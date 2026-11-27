@@ -1,9 +1,6 @@
-<%# StevensED: the dark palette from Stevensed::EmailDarkStyles (prefers-color-scheme), then the Outlook corrections for its [data-ogsc] / [data-ogsb] recolouring. %>
+<%# StevensED: the dark palette from Stevensed::EmailDarkStyles; backgrounds are gradients so Outlook ignores them (see the module). %>
       @media (prefers-color-scheme: dark) {
-<% Stevensed::EmailDarkStyles::RULES.each do |selector, declarations| %>
+<% Stevensed::EmailDarkStyles.rules.each do |selector, declarations| %>
         <%= selector %> { <%= declarations %> }
 <% end %>
       }
-<% Stevensed::EmailDarkStyles::OUTLOOK_RULES.each do |selector, declarations| %>
-      <%= Stevensed::EmailDarkStyles.outlook_selector(selector) %> { <%= declarations %> }
-<% end %>

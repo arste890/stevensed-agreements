@@ -67,7 +67,7 @@ describe SubmitterMailer do
       expect(html).to include('class="se-button-cell" align="center" bgcolor="#1F2948"', 'v:roundrect')
       expect(html).to match(/class="se-button-link"[^>]+padding:13px 30px/)
       expect(html).not_to include('border-top:13px solid')
-      expect(html).to include('@media (prefers-color-scheme: dark)', '[data-ogsb] .se-bg', '[data-ogsc] .se-label-cell')
+      expect(html).to include('@media (prefers-color-scheme: dark)', 'linear-gradient(#141A2E, #141A2E)')
       expect(html).to be_ascii_only
     end
 

@@ -1,17 +1,16 @@
 # frozen_string_literal: true
 
 describe Stevensed::EmailDarkStyles do
-  it 'gives Outlook light backgrounds to darken itself and keeps the button navy with white text' do
-    expect(described_class::OUTLOOK_RULES['.se-bg']).to include('#FFFFFF')
-    expect(described_class::OUTLOOK_RULES.values.join).not_to include('#141A2E')
-    expect(described_class::OUTLOOK_RULES['.se-button td.se-button-cell, .se-button a.se-button-link'])
-      .to include('background-color:#1F2948', 'color:#FFFFFF')
+  it 'draws dark backgrounds as gradients, which Outlook ignores, and never as background colours' do
+    css = described_class.rules.map { |selector, declarations| "#{selector} { #{declarations} }" }.join("\n")
+
+    expect(css).to include('.se-bg { background-image:linear-gradient(#141A2E, #141A2E) !important; }')
+    expect(css).not_to include('background-color')
   end
 
-  it 'matches an element marked by Outlook itself or inside a marked ancestor' do
-    selector = described_class.outlook_selector('.se-bg, .se-button a.se-button-link')
+  it 'keeps the button text white in dark mode' do
+    button = described_class.rules.select { |selector, _| selector.include?('se-button-link') }.map(&:last).join
 
-    expect(selector.split(', ')).to include('[data-ogsb] .se-bg', '.se-bg[data-ogsb]', '[data-ogsc] .se-bg',
-                                            '.se-button a.se-button-link[data-ogsc]')
+    expect(button).to include('color:#FFFFFF', 'linear-gradient(#34478A')
   end
 end
