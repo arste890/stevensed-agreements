@@ -1,2 +1,4 @@
-<%# StevensED: formal salutation. Locals: name (optional). %>
-<p><%= local_assigns[:name].present? ? t('stevensed.email.dear_name', name: local_assigns[:name]) : t('stevensed.email.greeting') %></p>
+<%# StevensED: formal salutation. Locals: name (optional). A name that is only the organization or account name (for example "StevensED") is not a person, so the neutral greeting is used instead. %>
+<% name = local_assigns[:name].to_s.strip %>
+<% not_a_person = name.blank? || [Stevensed::ORGANIZATION, @current_account&.name].compact.map { |n| n.to_s.strip.downcase }.include?(name.downcase) %>
+<p><%= not_a_person ? t('stevensed.email.greeting') : t('stevensed.email.dear_name', name:) %></p>

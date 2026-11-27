@@ -2,7 +2,7 @@
 <% content_for(:meta) { render 'shared/email_meta', account: @current_account } %>
 <% content_for(:personal_link_notice) { render 'shared/email_personal_link_notice', account: true } %>
 <%= render 'shared/email_heading', title: t('stevensed.email.user_invite_title', product_name: Stevensed::PRODUCT_NAME) %>
-<%= render 'shared/email_greeting', name: @user.first_name %>
+<%= render 'shared/email_greeting', name: @user.full_name %>
 <p><%= t('stevensed.email.user_invite_intro', product_name: Stevensed::PRODUCT_NAME) %></p>
 <%= render 'shared/email_details', rows: [[t('stevensed.email.organization'), @user.account.name], [t('stevensed.email.account'), @user.email]] %>
 <%= render 'shared/email_button', url: invitation_url(reset_password_token: @token), label: t('stevensed.email.set_up_account') %>

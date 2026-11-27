@@ -1,7 +1,8 @@
 <%# StevensED: letter subject line ("Re: ..."). Locals: title, eyebrow (optional status tag), tone (:success, :danger or :notice). %>
 <% tones = { success: %w[#2E6B3A #EAF3EC #C5DCCB], danger: %w[#A7353A #FBEDED #F0CACB], notice: %w[#7A5A12 #FBF3E2 #EBD9AE] } %>
-<% color, background, border = tones.fetch(local_assigns[:tone] || :notice) %>
+<% tone = tones.key?(local_assigns[:tone]) ? local_assigns[:tone] : :notice %>
+<% color, background, border = tones.fetch(tone) %>
 <% if local_assigns[:eyebrow].present? %>
-  <p style="margin:0 0 8px 0;"><span style="display:inline-block;font-family:Inter, 'Helvetica Neue', Helvetica, Arial, sans-serif;font-size:10px;line-height:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:<%= color %>;background-color:<%= background %>;border:1px solid <%= border %>;padding:3px 8px;border-radius:2px;"><%= local_assigns[:eyebrow] %></span></p>
+  <p style="margin:0 0 8px 0;"><span class="se-tag-<%= tone %>" style="display:inline-block;font-family:Inter, 'Helvetica Neue', Helvetica, Arial, sans-serif;font-size:10px;line-height:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:<%= color %>;background-color:<%= background %>;border:1px solid <%= border %>;padding:3px 8px;border-radius:2px;"><%= local_assigns[:eyebrow] %></span></p>
 <% end %>
 <p class="se-title" style="margin:0 0 18px 0;font-family:Georgia, 'Times New Roman', serif;font-size:17px;line-height:26px;font-weight:bold;color:#1F2948;"><%= title %></p>

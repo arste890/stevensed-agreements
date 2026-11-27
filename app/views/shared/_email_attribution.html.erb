@@ -6,10 +6,10 @@
 <% legal_links << [t('stevensed.email.footer_esign_consent'), 'https://policies.stevensed.org/#/doc/e-signature-consent'] %>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;">
   <tr>
-    <td class="se-pad se-sans" bgcolor="#1F2948" style="padding:22px 36px;background-color:#1F2948;font-family:Inter, 'Helvetica Neue', Helvetica, Arial, sans-serif;font-size:11px;line-height:17px;color:#C9D0DE;">
+    <td class="se-pad se-sans se-footer" bgcolor="#1F2948" style="padding:22px 36px;background-color:#1F2948;font-family:Inter, 'Helvetica Neue', Helvetica, Arial, sans-serif;font-size:11px;line-height:17px;color:#C9D0DE;">
       <p style="margin:0 0 10px 0;"><strong style="color:#FFFFFF;">StevensED LLC</strong>, <%= Stevensed::OFFICE.sub(/\s+and\s+/, ' & ') %><br>P.O. Box 900342, Sandy, UT 84090 | <a href="mailto:<%= Stevensed::CONTACT_EMAIL %>" style="<%= link_style %>"><%= Stevensed::CONTACT_EMAIL %></a></p>
       <p style="margin:0 0 12px 0;"><%= safe_join(legal_links.map { |(label, url)| link_to(label, url, style: link_style) }, ' | ') %></p>
-      <p style="margin:0;padding-top:12px;border-top:1px solid #3A4670;font-size:10.5px;line-height:16px;color:#9AA5BC;"><%= t('stevensed.email.confidentiality_html', email: Stevensed::CONTACT_EMAIL) %></p>
+      <p class="se-footer-muted" style="margin:0;padding-top:12px;border-top:1px solid #3A4670;font-size:10.5px;line-height:16px;color:#9AA5BC;"><%= t('stevensed.email.confidentiality_html', email: Stevensed::CONTACT_EMAIL) %></p>
     </td>
   </tr>
 </table>

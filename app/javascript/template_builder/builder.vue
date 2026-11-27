@@ -353,14 +353,15 @@
                 id="send_button"
                 :href="`/templates/${template.id}/submissions/new?with_link=true`"
                 :data-turbo-frame="!nativePlatform && isMobile && isBreakpointLg ? '_top' : 'modal'"
-                class="white-button md:!px-6"
+                class="white-button md:!px-6 inline-flex items-center gap-2 leading-none"
                 @click="maybeShowErrorTemplateAlert"
               >
                 <IconUsersPlus
-                  width="20"
-                  class="inline"
+                  width="22"
+                  height="22"
+                  class="shrink-0"
                 />
-                <span class="hidden md:inline">
+                <span class="hidden md:inline leading-none">
                   {{ t('send') }}
                 </span>
               </a>

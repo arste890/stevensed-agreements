@@ -1,8 +1,17 @@
-<%# StevensED: bulletproof primary button (border-based, clickable in Outlook). Locals: url, label, fallback (default true). %>
+<%# StevensED: bulletproof primary button, used by every email. The cell carries the colour (bgcolor for clients that drop CSS); the link is a padded block of the same colour with no borders, so no client can show a second rectangle inside it. Outlook for Windows draws the VML roundrect instead. Dark mode swaps both to the same light pair (shared/email_dark_styles). Locals: url, label, fallback (default true). %>
+<% vml_width = [(label.to_s.length * 9) + 64, 160].max %>
 <table role="presentation" class="se-button" cellpadding="0" cellspacing="0" border="0" style="margin:4px 0 22px 0;">
   <tr>
-    <td align="center" bgcolor="#1F2948" style="background-color:#1F2948;border-radius:2px;">
-      <a href="<%= url %>" target="_blank" style="display:inline-block;background-color:#1F2948;border-top:13px solid #1F2948;border-bottom:13px solid #1F2948;border-left:30px solid #1F2948;border-right:30px solid #1F2948;border-radius:2px;font-family:Inter, 'Helvetica Neue', Helvetica, Arial, sans-serif;font-size:15px;line-height:20px;font-weight:600;color:#FFFFFF;text-decoration:none;letter-spacing:0.2px;"><%= label %></a>
+    <td class="se-button-cell" align="center" bgcolor="#1F2948" style="background-color:#1F2948;border-radius:2px;mso-padding-alt:0;">
+      <!--[if mso]>
+      <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="<%= url %>" style="height:46px;v-text-anchor:middle;width:<%= vml_width %>px;" arcsize="5%" stroke="f" fillcolor="#1F2948">
+        <w:anchorlock/>
+        <center style="color:#FFFFFF;font-family:Arial, Helvetica, sans-serif;font-size:15px;font-weight:bold;"><%= label %></center>
+      </v:roundrect>
+      <![endif]-->
+      <!--[if !mso]><!-->
+      <a class="se-button-link" href="<%= url %>" target="_blank" style="display:inline-block;background-color:#1F2948;padding:13px 30px;border-radius:2px;font-family:Inter, 'Helvetica Neue', Helvetica, Arial, sans-serif;font-size:15px;line-height:20px;font-weight:600;color:#FFFFFF;text-decoration:none;letter-spacing:0.2px;mso-hide:all;"><%= label %></a>
+      <!--<![endif]-->
     </td>
   </tr>
 </table>

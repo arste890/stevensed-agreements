@@ -52,4 +52,28 @@ describe SubmitterMailer do
     expect(mail.body.encoded[/href="([^"]+)"/, 1]).to include('reset_password_token=reset-token')
     expect(mail.subject).to eq('StevensED Agreements: password reset instructions')
   end
+
+  describe 'completed notice to the sender' do
+    before { submitter.update!(completed_at: Time.current) }
+
+    it 'greets the sending user by full name and draws a bulletproof button with a dark palette' do
+      html = described_class.completed_email(submitter, user).deliver_now.html_part.body.decoded
+
+      expect(html).to include('Dear Morgan Hale,')
+      expect(html).to include('class="se-button-cell" align="center" bgcolor="#1F2948"', 'v:roundrect')
+      expect(html).to match(/class="se-button-link"[^>]+padding:13px 30px/)
+      expect(html).not_to include('border-top:13px solid')
+      expect(html).to include('@media (prefers-color-scheme: dark)', '[data-ogsb] .se-bg', '[data-ogsc] .se-label-cell')
+      expect(html).to be_ascii_only
+    end
+
+    it 'uses a neutral greeting when the only name is the organization' do
+      user.update!(first_name: Stevensed::ORGANIZATION, last_name: nil)
+
+      html = described_class.completed_email(submitter, user).deliver_now.html_part.body.decoded
+
+      expect(html).to include('<p>Hello,</p>')
+      expect(html).not_to include("Dear #{Stevensed::ORGANIZATION},")
+    end
+  end
 end
