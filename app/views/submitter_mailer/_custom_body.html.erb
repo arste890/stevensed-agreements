@@ -10,7 +10,7 @@
     <% index += 3 %>
   <% else %>
     <% if part.strip.present? %>
-      <%= render 'custom_content', content: part, submitter: local_assigns[:submitter], sig: local_assigns[:sig] %>
+      <%= render 'submitter_mailer/custom_content', content: part, submitter: local_assigns[:submitter], sig: local_assigns[:sig] %>
     <% end %>
     <% index += 1 %>
   <% end %>
