@@ -25,9 +25,12 @@ module Stevensed
       '.se-button td.se-button-cell, .se-button a.se-button-link' =>
         'background-color:#F7F5F1 !important;color:#1F2948 !important;',
       '.se-code' => 'background-color:#1C2440 !important;color:#F7F5F1 !important;border-color:#3A4670 !important;',
-      '.se-tag-success' => 'color:#A9DDB4 !important;background-color:#1D3324 !important;border-color:#3D6E49 !important;',
-      '.se-tag-danger' => 'color:#F5C2C4 !important;background-color:#3A1E22 !important;border-color:#7A3A40 !important;',
-      '.se-tag-notice' => 'color:#EFD597 !important;background-color:#33290F !important;border-color:#6B5520 !important;'
+      '.se-tag-success' =>
+        'color:#A9DDB4 !important;background-color:#1D3324 !important;border-color:#3D6E49 !important;',
+      '.se-tag-danger' =>
+        'color:#F5C2C4 !important;background-color:#3A1E22 !important;border-color:#7A3A40 !important;',
+      '.se-tag-notice' =>
+        'color:#EFD597 !important;background-color:#33290F !important;border-color:#6B5520 !important;'
     }.freeze
 
     module_function
