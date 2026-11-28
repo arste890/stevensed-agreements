@@ -39,6 +39,11 @@
     /* WCAG AA: secondary text at 50 to 60 percent ink fell to about 3.4:1 on the parchment rows; 80 percent keeps the hierarchy and passes. */
     html .text-base-content\/50, html .text-base-content\/60 { color: rgb(31 41 72 / 0.8); }
     html .menu-title, html .menu-title > *, html .table :where(thead, tfoot) { color: rgb(31 41 72 / 0.8); }
+    /* Status pills and API method badges in StevensED tints (navy, parchment gold, sage, crimson), ink text at AA or better. Signer colours are left alone: they identify each signer across the builder, documents and event log. */
+    html .badge-info:not(.badge-outline) { background-color: #dde3f0; border-color: #dde3f0; color: #26335a; }
+    html .badge-warning:not(.badge-outline) { background-color: #f1e2c3; border-color: #f1e2c3; color: #5a3d0c; }
+    html .badge-success:not(.badge-outline) { background-color: #d3e5d5; border-color: #d3e5d5; color: #1f4a2c; }
+    html .badge-error:not(.badge-outline) { background-color: #f3d3d4; border-color: #f3d3d4; color: #8a2328; }
     html .badge-info.badge-outline { color: var(--navy, #2f3e68); border-color: currentColor; }
     html .btn-outline.btn-error:not(:hover):not(:focus-visible) { color: #a3262c; border-color: #a3262c; }
     .se-page-zone__title, .se-page-zone__title a:not(.btn):not(.white-button):not(.base-button) { display: block; color: var(--ink); text-decoration: none; }

@@ -19,7 +19,8 @@ module HighlightCode
     '#585858' => '#aeb7cb',
     '#ba8baf' => '#dcaad2',
     '#7cafc2' => '#a6d0e2',
-    '#a16946' => '#d9a27a'
+    '#a16946' => '#d9a27a',
+    '#dc9656' => '#e8b383'
   }.freeze
 
   def lighten_for_navy(html)

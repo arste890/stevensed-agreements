@@ -85,6 +85,7 @@ en:
     reminder_subject_prefix: 'StevensED reminder:'
     sso_failed: Single sign-on did not complete. Try again or contact legal@stevensed.org.
     sign_in_with_stevensed: Sign in with StevensED
+    sign_in_to_download: Sign in with your StevensED account to download your copy
     sign_in_with_saml: Sign in with single sign-on
     or: or
     my_agreements: My agreements

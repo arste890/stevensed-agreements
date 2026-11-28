@@ -28,7 +28,9 @@ class SubmitFormCompletedDownloadController < ApplicationController
 
     Submissions::EnsureResultGenerated.call(last_submitter)
 
-    if !signature_valid && !current_user_submitter?(last_submitter)
+    # StevensED: a signed-in person who may read the signer's own record (a parent through auth.stevensed.org) or
+    # the last signer's record (staff) downloads at any time; others follow the link checks and the time limit.
+    if !signature_valid && !current_user_submitter?(@submitter) && !current_user_submitter?(last_submitter)
       unless Submitters::AuthorizedForForm.call(@submitter, current_user, request, with_order: true)
         return head :not_found
       end

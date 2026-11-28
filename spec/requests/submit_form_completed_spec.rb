@@ -43,4 +43,36 @@ describe 'Signing link completion page' do
       expect(response.body).to include('Form has been deleted')
     end
   end
+
+  describe 'downloads after the first 30 minutes' do
+    before { submitter.update!(completed_at: 2.days.ago, email: 'parent@example.com') }
+
+    def download_menu?
+      response.body.include?(submit_form_documents_path(submitter.slug, kind: 'documents'))
+    end
+
+    it 'shows the downloads to the parent signed in with the signer email' do
+      sign_in(create(:user, account:, role: User::CLIENT_ROLE, email: 'parent@example.com'))
+
+      get submit_form_completed_path(submitter.slug)
+
+      expect(response).to have_http_status(:ok)
+      expect(download_menu?).to be(true)
+    end
+
+    it 'hides them from another signed-in parent' do
+      sign_in(create(:user, account:, role: User::CLIENT_ROLE, email: 'someone.else@example.com'))
+
+      get submit_form_completed_path(submitter.slug)
+
+      expect(download_menu?).to be(false)
+    end
+
+    it 'offers the StevensED sign-in to a signer who is not signed in' do
+      get submit_form_completed_path(submitter.slug)
+
+      expect(download_menu?).to be(false)
+      expect(response.body).to include('Sign in with your StevensED account to download your copy')
+    end
+  end
 end
