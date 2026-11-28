@@ -17,6 +17,29 @@ module StevensedIdentityHelper
     ['StevensED', 'radio', '11. StevensED use only']
   ].freeze
 
+  FRM301_FIELDS = [
+    ['Parent', 'text', '1. Student name'],
+    ['Parent', 'text', '1. Academic year'],
+    ['Parent', 'checkbox', '2. (a) Internal instructional use, including lesson recordings. Photos'],
+    ['Parent', 'checkbox', "2. (b) Recital and performance programs. My student's name"],
+    ['Parent', 'checkbox', '2. (c) StevensED and Music Academy websites (StevensED.org, music.StevensED.org'],
+    ['Parent', 'checkbox', '2. (d) StevensED social media accounts'],
+    ['Parent', 'checkbox', '2. (e) News and press. Sharing media with, or'],
+    ['Parent', 'checkbox', '2. (f) Audio and video of performances. Publishing recordings'],
+    ['Parent', 'checkbox', '2. (g) Live-streaming of recitals. Including my student in'],
+    ['Parent', 'checkbox', '2. No name'],
+    ['Parent', 'checkbox', '2. First name only'],
+    ['Parent', 'checkbox', '2. Full name']
+  ].freeze
+
+  FRM301_U13_FIELDS = (FRM301_FIELDS + [
+    ['Parent', 'date', '1. Student date of birth'],
+    ['StevensED', 'date', '8. Parent consent verified by StevensED staff on (date)'],
+    ['StevensED', 'text', '8. StevensED staff member'],
+    ['StevensED', 'text', '8. Form version'],
+    ['StevensED', 'radio', '8. StevensED use only']
+  ]).freeze
+
   FRM101_FIELDS = [
     ['Parent', 'text', '1. Applicant name'],
     ['Parent', 'date', '1. Applicant date of birth']

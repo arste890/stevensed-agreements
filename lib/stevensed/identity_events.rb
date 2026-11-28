@@ -35,7 +35,26 @@ module Stevensed
     # Forms whose events identity acts on in phase 1. Other managed forms are not sent.
     CONSENT_FORM = 'FRM-108'
     BIRTH_YEAR_FORMS = %w[FRM-101 FRM-103 FRM-105].freeze
-    FORMS = ([CONSENT_FORM] + BIRTH_YEAR_FORMS).freeze
+    MEDIA_FORM = 'FRM-301'
+    # Family forms (FRM-101 to FRM-499): identity keeps a reference to each for "Forms on file" in the StevensED app.
+    # Faculty and staff forms (FRM-5xx) and general forms (FRM-6xx) stay in Agreements only.
+    FAMILY_FORM = /\AFRM-[1-4]\d{2}\z/
+    FAMILY_EXTERNAL_IDS = '^FRM-[1-4][0-9]{2}(-[A-Z0-9]+)?_v'
+
+    # FRM-301 media choices (sections 1 and 2; 3.2 and later). The under-13 version adds section 8, completed by
+    # StevensED after verifying the parent, like FRM-108 section 11.
+    FRM301_CHOICES = {
+      'a' => /\A2\.\s*\(a\)/, 'b' => /\A2\.\s*\(b\)/, 'c' => /\A2\.\s*\(c\)/, 'd' => /\A2\.\s*\(d\)/,
+      'e' => /\A2\.\s*\(e\)/, 'f' => /\A2\.\s*\(f\)/, 'g' => /\A2\.\s*\(g\)/
+    }.freeze
+    FRM301_NAMES = { 'none' => /\A2\.\s*No name\z/i, 'first' => /\A2\.\s*First name only\z/i,
+                     'full' => /\A2\.\s*Full name\z/i }.freeze
+    FRM301_FIELDS = {
+      student_name: /\A1\.\s*Student name\z/i, academic_year: /\A1\.\s*Academic year\z/i,
+      student_dob: /\A1\.\s*Student date of birth\z/i,
+      verified_on: /\A8\.\s*Parent consent verified by StevensED staff on/i, staff: /\A8\.\s*StevensED staff member\z/i,
+      form_version: /\A8\.\s*Form version\z/i, method: /\A8\.\s*StevensED use only\z/i
+    }.freeze
 
     # FRM-108 field names (v4.6 and later).
     FRM108_FIELDS = {
@@ -87,7 +106,7 @@ module Stevensed
     def relevant?(submission)
       key, = Records.form_key_and_version(submission)
 
-      FORMS.include?(form_base(key))
+      form_base(key).to_s.match?(FAMILY_FORM)
     end
 
     # -- Enqueueing ------------------------------------------------------------------------------------------------
@@ -149,6 +168,7 @@ module Stevensed
         'form_key' => key,
         'form' => form_base(key),
         'form_version' => version&.to_s,
+        'title' => submission.template&.name.to_s.sub(/\s*\(from [^)]*\)\z/, '').presence,
         'template_id' => submission.template_id,
         'document_id' => Digest::MD5.hexdigest(submission.slug).upcase,
         'pdf_sha256' => pdf_hashes(submission),
@@ -215,6 +235,7 @@ module Stevensed
       case base
       when CONSENT_FORM then frm108_facts(submission)
       when *BIRTH_YEAR_FORMS then birth_year_facts(submission)
+      when MEDIA_FORM then frm301_facts(submission)
       else {}
       end
     end
@@ -247,6 +268,31 @@ module Stevensed
 
       { 'student_name' => value_for(submission, STUDENT_NAME_FIELD).to_s.squish.presence,
         'birth_date' => birth_date(dob), 'birth_year' => year_only(dob) }.compact
+    end
+
+    def frm301_facts(submission)
+      v = FRM301_FIELDS.transform_values { |re| value_for(submission, re) }
+      under13 = fields(submission).any? { |f| f['name'].to_s.match?(FRM301_FIELDS[:verified_on]) }
+      choices = FRM301_CHOICES.transform_values { |re| checked?(value_for(submission, re)) }
+      name = FRM301_NAMES.find { |_, re| checked?(value_for(submission, re)) }&.first
+      facts = { 'student_name' => v[:student_name].to_s.squish.presence,
+                'academic_year' => v[:academic_year].to_s.squish.presence,
+                'choices' => choices, 'name_display' => name, 'under_13' => under13 }
+
+      return facts.compact unless under13
+
+      label = v[:method].to_s.strip
+      section8 = { 'verified_on' => date_only(v[:verified_on]), 'staff' => v[:staff].to_s.squish.presence,
+                   'form_version' => v[:form_version].to_s.strip.presence, 'method_label' => label.presence,
+                   'method' => METHODS[label.downcase] }
+
+      facts.merge('student_birth_date' => birth_date(v[:student_dob]), 'section_8' => section8.compact,
+                  'section_8_complete' => section8.values_at('verified_on', 'staff', 'form_version', 'method')
+                                                  .all?(&:present?)).compact
+    end
+
+    def checked?(value)
+      value == true || value.to_s.strip.downcase.in?(%w[true 1 yes on checked])
     end
 
     def choice(value)
