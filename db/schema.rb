@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_26_180000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_28_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gin"
   enable_extension "pg_catalog.plpgsql"
@@ -371,6 +371,24 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_26_180000) do
     t.index ["submitter_id"], name: "index_stevensed_esign_consents_on_submitter_id", unique: true, where: "(submitter_id IS NOT NULL)"
   end
 
+  create_table "stevensed_retention_disposals", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.date "completed_on", null: false
+    t.datetime "created_at", null: false
+    t.datetime "disposed_at", null: false
+    t.string "document_id", null: false
+    t.string "form_key", null: false
+    t.string "form_version"
+    t.jsonb "pdf_sha256", default: [], null: false
+    t.date "period_ended_on", null: false
+    t.string "rule", null: false
+    t.bigint "submission_id", null: false
+    t.bigint "template_id"
+    t.datetime "updated_at", null: false
+    t.index ["account_id", "disposed_at"], name: "index_stevensed_retention_disposals_on_account_id_and_disposed_at"
+    t.index ["submission_id"], name: "index_stevensed_retention_disposals_on_submission_id", unique: true
+  end
+
   create_table "submission_events", force: :cascade do |t|
     t.bigint "account_id"
     t.datetime "created_at", null: false
@@ -641,6 +659,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_26_180000) do
   add_foreign_key "stevensed_esign_consents", "submissions"
   add_foreign_key "stevensed_esign_consents", "submitters"
   add_foreign_key "stevensed_esign_consents", "users", column: "withdrawn_by_user_id"
+  add_foreign_key "stevensed_retention_disposals", "accounts"
   add_foreign_key "submission_events", "accounts"
   add_foreign_key "submission_events", "submissions"
   add_foreign_key "submission_events", "submitters"

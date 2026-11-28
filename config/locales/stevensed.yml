@@ -43,8 +43,20 @@ en:
       stevensed_superseded_by_html: '<b>Superseded</b> by envelope %{envelope} (version %{version}), signed by %{submitter_name}'
       stevensed_archived_by_html: '<b>Archived</b> by %{user}. Reason: %{reason}'
       stevensed_unarchived_by_html: '<b>Restored to active</b> by %{user}'
+      stevensed_hold_placed_by_html: '<b>Litigation hold placed</b> by %{user}. Note: %{note}'
+      stevensed_hold_released_by_html: '<b>Litigation hold released</b> by %{user}'
   stevensed:
     download_choices: Download choices
+    retention:
+      hold_title: Litigation hold
+      hold_hint: A hold stops this record being deleted at the end of its retention period (Records Retention Policy, INF-002 §4). Place it only on the instruction of the Office of Legal Operations and Institutional Compliance.
+      hold_note: Matter reference (no names)
+      place_hold: Place hold
+      release_hold: Release hold
+      on_hold: On litigation hold
+      hold_placed: Litigation hold placed.
+      hold_released: Litigation hold released.
+      no_note: none given
     empty_archived_submissions: No archived submissions. Records archived by staff, or superseded by a newer signature, appear here.
     empty_folder: This folder is empty. Upload a document or create a template to add one.
     records:

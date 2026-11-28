@@ -28,6 +28,9 @@
       </span>
     </div>
   <% end %>
+  <% if signed_in? && !local_assigns[:is_preview] && current_user.role == User::ADMIN_ROLE && @submission.completed_at? %>
+    <%= render 'submissions/stevensed_litigation_hold', submission: @submission %>
+  <% end %>
   <% unless native_tab == 'recipients' %>
     <% page_actions = capture do %>
       <div class="flex items-center gap-3">

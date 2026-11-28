@@ -70,7 +70,9 @@ class SubmissionEvent < ApplicationRecord
     accept_esign_consent: 'accept_esign_consent', # StevensED: ESIGN Act consent before signing
     stevensed_superseded: 'stevensed_superseded', # StevensED: a newer version signed by the same signer
     stevensed_archived: 'stevensed_archived', # StevensED: archived by staff, with a reason
-    stevensed_unarchived: 'stevensed_unarchived'
+    stevensed_unarchived: 'stevensed_unarchived',
+    stevensed_hold_placed: 'stevensed_hold_placed', # StevensED: litigation hold (INF-002 §4)
+    stevensed_hold_released: 'stevensed_hold_released'
   }, scope: false
 
   private

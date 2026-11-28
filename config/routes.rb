@@ -79,6 +79,7 @@ Rails.application.routes.draw do
   resources :submissions, only: %i[index], controller: 'submissions_dashboard'
   resources :submissions, only: %i[show destroy] do
     resources :unarchive, only: %i[create], controller: 'submissions_unarchive'
+    resource :litigation_hold, only: %i[create destroy], controller: 'submissions_litigation_hold' # StevensED
     resources :events, only: %i[index], controller: 'submission_events'
     resources :download, only: %i[index], controller: 'submissions_download'
     resources :resend_email, only: %i[create], controller: 'submissions_resend_email'

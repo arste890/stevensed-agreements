@@ -1,0 +1,23 @@
+<%# StevensED: litigation hold on a record (Records Retention Policy, INF-002 §4; Stevensed::Retention). Admins only. Locals: submission. %>
+<% hold = Stevensed::Retention.hold(submission) %>
+<% if hold %>
+  <div class="alert mb-3 mr-4 text-sm flex flex-wrap justify-between gap-2" role="status">
+    <span class="flex items-center gap-2">
+      <%= svg_icon('lock', class: 'w-5 h-5 flex-none') %>
+      <span><b><%= t('stevensed.retention.on_hold') %></b><%= ": #{hold['note']}" if hold['note'].present? %> (<%= hold['user_name'] %>)</span>
+    </span>
+    <%= button_to t('stevensed.retention.release_hold'), submission_litigation_hold_path(submission), method: :delete, class: 'btn btn-sm btn-outline', form: { data: { turbo_confirm: t('are_you_sure_') } } %>
+  </div>
+<% else %>
+  <details class="mb-3 mr-4 text-sm">
+    <summary class="cursor-pointer w-fit text-base-content/60"><%= t('stevensed.retention.hold_title') %></summary>
+    <%= form_with url: submission_litigation_hold_path(submission), method: :post, class: 'mt-2 max-w-md space-y-2' do %>
+      <p class="text-xs text-base-content/70"><%= t('stevensed.retention.hold_hint') %></p>
+      <label for="hold_note_<%= submission.id %>" class="label-text text-sm"><%= t('stevensed.retention.hold_note') %></label>
+      <div class="flex gap-2">
+        <input id="hold_note_<%= submission.id %>" type="text" name="hold_note" maxlength="200" required class="input input-bordered input-sm flex-1 min-w-0" autocomplete="off">
+        <button type="submit" class="btn btn-sm btn-neutral text-white flex-none"><%= t('stevensed.retention.place_hold') %></button>
+      </div>
+    <% end %>
+  </details>
+<% end %>

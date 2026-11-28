@@ -114,6 +114,13 @@ module Stevensed
       when 'stevensed_unarchived'
         I18n.t('submission_event_names.stevensed_unarchived_by_html',
                user: data['user_name'].presence || I18n.t('stevensed.records.staff'))
+      when 'stevensed_hold_placed'
+        I18n.t('submission_event_names.stevensed_hold_placed_by_html',
+               user: data['user_name'].presence || I18n.t('stevensed.records.staff'),
+               note: data['note'].presence || I18n.t('stevensed.retention.no_note'))
+      when 'stevensed_hold_released'
+        I18n.t('submission_event_names.stevensed_hold_released_by_html',
+               user: data['user_name'].presence || I18n.t('stevensed.records.staff'))
       end
     end
   end

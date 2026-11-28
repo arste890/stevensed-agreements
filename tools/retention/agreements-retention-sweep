@@ -1,0 +1,14 @@
+#!/bin/bash
+# StevensED Agreements: daily retention sweep (Stevensed::Retention, Records Retention Policy INF-002).
+# Installed at /usr/local/sbin/agreements-retention-sweep and run by agreements-retention-sweep.timer.
+# Disposes of standalone FRM-105 records whose period has ended (never one on a litigation hold), and logs a summary
+# with counts and submission IDs only. Set RETENTION_APPLY=false in /etc/default/agreements-retention to report only.
+set -o pipefail
+[ -r /etc/default/agreements-retention ] && . /etc/default/agreements-retention
+APPLY=${RETENTION_APPLY:-false}
+out=$(docker exec -w /app docuseal bin/rails runner "puts Stevensed::Retention.sweep(apply: ${APPLY} == true).to_json" 2>&1 | grep -v -e "Unable to run" -e "called from" -e emulated -e DEPRECATION)
+rc=$?
+logger -t agreements-retention-sweep "rc=$rc apply=$APPLY $(echo "$out" | tail -1 | cut -c1-900)"
+if [ $rc -ne 0 ] || ! echo "$out" | tail -1 | grep -q '"counts"'; then
+  exit 1
+fi

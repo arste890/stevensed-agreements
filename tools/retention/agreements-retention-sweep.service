@@ -1,0 +1,7 @@
+[Unit]
+Description=StevensED Agreements: retention sweep (INF-002)
+After=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/agreements-retention-sweep
